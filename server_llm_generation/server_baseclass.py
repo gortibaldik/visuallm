@@ -56,18 +56,19 @@ class FlaskGenerationApp:
         self.word_dict = [x.decode('utf-8') for x in self.word_dict]
 
     def fetch(self):
-        dct = dict(
+        return jsonify(dict(
             result="success",
             context=self._context,
             continuations=self.get_next_token_predictions()
-        )
-        print(dct)
-        return jsonify(dct)
+        ))
+    
+    def append_to_context(self, post_token: str):
+        self._context += " " + post_token
     
     def select(self):
         data = request.get_json()
         post_token = data.get('token')
-        self._context += " " + post_token
+        self.append_to_context(post_token)
 
         return jsonify(dict(
             result="success",
