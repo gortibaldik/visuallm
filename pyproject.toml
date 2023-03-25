@@ -32,4 +32,4 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [tool.setuptools.package-dir]
-llm_generation_server = "server_llm_generation"
+llm_generation_server = "llm_generation_server"

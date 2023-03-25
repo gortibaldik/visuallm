@@ -30,9 +30,8 @@ class InteractiveGenerationServer(FlaskGenerationApp):
         self._tokenizer = tokenizer
         self._model = model
         super().__init__(name, n_largest_tokens_to_return)
-        self._context = initial_context
 
-    def initialize_dictionary(self):
+    def initialize_vocab(self):
         # initialize vocabulary from tokenizer
         vocab_size = self._tokenizer.vocab_size
         self.word_dict = [""] * vocab_size
@@ -63,9 +62,10 @@ initial_context = load_from_dataset()
 generation_server = InteractiveGenerationServer(
     __name__,
     tokenizer,
-    model,
-    initial_context
+    model
 )
+generation_server.initialize_context(initial_context)
+generation_server.initialize_vocab()
 generation_server.run()
 ```
 ![generation_image](./readme_images/generation.png)

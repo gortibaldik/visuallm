@@ -76,7 +76,7 @@ export default defineComponent({
 <div class="horizontal rounded">
   <h2>Generation with Language Models</h2>
   <h3>Current Context: </h3>
-  <div style="margin-top: 10px">"{{ currentContext }}"</div>
+  <div style="margin-top: 10px" v-html="currentContext"></div>
   <h3>Possible continuations: </h3>
   <div v-for="item in softmax" class="progress-bar">
     <!-- <span class="word word-text" style="display: inline-block">{{ item.word }}</span> -->
