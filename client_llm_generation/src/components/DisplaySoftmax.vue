@@ -124,14 +124,14 @@ input {
 
 .word-text {
   display: inline-block;
-  width: 10%;
+  width: 20%;
   overflow: auto;
   margin-bottom: -7px;
 }
 
 .progress-track {
   background: #ebebeb;
-  width: 80%;
+  width: 70%;
   display: inline-block;
   padding-top: 1px;
   padding-bottom: 1px;
