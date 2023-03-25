@@ -6,6 +6,8 @@ from heapq import nlargest
 import requests
 import random
 import numpy as np
+import os
+import sys
 
 @dataclass
 class Continuation:
@@ -14,19 +16,17 @@ class Continuation:
 
 
 class FlaskGenerationApp:
-    def retrieve_module_path(self):
-        try:
-            import llm_generation_server
-            print(llm_generation_server.__file__)
-        except:
-            print("nothing imported")
+    def retrieve_static_files_path(self):
+        dirname = os.path.dirname(__file__)
+        static_path = os.path.join(dirname, "dist")
+        print(f"Serving static files from {static_path}", file=sys.stderr)
+        return static_path
 
     def __init__(self, name, n_largest_tokens_to_return: int=10):
-        self.retrieve_module_path()
         self.app = Flask(
             name,
             static_url_path="",
-            static_folder="dist/",
+            static_folder=self.retrieve_static_files_path(),
             )
         self.n_largest_tokens_to_return = n_largest_tokens_to_return
         self.add_endpoint(
