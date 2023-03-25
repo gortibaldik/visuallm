@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, redirect
 from flask_cors import CORS
 from typing import Callable, List
 from dataclasses import dataclass
@@ -15,7 +15,11 @@ class Continuation:
 
 class FlaskGenerationApp:
     def __init__(self, name, n_largest_tokens_to_return: int=10):
-        self.app = Flask(name)
+        self.app = Flask(
+            name,
+            static_url_path="",
+            static_folder="dist/",
+            )
         self.n_largest_tokens_to_return = n_largest_tokens_to_return
         self.add_endpoint(
             "/fetch",
@@ -26,6 +30,11 @@ class FlaskGenerationApp:
             "/select",
             self.select,
             methods=['POST']
+        )
+        self.add_endpoint(
+            "/",
+            lambda: redirect("/index.html", code=302),
+            methods=['GET']
         )
         CORS(self.app, resources={r'/*': {'origins': '*'}})
         self.initialize_dictionary()

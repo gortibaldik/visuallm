@@ -28,5 +28,8 @@ dependencies = [
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+include-package-data = True
+
 [tool.setuptools.package-dir]
 language_model_generation = "server_llm_generation"
