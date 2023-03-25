@@ -1,0 +1,32 @@
+[project]
+name = "language_model_generation_GORTIBALDIK"
+version = "0.0.1"
+authors = [
+  { name="Frantisek Trebuna (gortibaldik)", email="ferotre@gmail.com" },
+]
+description = "Simple full stack app for displaying distribution of next token."
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "build>=0.10.0",
+    "flask-cors>=3.0.10",
+    "numpy==1.24.2",
+    "pip-chill==1.0.1",
+    "requests==2.28.2",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/gortibaldik/visualize_llm_generation"
+"Bug Tracker" = "https://github.com/gortibaldik/visualize_llm_generation/issues"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-dir]
+language_model_generation = "server_llm_generation"

@@ -5,42 +5,91 @@ export default defineComponent({
   data() {
     return {
       softmax: [
-          {word: "w1", prob: 10},
-          {word: "w2", prob: 20},
-          {word: "w3", prob: 30},
-          {word: "w4", prob: 40},
-          {word: "w5", prob: 50},
-          {word: "w6", prob: 60},
-          {word: "w7", prob: 70},
-          {word: "w8", prob: 80},
-          {word: "w9", prob: 90},
-          {word: "w10", prob: 100},
+        {token: "", prob: 100}
       ],
       picked: "",
-      generatedUntilNow: "really nice text from language model",
+      currentContext: "",
+      polllingInterval: 1,
+      howOftenToPollMs: 1000,
+      backendAddress: ""
     };
   },
+  methods: {
+    startPollingServer() {
+      this.polllingInterval = setInterval(this.pollBackend.bind(this), this.howOftenToPollMs)
+    },
+    async pollBackend() {
+      let response;
+      try {
+        response = await fetch(
+          `${this.backendAddress}/fetch`, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+            }
+          }).then(response => response.json())
+        if (response.result == "success") {
+          clearInterval(this.polllingInterval)
+          this.currentContext = response.context
+          this.softmax = response.continuations
+          this.picked = this.softmax[0].token
+        }        
+      } catch(err) {
+        console.log("Some error - poll backend")
+        return
+      }
+    },
+    async selectNextToken() {
+      let response;
+      try { 
+        response = await fetch(
+          `${this.backendAddress}/select`, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              token: this.picked
+            })
+        }). then(response => response.json())
+
+        if (response.result == "success") {
+          this.currentContext = response.context
+          this.softmax = response.continuations
+          this.picked = this.softmax[0].token
+        }
+      } catch (err) {
+        console.log("Some error - select")
+        return
+      }
+    }
+  },
+  created() {
+    this.backendAddress = "http://127.0.0.1:5000"
+    this.startPollingServer()
+  }
 });
 </script>
 
 <template>
 <div class="horizontal rounded">
   <h2>Generation with Language Models</h2>
-  <h3>Generated until now: </h3>
-  <div style="margin-top: 10px">"{{ generatedUntilNow }}"</div>
+  <h3>Current Context: </h3>
+  <div style="margin-top: 10px">"{{ currentContext }}"</div>
   <h3>Possible continuations: </h3>
   <div v-for="item in softmax" class="progress-bar">
     <!-- <span class="word word-text" style="display: inline-block">{{ item.word }}</span> -->
-    <span class="word-text">{{ item.word }}</span>
+    <span class="word-text">"{{ item.token }}"</span>
     <span class="progress-track">
       <div :style="{width: item.prob.toString() + '%'}" class="progress-fill">
-        <span class="prob-text">{{item.prob}}%</span>
+        <span class="prob-text">{{(Math.round(item.prob * 100) / 100).toFixed(2)}}%</span>
       </div>
     </span>
-    <input type="radio" v-model="picked" :value="item.word">
+    <input type="radio" v-model="picked" :value="item.token">
   </div>
 </div>
-<div style="text-align: center; margin-top: 10px"><button style="padding: 5px">Select {{ picked }}</button></div>
+<div style="text-align: center; margin-top: 10px"><button style="padding: 5px" @click="selectNextToken">Select "{{ picked }}"</button></div>
 </template>
 
 <style scoped>
@@ -90,7 +139,6 @@ input {
 
 .progress-fill {
   background: #666;
-  /* padding-left: 5px; */
 }
 
 .rounded .progress-track,
