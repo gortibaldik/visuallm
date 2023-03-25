@@ -13,6 +13,6 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: path.join("..", "server_llm_generation", "dist")
+    outDir: path.join("..", "llm_generation_server", "dist")
   }
 })
