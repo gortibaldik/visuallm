@@ -29,7 +29,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-include-package-data = True
+include-package-data = true
 
 [tool.setuptools.package-dir]
 language_model_generation = "server_llm_generation"
