@@ -14,7 +14,15 @@ class Continuation:
 
 
 class FlaskGenerationApp:
+    def retrieve_module_path(self):
+        try:
+            import llm_generation_server
+            print(llm_generation_server.__file__)
+        except:
+            print("nothing imported")
+
     def __init__(self, name, n_largest_tokens_to_return: int=10):
+        self.retrieve_module_path()
         self.app = Flask(
             name,
             static_url_path="",
