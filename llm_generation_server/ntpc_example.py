@@ -1,9 +1,9 @@
-from llm_generation_server.server_baseclass import FlaskGenerationApp
+from llm_generation_server.next_token_prediction_component import NextTokenPredictionComponent
 import requests
 import random
 import numpy as np
 
-class FlaskGenerationExampleApp(FlaskGenerationApp):
+class ExampleNextTokenPredictionComponent(NextTokenPredictionComponent):
     def initialize_vocab(self):
         word_site = "https://www.mit.edu/~ecprice/wordlist.10000"
         response = requests.get(word_site)
