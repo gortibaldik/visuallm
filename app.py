@@ -3,8 +3,8 @@ from examples_py.next_token_prediction_example import ExampleNextTokenPrediction
 from examples_py.dialogue_connections_example import ExampleDialogueConnectionsComponent
 
 next_token_component = ExampleNextTokenPredictionComponent()
-connections_component = ExampleDialogueConnectionsComponent()
-flask_app = Server(__name__, [next_token_component, connections_component])
 next_token_component.initialize_context("Some initial context")
 next_token_component.initialize_vocab()
+connections_component = ExampleDialogueConnectionsComponent()
+flask_app = Server(__name__, [next_token_component, connections_component])
 app = flask_app.app

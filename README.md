@@ -15,61 +15,54 @@
 ### Example
 
 ```python
-from llm_generation_server.server_baseclass import FlaskGenerationApp
+from llm_generation_server.server import Server
+from llm_generation_server.next_token_prediction_component import NextTokenPredictionComponent
+import requests
+import random
+import numpy as np
 
-class InteractiveGenerationServer(FlaskGenerationApp):
-    def __init__(
-            self,
-            name,
-            tokenizer: PreTrainedTokenizer,
-            model: PreTrainedModel,
-            initial_context: str,
-            n_largest_tokens_to_return: int = 10,
-        ):
-        ## store tokenizer, model and initial context
-        self._tokenizer = tokenizer
-        self._model = model
-        super().__init__(name, n_largest_tokens_to_return)
-
+# override of NextTokenPredictionComponent
+#
+# downloads a word dict from mit wordlist and returns
+# random 10 words with random distribution over them
+class ExampleNextTokenPredictionComponent(NextTokenPredictionComponent):
     def initialize_vocab(self):
-        # initialize vocabulary from tokenizer
-        vocab_size = self._tokenizer.vocab_size
-        self.word_dict = [""] * vocab_size
-        for str_val, int_val in self._tokenizer.get_vocab().items():
-            self.word_dict[int_val] = str_val
-
-    def get_next_token_predictions(self):
-        # predict with model and tokenizer
-        pred_context = self._tokenizer(self._context, return_tensors="pt")
-        with pt.no_grad():
-            preds: pt.Tensor = self._model(**pred_context)["logits"]
-            preds = pt.softmax(preds, dim=-1)
-
-        np_preds: NDArray = preds[0, -1, :].numpy()
-
-        # return the predictions which are mapped to the vocabulary
-        return self.create_continuations(np_preds)
+        word_site = "https://www.mit.edu/~ecprice/wordlist.10000"
+        response = requests.get(word_site)
+        self.word_dict = response.content.splitlines()
+        self.word_dict = [x.decode('utf-8') for x in self.word_dict]
+        self.ix_arr = list(range(len(self.word_dict)))
     
-    def append_to_context(self, post_token: str):
-        # append the user selection to the currently held context
-        a = self._tokenizer.convert_tokens_to_string([post_token])
-        self._context += a
+    def append_to_context(self, context: str, post_token: str):
+        context = context + " " + post_token
+        return context
+    
+    def format_context(self, context: str):
+        return "<br>".join(context.split())
 
-model = load_model()
-tokenizer = load_tokenizer()
-initial_context = load_from_dataset()
+    def get_next_token_predictions(self, context: str):
+        K = self.n_largest_tokens_to_return * 3
+        twenty_ixes = random.choices(self.ix_arr, k=K)
+        twenty_probs = [random.random() for _ in range(K)]
+        twenty_probs = np.exp(twenty_probs)
+        twenty_probs /= np.sum(twenty_probs)
+        probs = np.zeros((len(self.word_dict, )))
+        probs[twenty_ixes] = twenty_probs
+        return self.create_continuations(probs)
 
-generation_server = InteractiveGenerationServer(
-    __name__,
-    tokenizer,
-    model
-)
-generation_server.initialize_context(initial_context)
-generation_server.initialize_vocab()
-generation_server.run()
+# create the component
+next_token_component = ExampleNextTokenPredictionComponent()
+next_token_component.initialize_context("Some initial context")
+next_token_component.initialize_vocab()
+
+# create server, inject components into it
+server = Server(__name__, [next_token_component])
+
+# start the server
+server.run()
 ```
 ![generation_image](./readme_images/generation.png)
 
 # TODO:
 - [ ] context formatting in python
-- [ ] tables in python (right now not general, just for PersonaChat + fast-text)
+- [x] tables in python (right now not general, just for PersonaChat + fast-text)
