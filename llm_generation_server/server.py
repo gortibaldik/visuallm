@@ -6,7 +6,7 @@ import os
 import sys
 
 
-class FlaskGenerationApp:
+class Server:
     def __init__(self, name, components: List[ComponentBase]):
         self.app = Flask(
             name,

@@ -6,3 +6,17 @@
 
   font-weight: normal;
 }
+
+h2 {
+  border-bottom: 1px solid #999;
+  font-family: sans-serif;
+  font-weight: normal;
+  color: #333;
+}
+
+h3 {
+  border-bottom: 1px solid #999;
+  font-family: sans-serif;
+  font-weight: lighter;
+  margin-top: 10px;
+}

@@ -1,8 +1,10 @@
-from llm_generation_server.server_baseclass import FlaskGenerationApp
-from llm_generation_server.ntpc_example import ExampleNextTokenPredictionComponent
+from llm_generation_server.server import Server
+from examples_py.next_token_prediction_example import ExampleNextTokenPredictionComponent
+from examples_py.dialogue_connections_example import ExampleDialogueConnectionsComponent
 
 next_token_component = ExampleNextTokenPredictionComponent()
-flask_app = FlaskGenerationApp(__name__, [next_token_component])
+connections_component = ExampleDialogueConnectionsComponent()
+flask_app = Server(__name__, [next_token_component, connections_component])
 next_token_component.initialize_context("Some initial context")
 next_token_component.initialize_vocab()
 app = flask_app.app

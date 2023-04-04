@@ -1,4 +1,4 @@
-from llm_generation_server.server_baseclass import FlaskGenerationApp
+from llm_generation_server.server import Server
 from flask import jsonify, request
 from typing import List
 from heapq import nlargest
@@ -14,7 +14,7 @@ class NextTokenPredictionComponent(ABC):
     def __init__(self, n_largest_tokens_to_return: int = 10):
         self.n_largest_tokens_to_return = n_largest_tokens_to_return
 
-    def init_app(self, app: FlaskGenerationApp):
+    def init_app(self, app: Server):
         self.app = app
         self.app.add_endpoint(
             "/fetch",

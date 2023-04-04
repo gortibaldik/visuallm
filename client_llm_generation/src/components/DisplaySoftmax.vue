@@ -1,5 +1,10 @@
 <script lang="ts" scoped>
 import { defineComponent } from 'vue';
+declare const process: {
+  env: {
+    [key: string]: string;
+  };
+};
 
 export default defineComponent({
   data() {
@@ -9,14 +14,14 @@ export default defineComponent({
       ],
       picked: "",
       currentContext: "",
-      polllingInterval: 1,
+      pollingInterval: 1,
       howOftenToPollMs: 1000,
       backendAddress: ""
     };
   },
   methods: {
     startPollingServer() {
-      this.polllingInterval = setInterval(this.pollBackend.bind(this), this.howOftenToPollMs)
+      this.pollingInterval = setInterval(this.pollBackend.bind(this), this.howOftenToPollMs)
     },
     async pollBackend() {
       let response;
@@ -29,7 +34,7 @@ export default defineComponent({
             }
           }).then(response => response.json())
         if (response.result == "success") {
-          clearInterval(this.polllingInterval)
+          clearInterval(this.pollingInterval)
           this.currentContext = response.context
           this.softmax = response.continuations
           this.picked = this.softmax[0].token
@@ -66,7 +71,7 @@ export default defineComponent({
     }
   },
   created() {
-    this.backendAddress = "http://127.0.0.1:5000"
+    this.backendAddress = import.meta.env.VITE_API_URL;
     this.startPollingServer()
   }
 });
@@ -93,20 +98,6 @@ export default defineComponent({
 </template>
 
 <style scoped>
-
-h2 {
-  border-bottom: 1px solid #999;
-  font-family: sans-serif;
-  font-weight: normal;
-  color: #333;
-}
-
-h3 {
-  border-bottom: 1px solid #999;
-  font-family: sans-serif;
-  font-weight: lighter;
-  margin-top: 10px;
-}
 
 input {
   margin-left: 5px;

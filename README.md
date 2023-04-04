@@ -70,3 +70,6 @@ generation_server.run()
 ```
 ![generation_image](./readme_images/generation.png)
 
+# TODO:
+- [ ] context formatting in python
+- [ ] tables in python (right now not general, just for PersonaChat + fast-text)
