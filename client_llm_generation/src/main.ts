@@ -1,12 +1,9 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import App from './App.vue'
-import DisplaySoftmax from './components/DisplaySoftmax.vue'
-import DisplayConnections from './components/DisplayConnections.vue'
 
 const routes = [
-    { path: '/', component: DisplaySoftmax},
-    { path: '/connections', component: DisplayConnections}
+    { name: 'default', path: '/', component: App},
 ]
 
 const router = createRouter({

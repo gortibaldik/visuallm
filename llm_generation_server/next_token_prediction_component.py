@@ -27,6 +27,14 @@ class NextTokenPredictionComponent(ABC):
             methods=['POST']
         )
     
+    @property
+    def name(self):
+        return "next_token_prediction"
+
+    @property
+    def title(self):
+        return "Next Token Prediction"
+    
     def fetch(self):
         return jsonify(dict(
             result="success",

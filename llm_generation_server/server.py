@@ -1,9 +1,15 @@
-from flask import Flask, redirect
+from flask import Flask, redirect, jsonify
 from flask_cors import CORS
 from typing import Callable, List
 from llm_generation_server.component_base import ComponentBase
 import os
 import sys
+from dataclasses import dataclass
+
+@dataclass
+class ComponentInfo:
+    name: str
+    title: str
 
 
 class Server:
@@ -22,7 +28,24 @@ class Server:
             lambda: redirect("/index.html", code=302),
             methods=['GET']
         )
+        self.add_endpoint(
+            "/fetch_components",
+            self.fetch_components,
+            methods=['GET']
+        )
         CORS(self.app, resources={r'/*': {'origins': '*'}})
+
+    def fetch_components(self):
+        paths = []
+        for component in self.components:
+            paths.append(ComponentInfo(
+                name=component.name,
+                title=component.title
+            ))
+        return jsonify(dict(
+            result="success",
+            context=paths
+        ))
 
     def run(self):
         self.app.run()

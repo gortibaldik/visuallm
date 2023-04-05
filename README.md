@@ -1,16 +1,19 @@
-# Language Model Generation
+# Conditional Language Model Generation Visualization
 - when evaluating language models it is often pain to see what is generated and why
-- this little package is a `vue.js` frontend together with `flask` backend and it is designed to easily show the distribution of the next token prediction
+- this little package is a `vue.js` frontend together with `flask` backend and it is designed to easily show some interesting visualizations on conditional generation models
 
 ## Installation
 - right now only installation right from the git is supported, however I plan to deploy the package also to PyPi
 - `pip install git+https://github.com/gortibaldik/visualize_llm_generation#egg=llm_generation_server`
 
 ## Usage
-- the intended usage of this library is to inherit from `llm_generation_server.server_baseclass.FlaskGenerationApp` and to override the following methods:
-    - `initialize_dictionary`: should be initialized to the dictionary used by the tokenizer for the model
-    - `get_next_token_predictions`: should tokenize the current context and return the softmax output of the model
-    - `append_to_context`: should handle how tokens connect to reform original sentences
+The library is composed of two parts:
+1. Server - `llm_generation_server.server.Server`
+2. Components - `llm_generation_server.*_component.[a-zA-Z]*Component(ABC)`
+
+The server can be used as is while the components must be extended. The inheritors of base components should initialize the main parts without which
+it is impossible to run anything, e.g. for the `NextTokenPredictionComponent`
+one must override `initialize_vocab`, `append_to_context`, `get_next_token_predictions`. The `examples_py` as well as the next section show several rather unuseful examples how to override these methods.
 
 ### Example
 
@@ -63,6 +66,3 @@ server.run()
 ```
 ![generation_image](./readme_images/generation.png)
 
-# TODO:
-- [ ] context formatting in python
-- [x] tables in python (right now not general, just for PersonaChat + fast-text)
