@@ -10,10 +10,16 @@ abstract class PollingBase {
         this.howOftenToPoll = howOftenToPoll
     }
 
-    newRequest() {
-        if (typeof this.pollingInterval === "boolean") {
-            this.pollingInterval = setInterval(this._fetchFromBackend.bind(this), this.howOftenToPoll)
+    isPending() {
+        return typeof this.pollingInterval === "number"
+    }
+
+    async newRequest() {
+        if (this.isPending()) {
+            console.log("Request not processed, another one is still pending!")
+            return
         }
+        await this._fetchFromBackend()
     }
     
     async _fetchFromBackend() {
@@ -22,16 +28,20 @@ abstract class PollingBase {
             if (response.result == "success") {
                 this.responseCallback(response)
                 this.clear()
+                return
             }
         } catch (err) {
             console.log("Error - PollUntilSuccess")
             console.log(err)
-            return
+        }
+        if (typeof this.pollingInterval === "boolean") {
+            this.pollingInterval = setInterval(this._fetchFromBackend.bind(this), this.howOftenToPoll)
         }
     }
 
     clear() {
-        if (typeof this.pollingInterval === "number") {
+        if (this.isPending()) {
+            // @ts-ignore
             clearInterval(this.pollingInterval)
             this.pollingInterval = false
         }

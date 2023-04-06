@@ -42,10 +42,10 @@ export default defineComponent({
           500,
           { token: this.picked }
         )
-      } else {
+      } else if (!this.selectPoll.isPending()) {
         this.selectPoll.body = { token: this.picked }
       }
-      this.selectPoll.newRequest()
+      await this.selectPoll.newRequest()
     }
   },
 });

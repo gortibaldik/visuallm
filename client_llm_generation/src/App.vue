@@ -37,12 +37,16 @@ export default defineComponent({
       } as {[name: string] : Component}
     }
   },
+  components: {
+    NextTokenPrediction,
+    DisplayConnections
+  },
   provide() {
     return {
       backendAddress: this.backendAddress
     }
   },
-  created() {
+  async created() {
     if (this.routes_already_loaded) {
       return
     }
@@ -50,7 +54,7 @@ export default defineComponent({
       `${this.backendAddress}/fetch_components`,
       this.resolveComponents.bind(this)
     )
-    this.tryPoll.newRequest()
+    await this.tryPoll.newRequest()
   },
   unmounted() {
     this.tryPoll?.clear()

@@ -7,9 +7,9 @@ class ExampleNextTokenPredictionComponent(NextTokenPredictionComponent):
     def initialize_vocab(self):
         word_site = "https://www.mit.edu/~ecprice/wordlist.10000"
         response = requests.get(word_site)
-        self.word_dict = response.content.splitlines()
-        self.word_dict = [x.decode('utf-8') for x in self.word_dict]
-        self.ix_arr = list(range(len(self.word_dict)))
+        self.word_vocab = response.content.splitlines()
+        self.word_vocab = [x.decode('utf-8') for x in self.word_vocab]
+        self.ix_arr = list(range(len(self.word_vocab)))
     
     def append_to_context(self, context: str, post_token: str):
         context = context + " " + post_token
@@ -24,6 +24,6 @@ class ExampleNextTokenPredictionComponent(NextTokenPredictionComponent):
         twenty_probs = [random.random() for _ in range(K)]
         twenty_probs = np.exp(twenty_probs)
         twenty_probs /= np.sum(twenty_probs)
-        probs = np.zeros((len(self.word_dict, )))
+        probs = np.zeros((len(self.word_vocab, )))
         probs[twenty_ixes] = twenty_probs
         return self.create_continuations(probs)
