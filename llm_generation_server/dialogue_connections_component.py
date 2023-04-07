@@ -1,5 +1,6 @@
 from llm_generation_server.server import Server
 from abc import ABC, abstractmethod
+from flask import jsonify
 
 class DialogueConnectionsComponent(ABC):
     def init_app(self, app: Server):
@@ -21,3 +22,9 @@ class DialogueConnectionsComponent(ABC):
     @abstractmethod
     def fetch_dialogue_connections(self):
         ...
+
+    def fetch_dialogue_connections(self):
+        return jsonify(dict(
+            result="success",
+            content=self.table_formatter.format()
+        ))

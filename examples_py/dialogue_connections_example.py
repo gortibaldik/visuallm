@@ -39,10 +39,3 @@ class ExampleDialogueConnectionsComponent(DialogueConnectionsComponent):
                 if i == j:
                     continue
                 self.table_formatter.add_connection("Dialogue", j, "Dialogue", i, min(i + 1, 5), "d")
-    
-    def fetch_dialogue_connections(self):
-        return jsonify(dict(
-            result="success",
-            context=self.table_formatter.tables,
-            connections=self.table_formatter.connections
-        ))

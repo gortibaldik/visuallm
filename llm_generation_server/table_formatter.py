@@ -1,5 +1,6 @@
 from typing import List
 from dataclasses import dataclass
+from llm_generation_server.format import FormattedContext
 
 @dataclass
 class RowConnection:
@@ -41,7 +42,6 @@ class TableFormatter:
                 f"{len(self._tables[start_table]['rows']), start_row}" 
                 + f"{len(self._tables[end_table]['rows']), end_row}"
             )
-        
         self.connections.append(
             RowConnection(
                 start_table,
@@ -50,5 +50,14 @@ class TableFormatter:
                 end_row,
                 importance,
                 label
+            )
+        )
+
+    def format(self):
+        return FormattedContext(
+            type="connected_tables",
+            content=dict(
+                tables=self.tables,
+                connections=self.connections
             )
         )

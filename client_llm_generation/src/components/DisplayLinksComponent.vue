@@ -1,12 +1,12 @@
 <template>
-<div v-for="table in tables" class="table-wrapper">
+<div v-for="table in passed_data.loadedTables" class="table-wrapper">
     <h3 v-if="table.title != undefined">{{ table.title }}</h3>
     <table class="table-style-0">
         <thead><tr>
             <th v-for="val in table.headers">{{ val }}</th>
         </tr></thead>
         <tbody>
-            <tr v-for="(row, r) in table.rows" :id="`${table.title}_${r}`" :class="{ active: shownName == `${table.title}_${r}`}">
+            <tr v-for="(row, r) in table.rows" :id="`${table_title_to_id(table.title)}_${r}`" :class="{ active: shownName == `${table.title}_${r}`}">
                 <td v-for="col in row">{{ col }}</td>
             </tr>
         </tbody>
@@ -16,8 +16,8 @@
 
 <script lang="ts" scoped>
 import { defineComponent } from 'vue';
-import type { PropType } from 'vue';
 import LeaderLine from 'leader-line-new';
+import { shallowRef } from 'vue';
 
 export type LoadedTable = {
     title: string,
@@ -34,13 +34,26 @@ export type Connection = {
     Label: string;
 }
 
-export default defineComponent({
+class Data {
+    loadedTables: LoadedTable[]
+    connections: Connection[]
+    constructor(loadedTables: LoadedTable[], connections: Connection[]) {
+        this.loadedTables = loadedTables
+        this.connections = connections
+    }
+}
+
+let component = defineComponent({
     props: {
-        tables: Array as PropType<LoadedTable[]>,
-        connections: Array as PropType<Connection[]>
+        passed_data: {
+            type: Data,
+            required: true
+        }
     },
     data() {
         return {
+            connections: this.passed_data.connections,
+            tables: this.passed_data.loadedTables,
             tableRefs: {} as { [id: string] : number },
             initializeConnectionsTimeoutMS: 400,
             shownConnections: {} as { [id: string]: boolean;},
@@ -48,32 +61,39 @@ export default defineComponent({
             drawedConnections: {} as { [id: string]: LeaderLine[]}
         }
     },
-    watch: {
-        tables(newValue: LoadedTable[]) {
-            this.initializeTableRefs(newValue)
-            if (this.connections == undefined) {
-                return
+    mounted() {
+        this.initializeTableRefs(this.tables)
+        setTimeout(this.initializeConnections.bind(this), 500)
+    },
+    unmounted() {
+        for (let key in this.drawedConnections) {
+            let lines = this.drawedConnections[key];
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i];
+                line.remove();
             }
-            setTimeout(this.initializeConnections.bind(this), this.initializeConnectionsTimeoutMS);
-        },
+        }
     },
     methods: {
+        table_title_to_id(title: string) {
+            return title.replace(/\s/g, '')
+        },
         initializeTableRefs(newTables: LoadedTable[]) {
             this.tableRefs = {}
             for (let i = 0; i < newTables.length; i++) {
                 this.tableRefs[newTables[i].title] = i
             }
-            console.log(this.tableRefs)
         },
         initializeConnections() {
-            if (this.connections == undefined) {
+            let connections = this.passed_data.connections
+            if (connections == undefined) {
                 return
             }
-            for (let i = 0; i < this.connections.length; i++) {
-                let connection = this.connections[i] as Connection
+            for (let i = 0; i < connections.length; i++) {
+                let connection = connections[i] as Connection
 
-                let startName = `${connection.StartTable}_${connection.StartId}`
-                let endName = `${connection.EndTable}_${connection.EndId}`
+                let startName = `${this.table_title_to_id(connection.StartTable)}_${connection.StartId}`
+                let endName = `${this.table_title_to_id(connection.EndTable)}_${connection.EndId}`
 
                 let elStart = document.getElementById(startName)
                 let elEnd = document.getElementById(endName)
@@ -117,17 +137,22 @@ export default defineComponent({
             }
         },
     },
-    unmounted() {
-        for (let key in this.drawedConnections) {
-            let lines = this.drawedConnections[key];
-            for (let i = 0; i < lines.length; i++) {
-                let line = lines[i];
-                line.remove();
-            }
-        }
-    }
-
 })
+
+export default component
+export function registerComponent(formatter: any) {
+    formatter.registeredComponents["connected_tables"] = {
+        component: shallowRef(component),
+        process: processContext
+    }
+}
+
+function processContext(context: any) {
+    return new Data(
+        context.content.tables,
+        context.content.connections
+    )
+}
 </script>
 
 <style scoped>

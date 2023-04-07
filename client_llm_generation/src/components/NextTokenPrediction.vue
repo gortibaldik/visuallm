@@ -1,49 +1,74 @@
 <script lang="ts" scoped>
 import { defineComponent } from 'vue';
 import { PollUntilSuccessGET, PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib';
-
+import type { ProcessedContext } from '@/assets/formatter'
+import type { CreateComponentPublicInstance } from 'vue';
+import DisplayPlainTextComponent from '@/components/DisplayPlainTextComponent.vue'
+import DisplaySoftmaxComponent from '@/components/DisplaySoftmaxComponent.vue'
 
 export default defineComponent({
   data() {
     return {
-      softmax: [
-        {token: "", prob: 100}
-      ],
       picked: "",
-      currentContext: "",
+      initialContext: {} as ProcessedContext,
+      generatedContext: {} as ProcessedContext,
+      continuations: {} as ProcessedContext,
       tryPoll: undefined as PollUntilSuccessGET | undefined,
       selectPoll: undefined as PollUntilSuccessPOST | undefined
     };
   },
   inject: ['backendAddress'],
-  created() {
+  async created() {
     this.tryPoll = new PollUntilSuccessGET(
-      `${this.backendAddress}/fetch`,
+      `${this.backendAddress}/fetch_next_token_prediction`,
       this.setUpContext.bind(this),
       1000
     )
-    this.tryPoll.newRequest()
+    await this.tryPoll.newRequest()
   },
   unmounted() {
     this.tryPoll?.clear()
     this.selectPoll?.clear()
   },
+  components: {
+    DisplayPlainTextComponent,
+    DisplaySoftmaxComponent
+  },
   methods: {
-    setUpContext(response: any) {
-      this.currentContext = response.context
-      this.softmax = response.continuations
-      this.picked = this.softmax[0].token
+    setContexts(contexts: [string, any][]) {
+      for (let i = 0; i < contexts.length; i++) {
+        let name = contexts[i][0] as string
+        this[name as keyof CreateComponentPublicInstance] = this.$formatter.processResponseContext(
+          contexts[i][1]
+        )
+      }
     },
-    async selectNextToken() {
+    setUpContext(response: any) {
+      let contexts = [
+        ["initialContext", response.initial_context],
+        ["generatedContext", response.generated_context],
+        ["continuations", response.continuations]
+      ] as [string, any][]
+      this.setContexts(contexts)
+    },
+    updateContexts(response: any) {
+      let contexts = [
+        ["generatedContext", response.generated_context],
+        ["continuations", response.continuations]
+      ] as [string, any][]
+      this.setContexts(contexts)
+    },
+    async selectNextToken(picked: string) {
+      console.log("select next token")
       if (this.selectPoll == undefined) {
         this.selectPoll = new PollUntilSuccessPOST(
-          `${this.backendAddress}/select`,
-          this.setUpContext.bind(this),
+          `${this.backendAddress}/select_next_token_prediction`,
+          this.updateContexts.bind(this),
           500,
-          { token: this.picked }
+          { token: picked }
         )
       } else if (!this.selectPoll.isPending()) {
-        this.selectPoll.body = { token: this.picked }
+        this.selectPoll.body = { token: picked }
       }
       await this.selectPoll.newRequest()
     }
@@ -54,62 +79,10 @@ export default defineComponent({
 <template>
 <div class="horizontal rounded">
   <h2>Next Token Prediction</h2>
-  <h3>Current Context: </h3>
-  <div style="margin-top: 10px" v-html="currentContext"></div>
+  <component :is="initialContext.component" :passed_data="initialContext.data"></component>
+  <h3>Generated Context: </h3>
+  <component :is="generatedContext.component" :passed_data="generatedContext.data"></component>
   <h3>Possible continuations: </h3>
-  <div v-for="item in softmax" class="progress-bar">
-    <!-- <span class="word word-text" style="display: inline-block">{{ item.word }}</span> -->
-    <span class="word-text">"{{ item.token }}"</span>
-    <span class="progress-track">
-      <div :style="{width: item.prob.toString() + '%'}" class="progress-fill">
-        <span class="prob-text">{{(Math.round(item.prob * 100) / 100).toFixed(2)}}%</span>
-      </div>
-    </span>
-    <input type="radio" v-model="picked" :value="item.token">
-  </div>
+  <component :is="continuations.component" :passed_data="continuations.data" @picked-softmax="(picked: string) => selectNextToken(picked)"></component>
 </div>
-<div style="text-align: center; margin-top: 10px"><button style="padding: 5px" @click="selectNextToken">Select "{{ picked }}"</button></div>
 </template>
-
-<style scoped>
-
-input {
-  margin-left: 5px;
-}
-
-.progress-bar {
-  margin-top: 10px;
-}
-
-.prob-text {
-  color:azure;
-  margin-left: 2px;
-  margin-right: 2px;
-}
-
-.word-text {
-  display: inline-block;
-  width: 20%;
-  overflow: auto;
-  margin-bottom: -7px;
-}
-
-.progress-track {
-  background: #ebebeb;
-  width: 70%;
-  display: inline-block;
-  padding-top: 1px;
-  padding-bottom: 1px;
-}
-
-.progress-fill {
-  background: #666;
-}
-
-.rounded .progress-track,
-.rounded .progress-fill {
-  box-shadow: inset 0 0 5px rgba(0,0,0,.2);
-  border-radius: 3px;
-}
-
-</style>

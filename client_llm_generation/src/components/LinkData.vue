@@ -1,14 +1,13 @@
 <script lang="ts" scoped>
 import { defineComponent } from 'vue';
-import TableWithConnectionsComponentVue from './TableWithConnectionsComponent.vue';
-import type { LoadedTable, Connection } from './TableWithConnectionsComponent.vue';
+import DisplayLinksComponent from './DisplayLinksComponent.vue';
 import { PollUntilSuccessGET } from '@/assets/pollUntilSuccessLib';
+import type { ProcessedContext } from '@/assets/formatter';
 
 export default defineComponent({
     data() {
         return {
-            loadedTables: [] as LoadedTable[],
-            connections: [] as Connection[],
+            tablesContext: {} as ProcessedContext,
             tryPoll: undefined as undefined | PollUntilSuccessGET
         };
     },
@@ -23,11 +22,12 @@ export default defineComponent({
     unmounted() {
         this.tryPoll?.clear()
     },
-    components: { TableWithConnectionsComponentVue },
+    components: { DisplayLinksComponent },
     methods: {
         setUpTables(response: any) {
-            this.loadedTables = response.context;
-            this.connections = response.connections
+            this.tablesContext = this.$formatter.processResponseContext(
+                response.content
+            )
         },
     },
 })
@@ -36,6 +36,6 @@ export default defineComponent({
 <template>
   <div>
     <h2>Relations Between Elements</h2>
-    <TableWithConnectionsComponentVue :tables="loadedTables" :connections="connections" />
+    <component :is="tablesContext.component" :passed_data="tablesContext.data"></component>
   </div>
 </template>

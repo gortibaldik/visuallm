@@ -16,7 +16,7 @@ import { defineComponent, shallowRef } from 'vue';
 import type { Component } from 'vue';
 import { PollUntilSuccessGET } from './assets/pollUntilSuccessLib'
 import  NextTokenPrediction  from './components/NextTokenPrediction.vue'
-import DisplayConnections from './components/DisplayConnections.vue'
+import DisplayConnections from './components/LinkData.vue'
 
 type CustomRoute = {
   title: string;
@@ -78,10 +78,7 @@ export default defineComponent({
         path: c.path,
         component: this.existingComponents[c.name]
       })
-      if (replace) {
-        this.$router.replace(this.$router.currentRoute.value.fullPath)
-      }
-
+      return replace
     },
     shouldBeRegistered(c : CustomRoute) {
       return c.name in this.existingComponents
@@ -91,14 +88,18 @@ export default defineComponent({
     },
     resolveComponents(response: any) {
       let context = response.context as []
+      let replace = false;
       for (let i = 0; i < context.length; i++) {
         let c = context[i] as CustomRoute
         if (this.shouldBeRegistered(c)) {
           if (this.isAlreadyRegistered(c)) {
             continue
           }
-          this.registerComponent(c)
+          replace = this.registerComponent(c) || replace
         }
+      }
+      if (replace) {
+        this.$router.replace(this.$router.currentRoute.value.fullPath)
       }
       this.routes_already_loaded = true
 
@@ -120,21 +121,6 @@ nav {
 
 .notLoaded {
   text-align: center;
-}
-
-.button {
-  background-color: rgba(0, 0, 0, 0.409);
-  padding: 20px;
-  font-family: sans-serif;
-  font-weight: normal;
-  text-decoration: none;
-  font-size: large;
-  color: rgb(59, 59, 59);
-  margin-right: 2px;
-}
-
-.button:hover {
-  background-color: rgba(0, 0, 0, 0.3);
 }
 
 .router-link-active {
