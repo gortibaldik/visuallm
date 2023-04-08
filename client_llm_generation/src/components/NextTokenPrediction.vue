@@ -5,6 +5,7 @@ import type { ProcessedContext } from '@/assets/formatter'
 import type { CreateComponentPublicInstance } from 'vue';
 import DisplayPlainTextComponent from '@/components/DisplayPlainTextComponent.vue'
 import DisplaySoftmaxComponent from '@/components/DisplaySoftmaxComponent.vue'
+import DisplaySampleSelectorComponent from '@/components/DisplaySampleSelector.vue'
 
 export default defineComponent({
   data() {
@@ -13,8 +14,10 @@ export default defineComponent({
       initialContext: {} as ProcessedContext,
       generatedContext: {} as ProcessedContext,
       continuations: {} as ProcessedContext,
+      sampleSelector: {} as ProcessedContext,
       tryPoll: undefined as PollUntilSuccessGET | undefined,
-      selectPoll: undefined as PollUntilSuccessPOST | undefined
+      selectPoll: undefined as PollUntilSuccessPOST | undefined,
+      samplePoll: undefined as PollUntilSuccessPOST | undefined,
     };
   },
   inject: ['backendAddress'],
@@ -32,7 +35,8 @@ export default defineComponent({
   },
   components: {
     DisplayPlainTextComponent,
-    DisplaySoftmaxComponent
+    DisplaySoftmaxComponent,
+    DisplaySampleSelectorComponent,
   },
   methods: {
     setContexts(contexts: [string, any][]) {
@@ -45,11 +49,10 @@ export default defineComponent({
     },
     setUpContext(response: any) {
       let contexts = [
-        ["initialContext", response.initial_context],
-        ["generatedContext", response.generated_context],
-        ["continuations", response.continuations]
+        ["sampleSelector", response.sample_selector]
       ] as [string, any][]
       this.setContexts(contexts)
+      this.resetDatasetSample(response)
     },
     updateContexts(response: any) {
       let contexts = [
@@ -58,19 +61,30 @@ export default defineComponent({
       ] as [string, any][]
       this.setContexts(contexts)
     },
+    resetDatasetSample(response: any) {
+      let contexts = [
+        ["initialContext", response.initial_context],
+      ] as [string, any][]
+      this.setContexts(contexts)
+      this.updateContexts(response)
+    },
     async selectNextToken(picked: string) {
-      console.log("select next token")
-      if (this.selectPoll == undefined) {
-        this.selectPoll = new PollUntilSuccessPOST(
-          `${this.backendAddress}/select_next_token_prediction`,
-          this.updateContexts.bind(this),
-          500,
-          { token: picked }
-        )
-      } else if (!this.selectPoll.isPending()) {
-        this.selectPoll.body = { token: picked }
-      }
-      await this.selectPoll.newRequest()
+      PollUntilSuccessPOST.startPoll(
+        this,
+        "selectPoll",
+        `${this.backendAddress}/select_next_token_prediction`,
+        this.updateContexts.bind(this),
+        { token: picked }
+      )
+    },
+    async selectDatasetSample(sample_n: number) {
+      PollUntilSuccessPOST.startPoll(
+        this,
+        "samplePoll",
+        `${this.backendAddress}/select_dataset_sample_next_token_prediction`,
+        this.resetDatasetSample.bind(this),
+        { sample_n: sample_n }
+      )
     }
   },
 });
@@ -79,6 +93,7 @@ export default defineComponent({
 <template>
 <div class="horizontal rounded">
   <h2>Next Token Prediction</h2>
+  <component :is="sampleSelector.component" :passed_data="sampleSelector.data" @select-number="(sample_n: number) => selectDatasetSample(sample_n)"></component>
   <component :is="initialContext.component" :passed_data="initialContext.data"></component>
   <h3>Generated Context: </h3>
   <component :is="generatedContext.component" :passed_data="generatedContext.data"></component>

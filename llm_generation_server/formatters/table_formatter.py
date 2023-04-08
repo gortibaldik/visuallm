@@ -1,6 +1,6 @@
 from typing import List
 from dataclasses import dataclass
-from llm_generation_server.format import FormattedContext
+from llm_generation_server.formatters.format import FormattedContext
 
 @dataclass
 class RowConnection:

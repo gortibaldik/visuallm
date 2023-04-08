@@ -8,7 +8,7 @@
         </span>
         <input class="input-radio" type="radio" v-model="picked" :value="item.token">
     </div>
-    <div style="text-align: center; margin-top: 10px"><button class="button" style="padding: 5px" @click="$emit('picked-softmax', picked)">Select "{{ picked }}"</button></div>
+    <div style="text-align: center; margin-top: 10px"><button class="button" @click="$emit('picked-softmax', picked)">Select "{{ picked }}"</button></div>
 </template>
 
 <script lang="ts" scoped>
@@ -31,13 +31,11 @@ let component = defineComponent({
     },
     watch: {
       passed_data(newValue: Data) {
-        console.log("passed data updated!")
         this.softmax = newValue.value
         this.picked = newValue.value[0].token
       },
     },
     mounted() {
-      console.log("mounted")
       this.update_data()
     },
     emits: ['picked-softmax'],
@@ -49,11 +47,8 @@ let component = defineComponent({
     },
     methods: {
       update_data() {
-        console.log("Updating data")
-        console.log(this.passed_data)
         this.softmax = this.passed_data.value
         this.picked = this.passed_data.value[0].token
-        console.log(this.softmax, this.picked)
       }
     }
 })

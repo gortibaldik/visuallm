@@ -1,5 +1,5 @@
 <template>
-  <nav v-if="routes_already_loaded">
+  <nav v-if="routes_already_loaded && (customRoutes.length != 1)">
     <router-link class="button" v-for="route in customRoutes" :to="route.path">{{ route.title }} </router-link>
   </nav>
   <main>
@@ -113,7 +113,6 @@ export default defineComponent({
 nav {
   margin-bottom: 10px;
   background-color: rgb(192, 192, 192);
-  padding: 20px;
   margin-top: -2rem;
   margin-right: -2rem;
   margin-left: -2rem;

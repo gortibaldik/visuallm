@@ -18,6 +18,19 @@ let component = defineComponent({
             type: Data,
             required: true
         }
+    },
+    watch: {
+        passed_data(newValue: Data) {
+            this.value = newValue.value
+        }
+    },
+    data() {
+        return {
+            value: this.passed_data.value
+        }
+    },
+    mounted() {
+        this.value = this.passed_data.value
     }
 })
 

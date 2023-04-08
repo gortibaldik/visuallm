@@ -1,4 +1,4 @@
-from llm_generation_server.format import FormattedContext
+from llm_generation_server.formatters.format import FormattedContext
 
 class PlainFormatter:
     def __init__(self, content: str = ""):

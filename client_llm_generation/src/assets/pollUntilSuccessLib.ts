@@ -81,4 +81,26 @@ export class PollUntilSuccessPOST extends PollingBase {
                 body: JSON.stringify(this.body)
         }).then(response => response.json())
     }
+
+    static async startPoll(
+        instance: any,
+        name: string,
+        address: string,
+        lambda: any,
+        data: any
+        ) {
+        if (instance[name] == undefined) {
+            instance[name] = new this(
+            address,
+            lambda,
+            500,
+            data
+            )
+        } else if (!instance[name].isPending()) {
+            instance[name].body = data
+        } else {
+            return
+        }
+        await instance[name].newRequest()
+    }
 }

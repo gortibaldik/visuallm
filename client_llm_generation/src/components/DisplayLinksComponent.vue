@@ -6,7 +6,7 @@
             <th v-for="val in table.headers">{{ val }}</th>
         </tr></thead>
         <tbody>
-            <tr v-for="(row, r) in table.rows" :id="`${table_title_to_id(table.title)}_${r}`" :class="{ active: shownName == `${table.title}_${r}`}">
+            <tr v-for="(row, r) in table.rows" :id="`${table_title_to_id(table.title)}_${r}`" :class="{ active: shownName == `${table_title_to_id(table.title)}_${r}`}">
                 <td v-for="col in row">{{ col }}</td>
             </tr>
         </tbody>

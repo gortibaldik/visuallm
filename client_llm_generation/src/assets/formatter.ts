@@ -13,6 +13,12 @@ export default class Formatter {
     }
 
     processResponseContext(context: any): {component: Component, data: Map<string, any>} {
+        if (context === undefined) {
+            throw RangeError("Context is undefined!")
+        }
+        if (! (context.type in this.registeredComponents)) {
+            throw RangeError(`context.type: "${context.type}" isn't registered in formatter!`)
+        }
         let componentDict = this.registeredComponents[context.type]
         let resultDict = {
             component: componentDict.component,

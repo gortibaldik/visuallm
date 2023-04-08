@@ -4,6 +4,7 @@ import App from './App.vue'
 import { registerComponent as registerPlain } from './components/DisplayPlainTextComponent.vue'
 import { registerComponent as registerSoftmax } from './components/DisplaySoftmaxComponent.vue'
 import { registerComponent as registerTables } from './components/DisplayLinksComponent.vue'
+import { registerComponent as registerSampleSelector } from './components/DisplaySampleSelector.vue'
 import Formatter from './assets/formatter'
 
 const routes = [
@@ -14,6 +15,7 @@ const formatter = new Formatter()
 registerPlain(formatter)
 registerSoftmax(formatter)
 registerTables(formatter)
+registerSampleSelector(formatter)
 
 const router = createRouter({
     history: createWebHashHistory(),

@@ -1,5 +1,5 @@
 from llm_generation_server.next_token_prediction_component import NextTokenPredictionComponent
-from llm_generation_server.table_formatter import TableFormatter
+from llm_generation_server.formatters.table_formatter import TableFormatter
 import requests
 import random
 import numpy as np
@@ -7,30 +7,7 @@ import numpy as np
 class ExampleNextTokenPredictionComponent(NextTokenPredictionComponent):
     def __init__(self):
         super().__init__()
-        headers = ["No.", "Turn"]
-        rows = [ [i, x] for i, x in enumerate([
-                "This is first row",
-                "This is second row",
-                "This is third row",
-                "This is fourth row",
-                "This is fifth row"
-            ])
-        ]
-        self.initial_context_formatter = TableFormatter()
-        self.initial_context_formatter.add_table(
-            "Longer Context",
-            headers, rows
-        )
-        for j in range(len(rows) - 1, 0, -1):
-            for i in range(j):
-                self.initial_context_formatter.add_connection(
-                    "Longer Context",
-                    j,
-                    "Longer Context",
-                    i,
-                    3,
-                    "nn"
-                  )
+        self.load_dataset_sample(0)
 
     def initialize_vocab(self):
         word_site = "https://www.mit.edu/~ecprice/wordlist.10000"
@@ -47,6 +24,34 @@ class ExampleNextTokenPredictionComponent(NextTokenPredictionComponent):
     def before_fetch_response(self):
         probs = self.get_next_token_predictions()
         self.process_predictions(probs)
+
+    def load_dataset_sample(self, sample_n: int):
+        headers = ["No.", "Turn"]
+        rows = [ [i, x] for i, x in enumerate([
+                f"{sample_n}: This is first row",
+                f"{sample_n}: This is second row",
+                f"{sample_n}: This is third row",
+                f"{sample_n}: This is fourth row",
+                f"{sample_n}: This is fifth row"
+            ])
+        ]
+        self.initial_context_formatter = TableFormatter()
+        self.initial_context_formatter.add_table(
+            "Longer Context",
+            headers, rows
+        )
+        self.generated_formatter.content = ""
+
+        for j in range(len(rows) - 1, 0, -1):
+            for i in range(j):
+                self.initial_context_formatter.add_connection(
+                    "Longer Context",
+                    j,
+                    "Longer Context",
+                    i,
+                    3,
+                    "nn"
+                  )
 
     def process_predictions(self, probs):
         words = self.softmax_formatter.assign_words_to_probs(
