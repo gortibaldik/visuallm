@@ -101,6 +101,10 @@ let component = defineComponent({
                 }
             }
             this.drawedConnections = {}
+            if (this.shownName !== undefined) {
+                this.shownConnections[this.shownName] = false
+                this.shownName = undefined
+            }
         },
         initializeConnections() {
             let connections = this.passed_data.connections
@@ -141,13 +145,18 @@ let component = defineComponent({
         showRowConnections(rowID: string) {
             if (!this.shownConnections[rowID]) {
                 let connections = this.drawedConnections[rowID];
+                if (connections == undefined) {
+                    return
+                }
                 for (let i = 0; i < connections.length; i++) {
                     connections[i].show("draw", { duration: 500 });
                 }
                 if (this.shownName != undefined) {
                     let connections = this.drawedConnections[this.shownName];
-                    for (let i = 0; i < connections.length; i++) {
-                        connections[i].hide("none");
+                    if (connections !== undefined) {
+                        for (let i = 0; i < connections.length; i++) {
+                            connections[i].hide("none");
+                        }
                     }
                     this.shownConnections[this.shownName] = false;
                 }
