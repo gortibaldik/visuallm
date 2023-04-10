@@ -74,6 +74,13 @@ let component = defineComponent({
             }
         }
     },
+    watch: {
+        passed_data(newValue: any) {
+            console.log("tables changed!")
+            this.initializeTableRefs(this.tables)
+            setTimeout(this.initializeConnections.bind(this), 500)
+        }
+    },
     methods: {
         table_title_to_id(title: string) {
             return title.replace(/\s/g, '')
@@ -84,11 +91,23 @@ let component = defineComponent({
                 this.tableRefs[newTables[i].title] = i
             }
         },
+        removeConnections() {
+            console.log("removing connections!")
+            for (let key in this.drawedConnections) {
+                let lines = this.drawedConnections[key];
+                for (let i = 0; i < lines.length; i++) {
+                    let line = lines[i];
+                    line.remove();
+                }
+            }
+            this.drawedConnections = {}
+        },
         initializeConnections() {
             let connections = this.passed_data.connections
             if (connections == undefined) {
                 return
             }
+            this.removeConnections()
             for (let i = 0; i < connections.length; i++) {
                 let connection = connections[i] as Connection
 
