@@ -5,6 +5,7 @@ from flask import jsonify
 
 class ExampleDialogueConnectionsComponent(DialogueConnectionsComponent):
     def __init__(self):
+        super().__init__()
         self.sample_selector_formatter = SampleSelectorFormatter(
             0, 10
         )

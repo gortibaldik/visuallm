@@ -11,3 +11,7 @@ class ComponentBase(Protocol):
     @property
     def title(self) -> str:
         ...
+
+    @property
+    def default_url(self) -> str:
+        ...

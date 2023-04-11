@@ -6,6 +6,7 @@ import { registerComponent as registerSoftmax } from './components/DisplaySoftma
 import { registerComponent as registerTables } from './components/DisplayLinksComponent.vue'
 import { registerComponent as registerSampleSelector } from './components/DisplaySampleSelector.vue'
 import Formatter from './assets/formatter'
+import FetchPathsResolver from './assets/fetchPathsResolver'
 
 const routes = [
     { name: 'default', path: '/', component: App},
@@ -28,10 +29,12 @@ import './assets/main.css'
 const app = createApp(App)
 app.use(formatter)
 app.use(router)
+app.use(FetchPathsResolver)
 
 declare module 'vue' {
     interface ComponentCustomProperties {
-        $formatter: Formatter
+        $formatter: Formatter,
+        $default_fetch_paths: {[name: string]: string}
     }
 }
 

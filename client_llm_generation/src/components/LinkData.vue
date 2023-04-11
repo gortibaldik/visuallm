@@ -3,26 +3,28 @@ import { defineComponent } from 'vue';
 import DisplayLinksComponent from './DisplayLinksComponent.vue';
 import { PollUntilSuccessGET, PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib';
 import type { ProcessedContext } from '@/assets/formatter';
+import { fetchDefault } from '@/assets/fetchPathsResolver';
 
 export default defineComponent({
     data() {
         return {
             tablesContext: {} as ProcessedContext,
             sampleSelector: {} as ProcessedContext,
-            tryPoll: undefined as undefined | PollUntilSuccessGET,
+            defaultPoll: undefined as undefined | PollUntilSuccessGET,
             samplePoll: undefined as undefined | PollUntilSuccessPOST
         };
     },
     inject: [ "backendAddress" ],
     created() {
-        this.tryPoll = new PollUntilSuccessGET(
-            `${this.backendAddress}/fetch_connections`,
-            this.setUpTables.bind(this),
+        fetchDefault(
+            this,
+            this.backendAddress as string,
+            "defaultPoll",
+            this.setUpTables.bind(this)
         )
-        this.tryPoll.newRequest()
     },
     unmounted() {
-        this.tryPoll?.clear()
+        this.defaultPoll?.clear()
     },
     components: { DisplayLinksComponent },
     methods: {

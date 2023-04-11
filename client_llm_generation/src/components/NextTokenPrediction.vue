@@ -6,6 +6,7 @@ import type { CreateComponentPublicInstance } from 'vue';
 import DisplayPlainTextComponent from '@/components/DisplayPlainTextComponent.vue'
 import DisplaySoftmaxComponent from '@/components/DisplaySoftmaxComponent.vue'
 import DisplaySampleSelectorComponent from '@/components/DisplaySampleSelector.vue'
+import { fetchDefault } from '@/assets/fetchPathsResolver';
 
 export default defineComponent({
   data() {
@@ -15,22 +16,22 @@ export default defineComponent({
       generatedContext: {} as ProcessedContext,
       continuations: {} as ProcessedContext,
       sampleSelector: {} as ProcessedContext,
-      tryPoll: undefined as PollUntilSuccessGET | undefined,
+      defaultPoll: undefined as PollUntilSuccessGET | undefined,
       selectPoll: undefined as PollUntilSuccessPOST | undefined,
       samplePoll: undefined as PollUntilSuccessPOST | undefined,
     };
   },
   inject: ['backendAddress'],
   async created() {
-    this.tryPoll = new PollUntilSuccessGET(
-      `${this.backendAddress}/fetch_next_token_prediction`,
-      this.setUpContext.bind(this),
-      1000
+    await fetchDefault(
+      this,
+      this.backendAddress as string,
+      "defaultPoll",
+      this.setUpContext.bind(this)
     )
-    await this.tryPoll.newRequest()
   },
   unmounted() {
-    this.tryPoll?.clear()
+    this.defaultPoll?.clear()
     this.selectPoll?.clear()
   },
   components: {

@@ -8,6 +8,7 @@ from llm_generation_server.formatters.sample_selector_formatter import SampleSel
 
 class NextTokenPredictionComponent(ABC):
     def __init__(self, n_largest_tokens_to_return: int=10, min_sample_n=0, max_sample_n=10):
+        self._default_url = "/fetch_next_token_prediction"
         self.initial_context_formatter = PlainFormatter()
         self.generated_formatter = PlainFormatter()
         self.softmax_formatter = SoftmaxFormatter(n_largest_tokens_to_return)
@@ -16,7 +17,7 @@ class NextTokenPredictionComponent(ABC):
     def init_app(self, app: Server):
         self.app = app
         self.app.add_endpoint(
-            "/fetch_next_token_prediction",
+            self.default_url,
             self.fetch,
             methods=['GET']
         )
@@ -38,6 +39,10 @@ class NextTokenPredictionComponent(ABC):
     @property
     def title(self):
         return "Next Token Prediction"
+    
+    @property
+    def default_url(self):
+        return self._default_url
     
     def fetch(self):
         self.before_fetch_response()

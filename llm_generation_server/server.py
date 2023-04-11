@@ -1,6 +1,6 @@
 from flask import Flask, redirect, jsonify
 from flask_cors import CORS
-from typing import Callable, List
+from typing import Callable, List, Set
 from llm_generation_server.component_base import ComponentBase
 import os
 import sys
@@ -10,6 +10,7 @@ from dataclasses import dataclass
 class ComponentInfo:
     name: str
     title: str
+    default_fetch_path: str
 
 
 class Server:
@@ -21,8 +22,13 @@ class Server:
             )
         
         self.components: List[ComponentBase] = components
+        self.registered_default_urls: Set[str] = set()
         for component in self.components:
             component.init_app(self)
+            if component.default_url in self.registered_default_urls:
+                raise ValueError(f"{component.default_url} in two different components!")
+            self.registered_default_urls.add(component.default_url)
+
         self.add_endpoint(
             "/",
             lambda: redirect("/index.html", code=302),
@@ -40,7 +46,8 @@ class Server:
         for component in self.components:
             paths.append(ComponentInfo(
                 name=component.name,
-                title=component.title
+                title=component.title,
+                default_fetch_path=component.default_url
             ))
         return jsonify(dict(
             result="success",
@@ -54,7 +61,7 @@ class Server:
         self,
         url_name: str,
         f: Callable,
-        methods: List[str],
+        methods: List[str]
     ):
         self.app.add_url_rule(
             rule=url_name,

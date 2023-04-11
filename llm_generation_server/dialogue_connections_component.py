@@ -3,10 +3,13 @@ from flask import jsonify, request
 from abc import ABC, abstractmethod
 
 class DialogueConnectionsComponent(ABC):
+    def __init__(self):
+        self._default_url = "/fetch_connections"
+
     def init_app(self, app: Server):
         self.app = app
         self.app.add_endpoint(
-            "/fetch_connections",
+            self.default_url,
             self.fetch_dialogue_connections,
             methods=['GET']
         )
@@ -33,6 +36,10 @@ class DialogueConnectionsComponent(ABC):
     @property
     def title(self):
         return "Table Connections"
+
+    @property
+    def default_url(self):
+        return self._default_url
 
     def fetch_dialogue_connections(self):
         return jsonify(dict(

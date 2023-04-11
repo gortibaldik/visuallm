@@ -22,6 +22,7 @@ type CustomRoute = {
   title: string;
   name: string;
   path: string;
+  default_fetch_path: string;
 }
 
 export default defineComponent({
@@ -73,10 +74,14 @@ export default defineComponent({
         c.path = `/${c.name}`
       }
       this.customRoutes.push(c)
+      this.$default_fetch_paths[c.name] = c.default_fetch_path
+      if (replace) {
+        this.$default_fetch_paths["default"] = c.default_fetch_path
+      }
       this.$router.addRoute({
         name: c.name,
         path: c.path,
-        component: this.existingComponents[c.name]
+        component: this.existingComponents[c.name],        
       })
       return replace
     },
