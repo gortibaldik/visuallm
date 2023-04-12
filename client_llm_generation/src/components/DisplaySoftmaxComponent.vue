@@ -1,5 +1,5 @@
 <template>
-    <div v-for="item in softmax" class="progress-bar">
+    <div v-for="item in possibilities" class="progress-bar">
         <span class="word-text">"{{ item.token }}"</span>
         <span class="progress-track">
             <div :style="{ width: item.prob.toString() + '%' }" class="progress-fill">
@@ -8,47 +8,76 @@
         </span>
         <input class="input-radio" type="radio" v-model="picked" :value="item.token">
     </div>
-    <div style="text-align: center; margin-top: 10px"><button class="button" @click="$emit('picked-softmax', picked)">Select "{{ picked }}"</button></div>
+    <div style="text-align: center; margin-top: 10px"><button class="button" @click="emitClicked()">Select "{{ picked }}"</button></div>
 </template>
 
 <script lang="ts" scoped>
 import { shallowRef } from 'vue';
 import { defineComponent } from 'vue';
+import { reactiveStore } from '@/assets/reactiveData';
+import { convertName } from '@/assets/formatter';
+import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib';
 
 class Data {
-    value: {token: string, prob: number}[]
-    constructor(value: {token: string, prob:number}[]) {
-        this.value = value
+    address: string
+    possibilities: {token: string, prob: number}[]
+    constructor(address: string, possibilities: {token: string, prob:number}[]) {
+        this.possibilities = possibilities
+        this.address = address
     }
 }
 
 let component = defineComponent({
     props: {
-        passed_data: {
-            type: Data,
-            required: true
+        name: {
+          type: String,
+          required: true
         }
+    },
+    inject: ["backendAddress"],
+    computed: {
+      possibilities(): {token: string, prob: number}[] {
+        return reactiveStore[convertName(this.name, "possibilities")]
+      },
+      address(): string {
+        return reactiveStore[convertName(this.name, "address")]
+      }
     },
     watch: {
-      passed_data(newValue: Data) {
-        this.softmax = newValue.value
-        this.picked = newValue.value[0].token
-      },
-    },
-    mounted() {
-      this.update_data()
-    },
-    emits: ['picked-softmax'],
-    data() {
-        return {
-            softmax: this.passed_data.value,
-            picked: this.passed_data.value[0].token
+      possibilities: {
+        immediate: true,
+        handler(newValue: {token: string, prob: number}[]){
+          if ((newValue !== undefined) && (newValue.length != 0)) {
+            this.picked = newValue[0].token
+          }
         }
+      } 
+    },
+    data() {
+      return {
+        picked: "",
+        reactiveStore,
+        selectPossibilityPoll: undefined as undefined | PollUntilSuccessPOST
+      }
+    },
+    unmounted() {
+      this.selectPossibilityPoll?.clear()
     },
     methods: {
-      update_data() {
-        this.softmax = this.passed_data.value
-        this.picked = this.passed_data.value[0].token
+      emitClicked() {
+        PollUntilSuccessPOST.startPoll(
+          this,
+          "selectPossibilityPoll",
+          `${this.backendAddress}/${this.address}`,
+          this.setContexts.bind(this),
+          { token: this.picked }
+        )
+      },
+      setContexts(response: any) {
+        this.$formatter.processResponse(
+          response,
+          this.reactiveStore
+        )
       }
     }
 })
@@ -63,7 +92,18 @@ export function registerComponent(formatter: any) {
 }
 
 function processContext(context: any) {
-    return new Data(context.content)
+  if (! ("content" in context)) {
+      throw RangeError("Invalid context ('content' not in context)")
+  }
+  for (let val of ["address", "possibilities"]) {
+      if (!(val in context.content)) {
+          throw RangeError(`Invalid context.content! (without ${val})`)
+      }
+  }
+  return new Data(
+    context.content.address,
+    context.content.possibilities
+  )
 }
 </script>
 

@@ -1,40 +1,58 @@
 <template>
     <div class="sample-selector">
         Select dataset sample to display: 
-        <input type="number" :min="passed_data.min" :max="passed_data.max" v-model="sample_n"/>
+        <input type="number" :min="min" :max="max" v-model="sample_n"/>
         <button class="button emit" @click="emitClicked()">Select</button>
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, shallowRef } from 'vue'
+import { reactiveStore } from '@/assets/reactiveData'
+import { convertName } from '@/assets/formatter'
+import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib'
+
 interface DataParams {
     min: number,
-    max: number
+    max: number,
+    callbackAddress: string,
 }
 
 class Data {
     min: number
     max: number
-    constructor({ min, max }: DataParams) {
+    callbackAddress: string
+    constructor({ min, max, callbackAddress }: DataParams) {
         this.min = min
-        this.max = max
+        this.max = max,
+        this.callbackAddress = callbackAddress
     }
 }
 
 let component = defineComponent({
     props: {
-        passed_data: {
-            type: Data,
+        name: {
+            type: String,
             required: true
         }
     },
     computed: {
+        max(): number {
+            return reactiveStore[convertName(this.name, "max")]
+        },
+        min(): number {
+            return reactiveStore[convertName(this.name, "min")]
+        },
+        callbackAddress(): string {
+            return reactiveStore[convertName(this.name, "callbackAddress")]
+        }
     },
-    emits: ["select-number"],
+    inject: [ "backendAddress" ],
     data() {
         return {
-            sample_n: this.middleRange() as number,
+            sample_n: 0 as number,
+            reactiveStore,
+            selectSamplePoll: undefined as undefined | PollUntilSuccessPOST
         }
     },
     watch: {
@@ -42,22 +60,40 @@ let component = defineComponent({
             this.sample_n = Math.max(
                 Math.min(
                     Math.round(new_value),
-                    this.passed_data.max
+                    this.max
                 ),
-                this.passed_data.min
+                this.min
             )
         }
     },
+    mounted() {
+        this.sample_n = this.middleRange()
+    },
+    unmounted() {
+        this.selectSamplePoll?.clear()
+    },
     methods: {
         emitClicked() {
-            this.$emit("select-number", this.sample_n)
+            PollUntilSuccessPOST.startPoll(
+                this,
+                "selectSamplePoll",
+                `${this.backendAddress}/${this.callbackAddress}`,
+                this.setContexts.bind(this),
+                { sample_n: this.sample_n }
+            )
+        },
+        setContexts(response: any) {
+            this.$formatter.processResponse(
+                response,
+                this.reactiveStore
+            )
         },
         middleRange(): number {
-            let min = this.passed_data.min
-            let max = this.passed_data.max
+            let min = this.min
+            let max = this.max
             return Math.floor(min + (max - min) / 2)
         }
-    }
+    },
 })
 
 export default component
@@ -69,9 +105,19 @@ export function registerComponent(formatter: any) {
 }
 
 function processContext(context: any) {
+    if (! ("content" in context)) {
+        throw RangeError("Invalid context ('content' not in context)")
+    }
+    if (! ("min" in context.content) || ! ("max" in context.content)) {
+        throw RangeError("Invalid context.content! (without min or max)")
+    }
+    if (! ("address" in context.content)) {
+        throw RangeError("Invalid context content! (without address)")
+    }
     return new Data({
         min: context.content.min,
-        max: context.content.max
+        max: context.content.max,
+        callbackAddress: context.content.address
     })
 }
 </script>

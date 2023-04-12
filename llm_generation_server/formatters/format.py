@@ -1,12 +1,22 @@
 from dataclasses import dataclass
-from enum import Enum
-from typing import Dict, Protocol
+from typing import Dict
+from abc import ABC, abstractmethod
 
 @dataclass
 class FormattedContext:
+    name: str
     type: str
     content: Dict
 
-class Formatter(Protocol):
-    def format():
-        pass
+class Formatter(ABC):
+    def __init__(self, name: str):
+        self.name = name
+        self.changed = True
+
+    @abstractmethod
+    def format(self):
+        ...
+
+    @abstractmethod
+    def add_endpoint(self, app):
+        ...

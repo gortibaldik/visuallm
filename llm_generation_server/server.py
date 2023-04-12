@@ -25,9 +25,6 @@ class Server:
         self.registered_default_urls: Set[str] = set()
         for component in self.components:
             component.init_app(self)
-            if component.default_url in self.registered_default_urls:
-                raise ValueError(f"{component.default_url} in two different components!")
-            self.registered_default_urls.add(component.default_url)
 
         self.add_endpoint(
             "/",
@@ -65,7 +62,7 @@ class Server:
     ):
         self.app.add_url_rule(
             rule=url_name,
-            endpoint=None,
+            endpoint=url_name,
             view_func=f,
             methods=methods
         )

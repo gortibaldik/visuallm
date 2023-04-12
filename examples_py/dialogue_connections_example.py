@@ -1,15 +1,45 @@
-from llm_generation_server.dialogue_connections_component import DialogueConnectionsComponent
+from llm_generation_server.component_base import ComponentBase
 from llm_generation_server.formatters.table_formatter import TableFormatter
 from llm_generation_server.formatters.sample_selector_formatter import SampleSelectorFormatter
-from flask import jsonify
+from llm_generation_server.formatters.plain_formatter import PlainFormatter
+from flask import jsonify, request
 
-class ExampleDialogueConnectionsComponent(DialogueConnectionsComponent):
+class ExampleDialogueConnectionsComponent(ComponentBase):
     def __init__(self):
-        super().__init__()
+        self.main_heading_formatter = PlainFormatter(
+            name="main_heading",
+            is_heading=True,
+            heading_level=2,
+            content="Dialogue Links"
+        )
         self.sample_selector_formatter = SampleSelectorFormatter(
-            0, 10
+            name="sample_selector",
+            sample_min=0,
+            sample_max=10,
+            endpoint_url="/select_sample_dialogues",
+            endpoint_callback=self.select_sample
+        )
+        self.table_formatter = TableFormatter(
+            name="displayed_table"
+        )
+        super().__init__(
+            default_url="/fetch_dialogue_links",
+            name="dialogue_links",
+            title="Dialogue Links",
+            formatters=[
+                self.main_heading_formatter,
+                self.sample_selector_formatter,
+                self.table_formatter
+            ]
         )
         self.load_dataset_sample(0)
+
+    def select_sample(self):
+        if not request.is_json:
+            return jsonify(dict(result="failure"))
+        sample_n: int = request.get_json().get("sample_n")
+        self.load_dataset_sample(sample_n)
+        return self.fetch_info(fetch_all=False)
 
     def load_dataset_sample(self, sample_n: int):
         persona_headers = ["Characteristic Trait"]
@@ -35,7 +65,7 @@ class ExampleDialogueConnectionsComponent(DialogueConnectionsComponent):
             ["Partner", f"{sample_n}: yes ... do you know if there is a book 16 candles ?"],
             ["You", f"{sample_n}: i did not know that but i have seen the movie"],
         ]
-        self.table_formatter = TableFormatter()
+        self.table_formatter.clear()
         self.table_formatter.add_table("Persona", persona_headers, persona_rows)
         self.table_formatter.add_table("Dialogue", utterance_headers, utterance_rows)
 

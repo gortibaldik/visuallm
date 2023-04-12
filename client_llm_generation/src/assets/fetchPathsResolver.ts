@@ -8,6 +8,7 @@ export async function fetchDefault(instance: any, backendAddress: string, pollNa
     }
     let name = route_name.toString()
     let default_fetch_path = instance["$default_fetch_paths"][name]
+    instance[pollName]?.clear()
     instance[pollName] = new PollUntilSuccessGET(
       `${backendAddress}/${default_fetch_path}`,
       callback,

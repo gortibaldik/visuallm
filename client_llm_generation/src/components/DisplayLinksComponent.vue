@@ -1,5 +1,5 @@
 <template>
-<div v-for="table in passed_data.loadedTables" class="table-wrapper">
+<div v-for="table in tables" class="table-wrapper">
     <h3 v-if="table.title != undefined">{{ table.title }}</h3>
     <table class="table-style-0">
         <thead><tr>
@@ -18,6 +18,8 @@
 import { defineComponent } from 'vue';
 import LeaderLine from 'leader-line-new';
 import { shallowRef } from 'vue';
+import { reactiveStore } from '@/assets/reactiveData'
+import { convertName } from '@/assets/formatter';
 
 export type LoadedTable = {
     title: string,
@@ -45,15 +47,14 @@ class Data {
 
 let component = defineComponent({
     props: {
-        passed_data: {
-            type: Data,
+        name: {
+            type: String,
             required: true
         }
     },
     data() {
         return {
-            connections: this.passed_data.connections,
-            tables: this.passed_data.loadedTables,
+            reactiveStore,
             tableRefs: {} as { [id: string] : number },
             initializeConnectionsTimeoutMS: 400,
             shownConnections: {} as { [id: string]: boolean;},
@@ -61,38 +62,48 @@ let component = defineComponent({
             drawedConnections: {} as { [id: string]: LeaderLine[]}
         }
     },
-    mounted() {
-        this.initializeTableRefs(this.tables)
-        setTimeout(this.initializeConnections.bind(this), 500)
-    },
-    unmounted() {
-        for (let key in this.drawedConnections) {
-            let lines = this.drawedConnections[key];
-            for (let i = 0; i < lines.length; i++) {
-                let line = lines[i];
-                line.remove();
-            }
+    computed: {
+        connections(): [] {
+            return reactiveStore[convertName(this.name, "connections")]
+        },
+        tables(): LoadedTable[] {
+            return reactiveStore[convertName(this.name, "loadedTables")]
         }
     },
     watch: {
-        passed_data(newValue: any) {
-            console.log("tables changed!")
-            this.initializeTableRefs(this.tables)
-            setTimeout(this.initializeConnections.bind(this), 500)
+        tables(newValue: any) {
+            this.updateEverything(newValue)
+        },
+        connections(newValue: any) {
+            this.updateEverything(this.tables)
         }
+    },
+    mounted() {
+        this.updateEverything(this.tables)
+    },
+    unmounted() {
+        this.removeConnections()
     },
     methods: {
         table_title_to_id(title: string) {
             return title.replace(/\s/g, '')
         },
+        updateEverything(tables: any) {
+            if (this.initializeTableRefs(tables)) {
+                setTimeout(this.initializeConnections.bind(this), 500)
+            }
+        },
         initializeTableRefs(newTables: LoadedTable[]) {
+            if (newTables === undefined) {
+                return false
+            }
             this.tableRefs = {}
             for (let i = 0; i < newTables.length; i++) {
                 this.tableRefs[newTables[i].title] = i
             }
+            return true
         },
         removeConnections() {
-            console.log("removing connections!")
             for (let key in this.drawedConnections) {
                 let lines = this.drawedConnections[key];
                 for (let i = 0; i < lines.length; i++) {
@@ -107,7 +118,7 @@ let component = defineComponent({
             }
         },
         initializeConnections() {
-            let connections = this.passed_data.connections
+            let connections = this.connections
             if (connections == undefined) {
                 return
             }
@@ -176,6 +187,14 @@ export function registerComponent(formatter: any) {
 }
 
 function processContext(context: any) {
+    if (! ("content" in context)) {
+        throw RangeError("Invalid context ('content' not in context)")
+    }
+    for (let val of ["tables", "connections"]) {
+        if (!(val in context.content)) {
+            throw RangeError(`Invalid context.content! (without ${val})`)
+        }
+    }
     return new Data(
         context.content.tables,
         context.content.connections

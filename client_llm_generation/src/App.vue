@@ -1,9 +1,9 @@
 <template>
-  <nav v-if="routes_already_loaded && (customRoutes.length != 1)">
+  <nav v-if="display_router_view && (customRoutes.length != 1)">
     <router-link class="button" v-for="route in customRoutes" :to="route.path">{{ route.title }} </router-link>
   </nav>
   <main>
-    <router-view v-if="routes_already_loaded"></router-view>
+    <router-view v-if="display_router_view"></router-view>
     <div class="notLoaded" v-else>
       <h1>The routes from the backend haven't been loaded yet.</h1>
     </div>
@@ -12,11 +12,9 @@
 
 <script lang="ts" scoped>
 
-import { defineComponent, shallowRef } from 'vue';
-import type { Component } from 'vue';
+import { defineComponent } from 'vue';
 import { PollUntilSuccessGET } from './assets/pollUntilSuccessLib'
-import  NextTokenPrediction  from './components/NextTokenPrediction.vue'
-import DisplayConnections from './components/LinkData.vue'
+import  MainContainer  from './components/MainContainerComponent.vue'
 
 type CustomRoute = {
   title: string;
@@ -28,19 +26,28 @@ type CustomRoute = {
 export default defineComponent({
   data() {
     return {
-      routes_already_loaded: false,
+      display_router_view: false,
       customRoutes: [] as CustomRoute[],
       backendAddress: import.meta.env.VITE_API_URL as string,
       tryPoll: undefined as undefined | PollUntilSuccessGET,
-      existingComponents: {
-        "next_token_prediction": shallowRef(NextTokenPrediction),
-        "connections": shallowRef(DisplayConnections),
-      } as {[name: string] : Component}
+    }
+  },
+  watch: {
+    // this is just a dummy route change toggler, when v-if=display_router_view
+    // is set to false the component is deactivated (destroyed, unmounted), then
+    // it is set to true, and the component is again loaded, this allows multiple
+    // routes to reuse the same component
+    $route(to: any, from: any) {
+      this.display_router_view = false
+    },
+    display_router_view(newValue: boolean) {
+      if (newValue === false) {
+        this.display_router_view = true
+      }
     }
   },
   components: {
-    NextTokenPrediction,
-    DisplayConnections
+    MainContainer,
   },
   provide() {
     return {
@@ -48,7 +55,7 @@ export default defineComponent({
     }
   },
   async created() {
-    if (this.routes_already_loaded) {
+    if (this.display_router_view) {
       return
     }
     this.tryPoll = new PollUntilSuccessGET(
@@ -81,12 +88,9 @@ export default defineComponent({
       this.$router.addRoute({
         name: c.name,
         path: c.path,
-        component: this.existingComponents[c.name],        
+        component: MainContainer,        
       })
       return replace
-    },
-    shouldBeRegistered(c : CustomRoute) {
-      return c.name in this.existingComponents
     },
     isAlreadyRegistered(c: CustomRoute) {
       return this.$router.hasRoute(c.name)
@@ -96,17 +100,15 @@ export default defineComponent({
       let replace = false;
       for (let i = 0; i < context.length; i++) {
         let c = context[i] as CustomRoute
-        if (this.shouldBeRegistered(c)) {
-          if (this.isAlreadyRegistered(c)) {
-            continue
-          }
-          replace = this.registerComponent(c) || replace
+        if (this.isAlreadyRegistered(c)) {
+          continue
         }
+        replace = this.registerComponent(c) || replace
       }
       if (replace) {
         this.$router.replace(this.$router.currentRoute.value.fullPath)
       }
-      this.routes_already_loaded = true
+      this.display_router_view = true
 
     }
   }

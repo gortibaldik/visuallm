@@ -1,6 +1,6 @@
 from typing import List
 from dataclasses import dataclass
-from llm_generation_server.formatters.format import FormattedContext
+from llm_generation_server.formatters.format import FormattedContext, Formatter
 
 @dataclass
 class RowConnection:
@@ -11,9 +11,14 @@ class RowConnection:
     Importance: int
     Label: str
 
-class TableFormatter:
+class TableFormatter(Formatter):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.clear()
+
+    def clear(self):
+        self.changed = True
         self._tables = {}
         self.tables = []
         self.connections = []
@@ -27,6 +32,7 @@ class TableFormatter:
     def add_table(self, title: str, headers: List[str], rows: List[List[str]]):
         if not self.check_rows(headers, rows):
             raise ValueError()
+        self.changed = True
         self._tables[title] = dict(
             headers=headers,
             rows=rows,
@@ -42,6 +48,7 @@ class TableFormatter:
                 f"{len(self._tables[start_table]['rows']), start_row}" 
                 + f"{len(self._tables[end_table]['rows']), end_row}"
             )
+        self.changed = True
         self.connections.append(
             RowConnection(
                 start_table,
@@ -54,10 +61,15 @@ class TableFormatter:
         )
 
     def format(self):
+        self.changed = False
         return FormattedContext(
+            name=self.name,
             type="connected_tables",
             content=dict(
                 tables=self.tables,
                 connections=self.connections
             )
         )
+
+    def add_endpoint(self, app):
+        pass
