@@ -23,6 +23,7 @@ export default defineComponent({
   },
   unmounted() {
     this.defaultPoll?.clear()
+    this.resetReactiveStore()
   },
   components: {
     DisplayPlainTextComponent,
@@ -31,6 +32,11 @@ export default defineComponent({
     DisplayLinksComponent,
   },
   methods: {
+    resetReactiveStore() {
+      for (const key in this.reactiveStore) {
+        delete this.reactiveStore[key];
+      }
+    },
     setUpContext(response: any) {
       this.$formatter.processResponse(
         response,
