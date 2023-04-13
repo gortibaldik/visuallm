@@ -59,3 +59,17 @@ export default class Formatter {
         app.config.globalProperties.$formatter = this
     }
 }
+
+export function contentContextRequired(context: any) {
+    if (! ("content" in context)) {
+        throw RangeError("Invalid context ('content' not in context)")
+    }
+}
+
+export function valsContextContentRequired(context: any, vals: string[]) {
+    for (let val of vals) {
+        if (! (val in context.content)) {
+            throw RangeError(`Invalid context.content! ('${val}' not in context.content)`)
+        }
+    }
+}

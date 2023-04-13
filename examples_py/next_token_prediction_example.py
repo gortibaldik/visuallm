@@ -2,7 +2,7 @@ from llm_generation_server.component_base import ComponentBase
 from llm_generation_server.formatters.table_formatter import TableFormatter
 from llm_generation_server.formatters.plain_formatter import PlainFormatter
 from llm_generation_server.formatters.softmax_formatter import SoftmaxFormatter
-from llm_generation_server.formatters.sample_selector_formatter import SampleSelectorFormatter
+from llm_generation_server.formatters.sample_selector_formatter import MinMaxSelectorFormatter
 from flask import request,jsonify
 import requests
 import random
@@ -38,7 +38,7 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
             endpoint_url="/select_next_token",
             endpoint_callback=self.select_next_token,
         )
-        self.sample_selector_formatter = SampleSelectorFormatter(
+        self.sample_selector_formatter = MinMaxSelectorFormatter(
             name="sample_selector",
             sample_min=0,
             sample_max=10,

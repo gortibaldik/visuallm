@@ -13,18 +13,7 @@
 <script lang="ts">
 import { defineComponent, shallowRef } from 'vue';
 import { reactiveStore } from '@/assets/reactiveData';
-import { convertName } from '@/assets/formatter'
-
-class Data {
-    value: string
-    heading: boolean
-    headingLevel: number
-    constructor(value: string, heading: boolean, headingLevel: number) {
-        this.value = value
-        this.heading = heading
-        this.headingLevel = headingLevel
-    }
-}
+import { convertName, contentContextRequired, valsContextContentRequired } from '@/assets/formatter'
 
 let component = defineComponent({
     props: {
@@ -60,19 +49,13 @@ export function registerComponent(formatter: any) {
 }
 
 function processContext(context: any) {
-    if (! ("content" in context)) {
-        throw RangeError("Invalid context ('content' not in context)")
+    contentContextRequired(context)
+    valsContextContentRequired(context, ["value", "heading", "heading_level"])
+    return {
+        value: context.content.value,
+        heading: context.content.heading,
+        headingLevel: context.content.heading_level
     }
-    for (let val of ["value", "heading", "heading_level"]) {
-        if (!(val in context.content)) {
-            throw RangeError(`Invalid context.content! (without ${val})`)
-        }
-    }
-    return new Data(
-        context.content.value,
-        context.content.heading,
-        context.content.heading_level
-    )
 }
 
 </script>

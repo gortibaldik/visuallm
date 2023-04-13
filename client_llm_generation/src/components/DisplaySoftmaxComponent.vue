@@ -15,17 +15,9 @@
 import { shallowRef } from 'vue';
 import { defineComponent } from 'vue';
 import { reactiveStore } from '@/assets/reactiveData';
-import { convertName } from '@/assets/formatter';
+import { convertName, contentContextRequired, valsContextContentRequired } from '@/assets/formatter';
 import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib';
 
-class Data {
-    address: string
-    possibilities: {token: string, prob: number}[]
-    constructor(address: string, possibilities: {token: string, prob:number}[]) {
-        this.possibilities = possibilities
-        this.address = address
-    }
-}
 
 let component = defineComponent({
     props: {
@@ -92,18 +84,13 @@ export function registerComponent(formatter: any) {
 }
 
 function processContext(context: any) {
-  if (! ("content" in context)) {
-      throw RangeError("Invalid context ('content' not in context)")
+  contentContextRequired(context)
+  valsContextContentRequired(context, ["address", "possibilities"])
+  
+  return {
+    address: context.content.address,
+    possibilities: context.content.possibilities
   }
-  for (let val of ["address", "possibilities"]) {
-      if (!(val in context.content)) {
-          throw RangeError(`Invalid context.content! (without ${val})`)
-      }
-  }
-  return new Data(
-    context.content.address,
-    context.content.possibilities
-  )
 }
 </script>
 
