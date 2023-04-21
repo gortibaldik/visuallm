@@ -1,8 +1,8 @@
 <template>
   <span>
-    <span v-if="shortContent" class="word-text">"{{ content }}"</span>
-    <span v-if="longContent" class="word-text">LONG: {{ content }}</span>
-    <span :style="{ width: progressTrackWidth }" class="progress-track rounded">
+    <span v-if="isLong" class="word-text">LONG: "{{ content }}"</span>
+    <span v-else class="word-text">"{{ content }}"</span>
+    <span v-for="probability in probabilities" :style="{ width: progressTrackWidth }" class="progress-track rounded">
       <div :style="{ width: probability.toString() + '%' }" class="progress-fill rounded">
         <span class="prob-text">{{ probability.toFixed(2) }}%</span>
       </div>
@@ -11,33 +11,43 @@
 </template>
 
 <script lang="ts" scoped>
+import type { PropType } from 'vue'
 import { defineComponent } from 'vue'
+
+export interface Item {
+  probs: number[]
+  content: string
+  is_long: boolean
+}
 
 let component = defineComponent({
   props: {
-    probability: {
-      type: Number,
+    item: {
+      type: Object as PropType<Item>,
       required: true
     },
-    content: String
   },
   computed: {
+    content() {
+      return this.item.content
+    },
+    probabilities() {
+      return this.item.probs
+    },
+    isLong() {
+      let long_enforced = this.item.is_long
+      long_enforced ||= this.probabilities.length > 1
+      return long_enforced
+    },
     progressTrackWidth(): string {
-      if (this.content === undefined) {
-        return '100%'
-      } else {
-        return '90%'
+      let oneTrackWidth = 90
+      if (this.probabilities.length > 1) {
+        oneTrackWidth -= this.probabilities.length
+        oneTrackWidth /= this.probabilities.length
       }
+      let width = `${oneTrackWidth}%`
+      return width
     },
-    contentDefined(): boolean {
-      return this.content !== undefined
-    },
-    shortContent(): boolean {
-      return this.content !== undefined && !this.content.includes(' ')
-    },
-    longContent(): boolean {
-      return this.content !== undefined && this.content.includes(' ')
-    }
   }
 })
 export default component

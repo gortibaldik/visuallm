@@ -25,6 +25,7 @@ class ExampleSamplingComponent(ComponentBase):
             n_largest_tokens_to_return=10,
             endpoint_url="/select_samples",
             endpoint_callback=lambda: ...,
+            long_tokens=True,
         )
         self.load_dataset_sample(0)
 

@@ -8,8 +8,9 @@ from llm_generation_server.server import Server
 
 @dataclass
 class Continuation:
-    token: str
-    prob: float
+    is_long: bool
+    content: str
+    probs: List[float]
 
 
 class SoftmaxFormatter(Formatter):
@@ -18,6 +19,7 @@ class SoftmaxFormatter(Formatter):
         n_largest_tokens_to_return: int,
         endpoint_url: str,
         endpoint_callback: Callable,
+        long_tokens: bool = False,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -25,6 +27,7 @@ class SoftmaxFormatter(Formatter):
         self._possibilities = []
         self.endpoint_url = endpoint_url
         self.endpoint_callback = endpoint_callback
+        self.long_tokens = long_tokens
 
     @property
     def possibilities(self):
@@ -39,7 +42,7 @@ class SoftmaxFormatter(Formatter):
         n_largest = nlargest(
             self.n_largest_tokens_to_return, zip(probs, word_vocab), key=lambda x: x[0]
         )
-        return [Continuation(x[1], x[0] * 100) for x in n_largest]
+        return [Continuation(self.long_tokens, x[1], [x[0] * 100]) for x in n_largest]
 
     def format(self):
         self.changed = False

@@ -1,11 +1,7 @@
 <template>
   <div v-for="item in possibilities" class="progress-bar">
-    <DisplayPercentageComponent
-      style="display: inline-block; width: 90%"
-      :probability="item.prob"
-      :content="item.token"
-    ></DisplayPercentageComponent>
-    <input class="input-radio" type="radio" v-model="picked" :value="item.token" />
+    <DisplayPercentageComponent style="display: inline-block; width: 90%" :item="item"></DisplayPercentageComponent>
+    <input class="input-radio" type="radio" v-model="picked" :value="item.content" />
   </div>
   <div style="text-align: center; margin-top: 10px">
     <button class="button" @click="emitClicked()">Select "{{ picked }}"</button>
@@ -19,6 +15,7 @@ import { reactiveStore } from '@/assets/reactiveData'
 import { convertName, contentContextRequired, valsContextContentRequired } from '@/assets/formatter'
 import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib'
 import DisplayPercentageComponent from './DisplayPercentageComponent.vue'
+import type { Item as PercentageItem } from './DisplayPercentageComponent.vue'
 
 let component = defineComponent({
   props: {
@@ -29,7 +26,7 @@ let component = defineComponent({
   },
   inject: ['backendAddress'],
   computed: {
-    possibilities(): { token: string; prob: number }[] {
+    possibilities(): PercentageItem[] {
       return reactiveStore[convertName(this.name, 'possibilities')]
     },
     address(): string {
@@ -42,9 +39,9 @@ let component = defineComponent({
   watch: {
     possibilities: {
       immediate: true,
-      handler(newValue: { token: string; prob: number }[]) {
+      handler(newValue: PercentageItem[]) {
         if (newValue !== undefined && newValue.length != 0) {
-          this.picked = newValue[0].token
+          this.picked = newValue[0].content
         }
       }
     }
@@ -99,6 +96,7 @@ function processContext(context: any) {
 .input-radio {
   margin-left: 5px;
 }
+
 .progress-bar {
   margin-top: 10px;
 }
