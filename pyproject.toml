@@ -33,3 +33,6 @@ include-package-data = true
 
 [tool.setuptools.package-dir]
 llm_generation_server = "llm_generation_server"
+
+[tool.isort]
+profile = "black"

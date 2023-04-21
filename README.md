@@ -35,11 +35,11 @@ class ExampleNextTokenPredictionComponent(NextTokenPredictionComponent):
         self.word_dict = response.content.splitlines()
         self.word_dict = [x.decode('utf-8') for x in self.word_dict]
         self.ix_arr = list(range(len(self.word_dict)))
-    
+
     def append_to_context(self, context: str, post_token: str):
         context = context + " " + post_token
         return context
-    
+
     def format_context(self, context: str):
         return "<br>".join(context.split())
 
@@ -65,4 +65,3 @@ server = Server(__name__, [next_token_component])
 server.run()
 ```
 ![generation_image](./readme_images/generation.png)
-

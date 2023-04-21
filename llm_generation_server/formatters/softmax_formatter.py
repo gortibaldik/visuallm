@@ -1,7 +1,8 @@
-from llm_generation_server.formatters.format import FormattedContext, Formatter
-from typing import List, Callable
 from dataclasses import dataclass
 from heapq import nlargest
+from typing import Callable, List
+
+from llm_generation_server.formatters.format import FormattedContext, Formatter
 from llm_generation_server.server import Server
 
 

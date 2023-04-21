@@ -8,9 +8,7 @@ import { registerComponent as registerSampleSelector } from './components/Displa
 import Formatter from './assets/formatter'
 import FetchPathsResolver from './assets/fetchPathsResolver'
 
-const routes = [
-    { name: 'default', path: '/', component: App},
-]
+const routes = [{ name: 'default', path: '/', component: App }]
 
 const formatter = new Formatter()
 registerPlain(formatter)
@@ -19,10 +17,9 @@ registerTables(formatter)
 registerSampleSelector(formatter)
 
 const router = createRouter({
-    history: createWebHashHistory(),
-    routes
+  history: createWebHashHistory(),
+  routes
 })
-
 
 import './assets/main.css'
 
@@ -32,10 +29,10 @@ app.use(router)
 app.use(FetchPathsResolver)
 
 declare module 'vue' {
-    interface ComponentCustomProperties {
-        $formatter: Formatter,
-        $default_fetch_paths: {[name: string]: string}
-    }
+  interface ComponentCustomProperties {
+    $formatter: Formatter
+    $default_fetch_paths: { [name: string]: string }
+  }
 }
 
-app.mount("#app")
+app.mount('#app')

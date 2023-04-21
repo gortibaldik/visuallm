@@ -1,11 +1,12 @@
-from llm_generation_server.component_base import ComponentBase
-from llm_generation_server.formatters.table_formatter import TableFormatter
-from llm_generation_server.formatters.sample_selector_formatter import (
-    MinMaxSelectorFormatter,
-    ChoicesSelectorFormatter,
-)
-from llm_generation_server.formatters.plain_formatter import PlainFormatter
 from flask import jsonify, request
+
+from llm_generation_server.component_base import ComponentBase
+from llm_generation_server.formatters.plain_formatter import PlainFormatter
+from llm_generation_server.formatters.sample_selector_formatter import (
+    ChoicesSelectorFormatter,
+    MinMaxSelectorFormatter,
+)
+from llm_generation_server.formatters.table_formatter import TableFormatter
 
 
 class ExampleDialogueConnectionsComponent(ComponentBase):

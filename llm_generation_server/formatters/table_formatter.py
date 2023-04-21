@@ -1,5 +1,6 @@
-from typing import List
 from dataclasses import dataclass
+from typing import List
+
 from llm_generation_server.formatters.format import FormattedContext, Formatter
 
 

@@ -1,10 +1,12 @@
-from flask import Flask, redirect, jsonify
-from flask_cors import CORS
-from typing import Callable, List, Set
-from llm_generation_server.component_base import ComponentBase
 import os
 import sys
 from dataclasses import dataclass
+from typing import Callable, List, Set
+
+from flask import Flask, jsonify, redirect
+from flask_cors import CORS
+
+from llm_generation_server.component_base import ComponentBase
 
 
 @dataclass

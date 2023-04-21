@@ -1,6 +1,8 @@
 <template>
-  <nav v-if="display_router_view && (customRoutes.length != 1)">
-    <router-link class="button" v-for="route in customRoutes" :to="route.path">{{ route.title }} </router-link>
+  <nav v-if="display_router_view && customRoutes.length != 1">
+    <router-link class="button" v-for="route in customRoutes" :to="route.path"
+      >{{ route.title }}
+    </router-link>
   </nav>
   <main>
     <router-view v-if="display_router_view"></router-view>
@@ -11,16 +13,15 @@
 </template>
 
 <script lang="ts" scoped>
-
-import { defineComponent } from 'vue';
+import { defineComponent } from 'vue'
 import { PollUntilSuccessGET } from './assets/pollUntilSuccessLib'
-import  MainContainer  from './components/MainContainerComponent.vue'
+import MainContainer from './components/MainContainerComponent.vue'
 
 type CustomRoute = {
-  title: string;
-  name: string;
-  path: string;
-  default_fetch_path: string;
+  title: string
+  name: string
+  path: string
+  default_fetch_path: string
 }
 
 export default defineComponent({
@@ -29,7 +30,7 @@ export default defineComponent({
       display_router_view: false,
       customRoutes: [] as CustomRoute[],
       backendAddress: import.meta.env.VITE_API_URL as string,
-      tryPoll: undefined as undefined | PollUntilSuccessGET,
+      tryPoll: undefined as undefined | PollUntilSuccessGET
     }
   },
   watch: {
@@ -47,7 +48,7 @@ export default defineComponent({
     }
   },
   components: {
-    MainContainer,
+    MainContainer
   },
   provide() {
     return {
@@ -69,7 +70,7 @@ export default defineComponent({
   },
   methods: {
     setDefaultPath(c: CustomRoute) {
-      c.path = "/"
+      c.path = '/'
       this.$router.removeRoute('default')
       return true
     },
@@ -83,12 +84,12 @@ export default defineComponent({
       this.customRoutes.push(c)
       this.$default_fetch_paths[c.name] = c.default_fetch_path
       if (replace) {
-        this.$default_fetch_paths["default"] = c.default_fetch_path
+        this.$default_fetch_paths['default'] = c.default_fetch_path
       }
       this.$router.addRoute({
         name: c.name,
         path: c.path,
-        component: MainContainer,        
+        component: MainContainer
       })
       return replace
     },
@@ -97,7 +98,7 @@ export default defineComponent({
     },
     resolveComponents(response: any) {
       let context = response.context as []
-      let replace = false;
+      let replace = false
       for (let i = 0; i < context.length; i++) {
         let c = context[i] as CustomRoute
         if (this.isAlreadyRegistered(c)) {
@@ -109,11 +110,9 @@ export default defineComponent({
         this.$router.replace(this.$router.currentRoute.value.fullPath)
       }
       this.display_router_view = true
-
     }
   }
 })
-
 </script>
 
 <style scoped>

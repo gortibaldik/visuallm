@@ -1,10 +1,11 @@
+from flask import jsonify, request
+
 from llm_generation_server.component_base import ComponentBase
 from llm_generation_server.formatters.plain_formatter import PlainFormatter
-from llm_generation_server.formatters.softmax_formatter import SoftmaxFormatter
 from llm_generation_server.formatters.sample_selector_formatter import (
     MinMaxSelectorFormatter,
 )
-from flask import request, jsonify
+from llm_generation_server.formatters.softmax_formatter import SoftmaxFormatter
 
 
 class ExampleSamplingComponent(ComponentBase):

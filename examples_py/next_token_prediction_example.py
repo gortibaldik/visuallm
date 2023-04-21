@@ -1,14 +1,16 @@
+import random
+
+import numpy as np
+import requests
+from flask import jsonify, request
+
 from llm_generation_server.component_base import ComponentBase
-from llm_generation_server.formatters.table_formatter import TableFormatter
 from llm_generation_server.formatters.plain_formatter import PlainFormatter
-from llm_generation_server.formatters.softmax_formatter import SoftmaxFormatter
 from llm_generation_server.formatters.sample_selector_formatter import (
     MinMaxSelectorFormatter,
 )
-from flask import request, jsonify
-import requests
-import random
-import numpy as np
+from llm_generation_server.formatters.softmax_formatter import SoftmaxFormatter
+from llm_generation_server.formatters.table_formatter import TableFormatter
 
 
 class ExampleNextTokenPredictionComponent(ComponentBase):

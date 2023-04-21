@@ -1,7 +1,9 @@
-from typing import List, Callable, Optional
-from llm_generation_server.formatters.format import Formatter
-from flask import jsonify
 from pprint import pprint
+from typing import Callable, List, Optional
+
+from flask import jsonify
+
+from llm_generation_server.formatters.format import Formatter
 
 
 class ComponentBase:
