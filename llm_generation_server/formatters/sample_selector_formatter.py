@@ -56,7 +56,7 @@ class ChoicesSelectorFormatter(SampleSelectorFormatter):
     def __init__(self, choices: List[str], **kwargs):
         super().__init__(**kwargs)
         if len(choices) == 0:
-            raise RuntimeError(f"choices should have length at least 1!")
+            raise RuntimeError("choices should have length at least 1!")
         self.other_args = dict(choices=choices, selected=choices[0])
         self.subtype = "choices"
 
