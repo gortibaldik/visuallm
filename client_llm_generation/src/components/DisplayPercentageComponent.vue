@@ -1,12 +1,18 @@
 <template>
   <span>
-    <span v-if="isLong" class="word-text">LONG: "{{ content }}"</span>
+    <span v-if="longContexts" class="context-text" @mouseover="showProbs = true" @mouseleave="showProbs = false">"{{
+      content }}"</span>
     <span v-else class="word-text">"{{ content }}"</span>
-    <span v-for="probability in probabilities" :style="{ width: progressTrackWidth }" class="progress-track rounded">
-      <div :style="{ width: probability.toString() + '%' }" class="progress-fill rounded">
-        <span class="prob-text">{{ probability.toFixed(2) }}%</span>
-      </div>
-    </span>
+    <component :is="componentType" v-if="!longContexts || showProbs">
+      <span v-for="(probability, i) in probabilities" class="prob-block" :style="{ width: progressTrackWidth }">
+        <div v-if="longContexts && showProbs" class="prob-block-text">{{ names[i] }}</div>
+        <span class="progress-track rounded">
+          <span :style="{ width: probability.toString() + '%' }" class="progress-fill rounded">
+            <span class="prob-text">{{ probability.toFixed(2) }}%</span>
+          </span>
+        </span>
+      </span>
+    </component>
   </span>
 </template>
 
@@ -17,7 +23,6 @@ import { defineComponent } from 'vue'
 export interface Item {
   probs: number[]
   content: string
-  is_long: boolean
 }
 
 let component = defineComponent({
@@ -26,6 +31,19 @@ let component = defineComponent({
       type: Object as PropType<Item>,
       required: true
     },
+    longContexts: {
+      type: Boolean,
+      required: true
+    },
+    names: {
+      type: Object as PropType<string[]>,
+      required: true
+    }
+  },
+  data() {
+    return {
+      showProbs: false
+    }
   },
   computed: {
     content() {
@@ -34,15 +52,18 @@ let component = defineComponent({
     probabilities() {
       return this.item.probs
     },
-    isLong() {
-      let long_enforced = this.item.is_long
-      long_enforced ||= this.probabilities.length > 1
-      return long_enforced
+    componentType() {
+      if (this.longContexts) {
+        return "div"
+      } else {
+        return "span"
+      }
     },
     progressTrackWidth(): string {
       let oneTrackWidth = 90
       if (this.probabilities.length > 1) {
-        oneTrackWidth -= this.probabilities.length
+        oneTrackWidth = 100
+        oneTrackWidth -= this.probabilities.length * 2
         oneTrackWidth /= this.probabilities.length
       }
       let width = `${oneTrackWidth}%`
@@ -54,21 +75,34 @@ export default component
 </script>
 
 <style scoped>
-.progress-track {
-  background: #ebebeb;
+.prob-block {
   display: inline-block;
   padding-top: 1px;
   padding-bottom: 1px;
+  margin-left: 5px;
+  display: inline-block;
+}
+
+.prob-block-text {
+  font-size: small;
+  text-align: center;
+  color: rgba(117, 117, 117, 0.533)
+}
+
+.progress-track {
+  display: inline-block;
+  background: #ebebeb;
+  width: 100%
 }
 
 .progress-fill {
   background: #666;
+  display: inline-block;
 }
 
 .prob-text {
   color: azure;
   margin-left: 2px;
-  margin-right: 2px;
 }
 
 .rounded .progress-track,
@@ -83,5 +117,13 @@ export default component
   overflow: auto;
   margin-bottom: -7px;
   margin-right: 5px;
+}
+
+.context-text {
+  width: 100%;
+  overflow: auto;
+  font-size: large;
+  background-color: rgb(224, 224, 224);
+  padding: 5px;
 }
 </style>

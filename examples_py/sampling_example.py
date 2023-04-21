@@ -1,3 +1,6 @@
+import math
+import random
+
 from flask import jsonify, request
 
 from llm_generation_server.component_base import ComponentBase
@@ -25,7 +28,9 @@ class ExampleSamplingComponent(ComponentBase):
             n_largest_tokens_to_return=10,
             endpoint_url="/select_samples",
             endpoint_callback=lambda: ...,
-            long_tokens=True,
+            long_contexts=True,
+            names=["SuperProb", "ExtraProb", "FantasticProb"],
+            selectable=False,
         )
         self.load_dataset_sample(0)
 
@@ -51,7 +56,19 @@ class ExampleSamplingComponent(ComponentBase):
                 f"{sample_n}: This is fifth row",
             ]
         ]
-        probs = [i * 0.1 + 0.1 for i, _ in enumerate(rows)]
+
+        def make_distribution(lst):
+            lst_sum = sum(lst)
+            return [c / lst_sum * 100 for c in lst]
+
+        yet_other_probs = make_distribution(
+            [random.random() for i, _ in enumerate(rows)]
+        )
+        other_probs = make_distribution([math.exp(i) for i, _ in enumerate(rows)])
+        probs = [
+            [i * 10 + 10, o1, o2]
+            for i, (o1, o2) in enumerate(zip(other_probs, yet_other_probs))
+        ]
         words = self.softmax_formatter.assign_words_to_probs(probs, rows)
         self.softmax_formatter.possibilities = words
 

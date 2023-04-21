@@ -34,6 +34,8 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
             n_largest_tokens_to_return=10,
             endpoint_url="/select_next_token",
             endpoint_callback=self.select_next_token,
+            names=["Estimated Probability"],
+            selectable=True,
         )
         self.sample_selector_formatter = MinMaxSelectorFormatter(
             name="sample_selector",
@@ -63,8 +65,7 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
     def initialize_vocab(self):
         word_site = "https://www.mit.edu/~ecprice/wordlist.10000"
         response = requests.get(word_site)
-        self.word_vocab = response.content.splitlines()
-        self.word_vocab = [x.decode("utf-8") for x in self.word_vocab]
+        self.word_vocab = [x.decode("utf-8") for x in response.content.splitlines()]
         self.ix_arr = list(range(len(self.word_vocab)))
 
     def initial_fetch(self, fetch_all=True):
@@ -119,12 +120,6 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
         twenty_probs = [random.random() for _ in range(K)]
         twenty_probs = np.exp(twenty_probs)
         twenty_probs /= np.sum(twenty_probs)
-        probs = np.zeros(
-            (
-                len(
-                    self.word_vocab,
-                )
-            )
-        )
-        probs[twenty_ixes] = twenty_probs
+        probs = np.zeros((len(self.word_vocab), 1))
+        probs[twenty_ixes, 0] = twenty_probs * 100
         return probs

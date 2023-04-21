@@ -42,7 +42,6 @@ let component = defineComponent({
     },
     defaultSelected: {
       handler(newValue: number) {
-        console.log(newValue)
         this.sample_n = newValue
       },
       immediate: true

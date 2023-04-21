@@ -1,9 +1,11 @@
 <template>
   <div v-for="item in possibilities" class="progress-bar">
-    <DisplayPercentageComponent style="display: inline-block; width: 90%" :item="item"></DisplayPercentageComponent>
-    <input class="input-radio" type="radio" v-model="picked" :value="item.content" />
+    <input v-if="selectable" class="input-radio" type="radio" v-model="picked" :value="item.content" />
+    <DisplayPercentageComponent style="display: inline-block; width: 90%" :item="item" :longContexts="longContexts"
+      :names="names">
+    </DisplayPercentageComponent>
   </div>
-  <div style="text-align: center; margin-top: 10px">
+  <div v-if="selectable" style="text-align: center; margin-top: 10px">
     <button class="button" @click="emitClicked()">Select "{{ picked }}"</button>
   </div>
 </template>
@@ -31,6 +33,15 @@ let component = defineComponent({
     },
     address(): string {
       return reactiveStore[convertName(this.name, 'address')]
+    },
+    names(): string[] {
+      return reactiveStore[convertName(this.name, 'names')]
+    },
+    longContexts(): boolean {
+      return reactiveStore[convertName(this.name, 'longContexts')]
+    },
+    selectable(): boolean {
+      return reactiveStore[convertName(this.name, 'selectable')]
     }
   },
   components: {
@@ -83,18 +94,21 @@ export function registerComponent(formatter: any) {
 
 function processContext(context: any) {
   contentContextRequired(context)
-  valsContextContentRequired(context, ['address', 'possibilities'])
+  valsContextContentRequired(context, ['address', 'possibilities', 'long_contexts', 'names'])
 
   return {
     address: context.content.address,
-    possibilities: context.content.possibilities
+    possibilities: context.content.possibilities,
+    longContexts: context.content.long_contexts,
+    names: context.content.names,
+    selectable: context.content.selectable,
   }
 }
 </script>
 
 <style scoped>
 .input-radio {
-  margin-left: 5px;
+  margin-right: 10px;
 }
 
 .progress-bar {
