@@ -1,11 +1,6 @@
 <template>
     <div v-for="item in possibilities" class="progress-bar">
-        <span class="word-text">"{{ item.token }}"</span>
-        <span class="progress-track">
-            <div :style="{ width: item.prob.toString() + '%' }" class="progress-fill">
-                <span class="prob-text">{{ (Math.round(item.prob * 100) / 100).toFixed(2) }}%</span>
-            </div>
-        </span>
+        <DisplayPercentageComponent style="display: inline-block; width: 90%" :probability="item.prob" :content="item.token"></DisplayPercentageComponent>
         <input class="input-radio" type="radio" v-model="picked" :value="item.token">
     </div>
     <div style="text-align: center; margin-top: 10px"><button class="button" @click="emitClicked()">Select "{{ picked }}"</button></div>
@@ -17,6 +12,7 @@ import { defineComponent } from 'vue';
 import { reactiveStore } from '@/assets/reactiveData';
 import { convertName, contentContextRequired, valsContextContentRequired } from '@/assets/formatter';
 import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib';
+import DisplayPercentageComponent from './DisplayPercentageComponent.vue'
 
 
 let component = defineComponent({
@@ -34,6 +30,9 @@ let component = defineComponent({
       address(): string {
         return reactiveStore[convertName(this.name, "address")]
       }
+    },
+    components: {
+      DisplayPercentageComponent
     },
     watch: {
       possibilities: {
@@ -101,35 +100,5 @@ function processContext(context: any) {
 }
 .progress-bar {
   margin-top: 10px;
-}
-.word-text {
-  display: inline-block;
-  width: 20%;
-  overflow: auto;
-  margin-bottom: -7px;
-}
-
-.prob-text {
-  color:azure;
-  margin-left: 2px;
-  margin-right: 2px;
-}
-
-.progress-track {
-  background: #ebebeb;
-  width: 70%;
-  display: inline-block;
-  padding-top: 1px;
-  padding-bottom: 1px;
-}
-
-.progress-fill {
-  background: #666;
-}
-
-.rounded .progress-track,
-.rounded .progress-fill {
-  box-shadow: inset 0 0 5px rgba(0,0,0,.2);
-  border-radius: 3px;
 }
 </style>
