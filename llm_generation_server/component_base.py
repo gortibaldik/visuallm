@@ -3,6 +3,7 @@ from llm_generation_server.formatters.format import Formatter
 from flask import jsonify
 from pprint import pprint
 
+
 class ComponentBase:
     def __init__(
         self,
@@ -22,22 +23,20 @@ class ComponentBase:
 
     def init_app(self, app):
         self.app = app
-        self.app.add_endpoint(
-            self.default_url,
-            self.default_callback,
-            methods=['GET']
-        )
+        self.app.add_endpoint(self.default_url, self.default_callback, methods=["GET"])
 
         for formatter in self.formatters:
             formatter.add_endpoint(self.app)
-    
-    def fetch_info(self, fetch_all: bool=True, debug_print: bool=False):
+
+    def fetch_info(self, fetch_all: bool = True, debug_print: bool = False):
         res = dict(
             result="success",
-            contexts=[formatter.format() for formatter in self.formatters if formatter.changed or fetch_all]
+            contexts=[
+                formatter.format()
+                for formatter in self.formatters
+                if formatter.changed or fetch_all
+            ],
         )
         if debug_print:
             pprint(res)
         return jsonify(res)
-
-    

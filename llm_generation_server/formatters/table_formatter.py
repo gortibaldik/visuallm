@@ -2,6 +2,7 @@ from typing import List
 from dataclasses import dataclass
 from llm_generation_server.formatters.format import FormattedContext, Formatter
 
+
 @dataclass
 class RowConnection:
     StartTable: str
@@ -11,8 +12,8 @@ class RowConnection:
     Importance: int
     Label: str
 
-class TableFormatter(Formatter):
 
+class TableFormatter(Formatter):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.clear()
@@ -22,7 +23,7 @@ class TableFormatter(Formatter):
         self._tables = {}
         self.tables = []
         self.connections = []
-        
+
     def check_rows(self, headers: List[str], rows: List[List[str]]):
         for row in rows:
             if len(row) != len(headers):
@@ -33,31 +34,30 @@ class TableFormatter(Formatter):
         if not self.check_rows(headers, rows):
             raise ValueError()
         self.changed = True
-        self._tables[title] = dict(
-            headers=headers,
-            rows=rows,
-            title=title
-        )
+        self._tables[title] = dict(headers=headers, rows=rows, title=title)
         self.tables.append(self._tables[title])
 
-    def add_connection(self, start_table: str, start_row: int, end_table: str, end_row: int, importance: int, label: str):
+    def add_connection(
+        self,
+        start_table: str,
+        start_row: int,
+        end_table: str,
+        end_row: int,
+        importance: int,
+        label: str,
+    ):
         if (start_table not in self._tables) or (end_table not in self._tables):
             raise ValueError()
-        if (len(self._tables[start_table]['rows']) <= start_row) or (len(self._tables[end_table]["rows"]) <= end_row):
+        if (len(self._tables[start_table]["rows"]) <= start_row) or (
+            len(self._tables[end_table]["rows"]) <= end_row
+        ):
             raise ValueError(
-                f"{len(self._tables[start_table]['rows']), start_row}" 
+                f"{len(self._tables[start_table]['rows']), start_row}"
                 + f"{len(self._tables[end_table]['rows']), end_row}"
             )
         self.changed = True
         self.connections.append(
-            RowConnection(
-                start_table,
-                start_row,
-                end_table,
-                end_row,
-                importance,
-                label
-            )
+            RowConnection(start_table, start_row, end_table, end_row, importance, label)
         )
 
     def format(self):
@@ -65,10 +65,7 @@ class TableFormatter(Formatter):
         return FormattedContext(
             name=self.name,
             type="connected_tables",
-            content=dict(
-                tables=self.tables,
-                connections=self.connections
-            )
+            content=dict(tables=self.tables, connections=self.connections),
         )
 
     def add_endpoint(self, app):

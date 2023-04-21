@@ -1,23 +1,23 @@
 from llm_generation_server.component_base import ComponentBase
 from llm_generation_server.formatters.plain_formatter import PlainFormatter
 from llm_generation_server.formatters.softmax_formatter import SoftmaxFormatter
-from llm_generation_server.formatters.sample_selector_formatter import MinMaxSelectorFormatter
+from llm_generation_server.formatters.sample_selector_formatter import (
+    MinMaxSelectorFormatter,
+)
 from flask import request, jsonify
+
 
 class ExampleSamplingComponent(ComponentBase):
     def __init__(self):
         self.main_heading_formatter = PlainFormatter(
-            name="main_heading",
-            is_heading=True,
-            heading_level=2,
-            content="Sampling"
+            name="main_heading", is_heading=True, heading_level=2, content="Sampling"
         )
         self.sample_selector_formatter = MinMaxSelectorFormatter(
             name="sample_selector",
             sample_min=0,
             sample_max=10,
             endpoint_callback=self.select_sample,
-            endpoint_url="/select_sample_sampling"
+            endpoint_url="/select_sample_sampling",
         )
         self.softmax_formatter = SoftmaxFormatter(
             name="softmax",
@@ -34,23 +34,25 @@ class ExampleSamplingComponent(ComponentBase):
             formatters=[
                 self.main_heading_formatter,
                 self.sample_selector_formatter,
-                self.softmax_formatter
+                self.softmax_formatter,
             ],
         )
-    
+
     def load_dataset_sample(self, sample_n: int):
-        rows = [ x for x in [
+        rows = [
+            x
+            for x in [
                 f"{sample_n}: This is first row",
                 f"{sample_n}: This is second row",
                 f"{sample_n}: This is third row",
                 f"{sample_n}: This is fourth row",
-                f"{sample_n}: This is fifth row"
+                f"{sample_n}: This is fifth row",
             ]
         ]
         probs = [i * 0.1 + 0.1 for i, _ in enumerate(rows)]
         words = self.softmax_formatter.assign_words_to_probs(probs, rows)
         self.softmax_formatter.possibilities = words
-    
+
     def select_sample(self):
         if not request.is_json:
             return jsonify(dict(result="failure"))

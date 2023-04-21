@@ -2,11 +2,13 @@ from dataclasses import dataclass
 from typing import Dict
 from abc import ABC, abstractmethod
 
+
 @dataclass
 class FormattedContext:
     name: str
     type: str
     content: Dict
+
 
 class Formatter(ABC):
     def __init__(self, name: str):
