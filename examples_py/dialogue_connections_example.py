@@ -22,6 +22,7 @@ class ExampleDialogueConnectionsComponent(ComponentBase):
             choices=["first", "second", "third"], text="Select Model:"
         )
         self.selector_element = SelectorElement(
+            button_text="Load Dataset Sample",
             subelements=[self.sample_selector_element, self.model_selector_element],
             endpoint_callback=self.select_sample,
         )

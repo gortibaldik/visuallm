@@ -25,10 +25,12 @@ class SelectorElement(ElementWithEndpoint):
         self,
         name: str = "selector",
         subelements: List[SelectorSubElement] = [],
+        button_text="Select",
         **kwargs,
     ):
         super().__init__(name=name, **kwargs)
         self.type = "sample_selector"
+        self._button_text = button_text
         self._subelements_dict: Dict[str, SelectorSubElement] = {}
         self._subelements: List[SelectorSubElement] = []
         self._subelement_names: MutableSet[str] = set()
@@ -43,6 +45,7 @@ class SelectorElement(ElementWithEndpoint):
             type=self.type,
             configuration=dict(
                 address=self.endpoint_url,
+                button_text=self._button_text,
                 subelement_configs=[
                     c.subelement_configuration for c in self._subelements
                 ],

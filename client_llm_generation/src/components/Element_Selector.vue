@@ -5,7 +5,7 @@
         :name="subElementConfigFE.name"></component>
     </div>
     <div class="buttonWrapper">
-      <button class="button" @click="emitClicked()">Select</button>
+      <button class="button" @click="emitClicked()">{{ buttonText }}</button>
     </div>
   </div>
 </template>
@@ -41,6 +41,9 @@ let component = defineComponent({
     },
     callbackAddress(): string {
       return componentSharedData[getSharedDataUniqueName(this.name, 'callbackAddress')]
+    },
+    buttonText(): string {
+      return componentSharedData[getSharedDataUniqueName(this.name, 'buttonText')]
     }
   },
   inject: ['backendAddress'],
@@ -122,6 +125,7 @@ interface SubElementConfigurationFE {
 interface ElementConfiguration {
   subelement_configs: SubElementConfigurationFromBE[]
   address: string
+  button_text: string
 }
 
 export function registerElement(formatter: Formatter) {
@@ -133,11 +137,12 @@ export function registerElement(formatter: Formatter) {
 
 function processElementDescr(elementDescr: ElementDescription) {
   configurationRequired(elementDescr)
-  valuesRequiredInConfiguration(elementDescr.configuration, ['subelement_configs', 'address'])
+  valuesRequiredInConfiguration(elementDescr.configuration, ['subelement_configs', 'address', 'button_text'])
 
   let configuration: ElementConfiguration = elementDescr.configuration
   let data = {
     callbackAddress: configuration.address,
+    buttonText: configuration.button_text,
     subElementConfigs: [] as SubElementConfigurationFE[]
   } as { [key: string]: any }
 

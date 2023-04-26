@@ -19,6 +19,7 @@ class ExampleSamplingComponent(ComponentBase):
             sample_min=-5, sample_max=5, text="Select Sample:"
         )
         self.selector_element = SelectorElement(
+            button_text="Select Sample",
             subelements=[self.sample_selector_element],
             endpoint_callback=self.select_sample,
         )

@@ -45,6 +45,7 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
             text="Select model:", choices=["first", "second", "third"]
         )
         self.selector_element = SelectorElement(
+            button_text="Send Configuration to Server",
             endpoint_callback=self.select_sample,
             subelements=[self.sample_selector_element, self.model_selector],
         )
@@ -95,6 +96,7 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
     def load_dataset_sample(self):
         sample_n = self.sample_selector_element.selected
         model = self.model_selector.selected
+        print(sample_n, model)
         headers = ["No.", "Turn"]
         rows = [
             [i, x]
