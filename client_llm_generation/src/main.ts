@@ -1,20 +1,20 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import App from './App.vue'
-import { registerComponent as registerPlain } from './components/DisplayPlainTextComponent.vue'
-import { registerComponent as registerSoftmax } from './components/DisplaySoftmaxComponent.vue'
-import { registerComponent as registerTables } from './components/DisplayLinksComponent.vue'
-import { registerComponent as registerSampleSelector } from './components/DisplaySampleSelector.vue'
-import Formatter from './assets/formatter'
+import { registerElement as registerPlain } from './components/Element_PlainText.vue'
+import { registerElement as registerBarChartSelect } from './components/Element_BarChartSelect.vue'
+import { registerElement as registerTables } from './components/Element_Tables.vue'
+import { registerElement as registerSampleSelector } from './components/Element_Selector.vue'
+import ElementRegistry from './assets/elementRegistry'
 import FetchPathsResolver from './assets/fetchPathsResolver'
 
 const routes = [{ name: 'default', path: '/', component: App }]
 
-const formatter = new Formatter()
-registerPlain(formatter)
-registerSoftmax(formatter)
-registerTables(formatter)
-registerSampleSelector(formatter)
+const elementRegistry = new ElementRegistry()
+registerPlain(elementRegistry)
+registerBarChartSelect(elementRegistry)
+registerTables(elementRegistry)
+registerSampleSelector(elementRegistry)
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -24,13 +24,13 @@ const router = createRouter({
 import './assets/main.css'
 
 const app = createApp(App)
-app.use(formatter)
+app.use(elementRegistry)
 app.use(router)
 app.use(FetchPathsResolver)
 
 declare module 'vue' {
   interface ComponentCustomProperties {
-    $formatter: Formatter
+    $elementRegistry: ElementRegistry
     $default_fetch_paths: { [name: string]: string }
   }
 }

@@ -1,11 +1,15 @@
-from llm_generation_server.formatters.format import FormattedContext, Formatter
+from .element_base import ElementBase, ElementDescription
 
 
-class PlainFormatter(Formatter):
+class PlainTextElement(ElementBase):
     def __init__(
-        self, content: str = "", is_heading: bool = False, heading_level=3, **kwargs
+        self,
+        content: str = "",
+        is_heading: bool = False,
+        heading_level=3,
+        name="plain_text",
     ):
-        super().__init__(**kwargs)
+        super().__init__(name=name)
         self._content = content
         self.is_heading = is_heading
         self.heading_level = heading_level
@@ -19,12 +23,12 @@ class PlainFormatter(Formatter):
         self.changed = True
         self._content = value
 
-    def format(self):
+    def construct_element_description(self):
         self.changed = False
-        return FormattedContext(
+        return ElementDescription(
             name=self.name,
             type="plain",
-            content=dict(
+            configuration=dict(
                 value=self.content,
                 heading=self.is_heading,
                 heading_level=self.heading_level,

@@ -1,7 +1,6 @@
 <template>
-  <nav v-if="display_router_view && customRoutes.length != 1">
-    <router-link class="button" v-for="route in customRoutes" :to="route.path"
-      >{{ route.title }}
+  <nav v-if="display_router_view && componentInfos.length != 1">
+    <router-link class="button" v-for="componentInfo in componentInfos" :to="componentInfo.path">{{ componentInfo.title }}
     </router-link>
   </nav>
   <main>
@@ -17,7 +16,17 @@ import { defineComponent } from 'vue'
 import { PollUntilSuccessGET } from './assets/pollUntilSuccessLib'
 import MainContainer from './components/MainContainerComponent.vue'
 
-type CustomRoute = {
+/**
+ * Information needed to create a new route and link in the navbar. It is
+ * returned by BE.
+ *
+ * - title is the title that will appear in the navbar
+ * - name is the unique name of the component
+ * - path is the unique route
+ * - default_fetch_path is the path from which the component will download
+ *  information needed for its execution
+ */
+type ComponentInfo = {
   title: string
   name: string
   path: string
@@ -28,7 +37,7 @@ export default defineComponent({
   data() {
     return {
       display_router_view: false,
-      customRoutes: [] as CustomRoute[],
+      componentInfos: [] as ComponentInfo[],
       backendAddress: import.meta.env.VITE_API_URL as string,
       tryPoll: undefined as undefined | PollUntilSuccessGET
     }
@@ -69,19 +78,22 @@ export default defineComponent({
     this.tryPoll?.clear()
   },
   methods: {
-    setDefaultPath(c: CustomRoute) {
+    setDefaultPath(c: ComponentInfo) {
       c.path = '/'
       this.$router.removeRoute('default')
       return true
     },
-    registerComponent(c: CustomRoute) {
+    /** Register a tab component into router.
+     * @param c
+     */
+    registerComponent(c: ComponentInfo) {
       let replace = false
-      if (this.customRoutes.length == 0) {
+      if (this.componentInfos.length == 0) {
         replace = this.setDefaultPath(c)
       } else {
         c.path = `/${c.name}`
       }
-      this.customRoutes.push(c)
+      this.componentInfos.push(c)
       this.$default_fetch_paths[c.name] = c.default_fetch_path
       if (replace) {
         this.$default_fetch_paths['default'] = c.default_fetch_path
@@ -93,14 +105,14 @@ export default defineComponent({
       })
       return replace
     },
-    isAlreadyRegistered(c: CustomRoute) {
+    isAlreadyRegistered(c: ComponentInfo) {
       return this.$router.hasRoute(c.name)
     },
     resolveComponents(response: any) {
-      let context = response.context as []
+      let context = response.context as ComponentInfo[]
       let replace = false
       for (let i = 0; i < context.length; i++) {
-        let c = context[i] as CustomRoute
+        let c = context[i]
         if (this.isAlreadyRegistered(c)) {
           continue
         }

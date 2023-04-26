@@ -6,10 +6,10 @@ from examples_py.sampling_example import ExampleSamplingComponent
 from llm_generation_server.server import Server
 
 next_token_component = ExampleNextTokenPredictionComponent()
-next_token_component.initialize_vocab()
 connections_component = ExampleDialogueConnectionsComponent()
 sampling_component = ExampleSamplingComponent()
 flask_app = Server(
-    __name__, [next_token_component, connections_component, sampling_component]
+    __name__,
+    [next_token_component, connections_component, sampling_component],
 )
 app = flask_app.app

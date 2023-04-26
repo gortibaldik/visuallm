@@ -1,19 +1,19 @@
 <script lang="ts" scoped>
 import { defineComponent } from 'vue'
 import type { PollUntilSuccessGET } from '@/assets/pollUntilSuccessLib'
-import type { ProcessedContext } from '@/assets/formatter'
-import DisplayPlainTextComponent from '@/components/DisplayPlainTextComponent.vue'
-import DisplaySoftmaxComponent from '@/components/DisplaySoftmaxComponent.vue'
-import DisplaySampleSelectorComponent from '@/components/DisplaySampleSelector.vue'
-import DisplayLinksComponent from './DisplayLinksComponent.vue'
+import type { ProcessedContext, ElementDescription } from '@/assets/elementRegistry'
+import Element_PlainText from './Element_PlainText.vue'
+import Element_BarChartSelect from './Element_BarChartSelect.vue'
+import DisplaySampleSelectorComponent from './Element_Selector.vue'
+import Element_Tables from './Element_Tables.vue'
 import { fetchDefault } from '@/assets/fetchPathsResolver'
-import { reactiveStore } from '@/assets/reactiveData'
+import { componentSharedData } from '@/assets/reactiveData'
 
 export default defineComponent({
   data() {
     return {
-      contexts: {} as { [name: string]: ProcessedContext },
-      reactiveStore,
+      elements: {} as { [name: string]: ProcessedContext },
+      reactiveStore: componentSharedData,
       defaultPoll: undefined as PollUntilSuccessGET | undefined
     }
   },
@@ -26,10 +26,10 @@ export default defineComponent({
     this.resetReactiveStore()
   },
   components: {
-    DisplayPlainTextComponent,
-    DisplaySoftmaxComponent,
+    Element_PlainText,
+    Element_BarChartSelect,
     DisplaySampleSelectorComponent,
-    DisplayLinksComponent
+    Element_Tables
   },
   methods: {
     resetReactiveStore() {
@@ -37,8 +37,8 @@ export default defineComponent({
         delete this.reactiveStore[key]
       }
     },
-    setUpContext(response: any) {
-      this.$formatter.processResponse(response, this.reactiveStore, this.contexts)
+    setUpContext(response: { elementDescriptions: ElementDescription[] }) {
+      this.$elementRegistry.retrieveElementsFromResponse(response, this.reactiveStore, this.elements)
     },
     async fetchInitDataFromServer() {
       await fetchDefault(
@@ -54,10 +54,6 @@ export default defineComponent({
 
 <template>
   <div class="horizontal rounded">
-    <component
-      v-for="(processedContext, name) in contexts"
-      :is="processedContext.component"
-      :name="processedContext.name"
-    ></component>
+    <component v-for="(element, name) in elements" :is="element.component" :name="element.name"></component>
   </div>
 </template>

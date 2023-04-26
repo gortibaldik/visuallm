@@ -20,15 +20,15 @@
 import type { PropType } from 'vue'
 import { defineComponent } from 'vue'
 
-export interface Item {
-  probs: number[]
-  content: string
+export interface BarInfo {
+  barHeights: number[]
+  barTitle: string
 }
 
 let component = defineComponent({
   props: {
     item: {
-      type: Object as PropType<Item>,
+      type: Object as PropType<BarInfo>,
       required: true
     },
     longContexts: {
@@ -47,10 +47,10 @@ let component = defineComponent({
   },
   computed: {
     content() {
-      return this.item.content
+      return this.item.barTitle
     },
     probabilities() {
-      return this.item.probs
+      return this.item.barHeights
     },
     componentType() {
       if (this.longContexts) {

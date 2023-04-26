@@ -1,43 +1,41 @@
 from dataclasses import dataclass
 from heapq import nlargest
-from typing import Any, Callable, List, Union
+from typing import Any, List, Union
 
-from llm_generation_server.formatters.format import FormattedContext, Formatter
 from llm_generation_server.server import Server
+
+from .element_base import ElementDescription, ElementWithEndpoint
 
 
 @dataclass
-class Continuation:
-    content: str
-    probs: List[List[float]]
+class BarInfo:
+    barTitle: str
+    barHeights: List[List[float]]
 
 
-class SoftmaxFormatter(Formatter):
+class BarChartElement(ElementWithEndpoint):
     def __init__(
         self,
         n_largest_tokens_to_return: int,
-        endpoint_url: str,
-        endpoint_callback: Callable,
         long_contexts: bool = False,
         names: List[str] = [],
         selectable: bool = True,
+        name="barchart",
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(name=name, **kwargs)
         self.n_largest_tokens_to_return = n_largest_tokens_to_return
-        self._possibilities: List[Continuation] = []
-        self.endpoint_url = endpoint_url
-        self.endpoint_callback = endpoint_callback
+        self._possibilities: List[BarInfo] = []
         self.long_contexts = long_contexts
         self.names = names
         self.selectable = selectable
 
     @property
-    def possibilities(self) -> List[Continuation]:
+    def possibilities(self) -> List[BarInfo]:
         return self._possibilities
 
     @possibilities.setter
-    def possibilities(self, value: List[Continuation]):
+    def possibilities(self, value: List[BarInfo]):
         self.changed = True
         self._possibilities = value
 
@@ -49,25 +47,25 @@ class SoftmaxFormatter(Formatter):
             zip(*zip(*probs), word_vocab),
             key=lambda x: x[0],
         )
-        return [Continuation(x[-1], list(x[0:-1])) for x in n_largest]
+        return [BarInfo(x[-1], list(x[0:-1])) for x in n_largest]
 
     def check_possibilities_length(self):
         required_len = len(self.names)
         for p in self.possibilities:
-            if len(p.probs) != required_len:
+            if len(p.barHeights) != required_len:
                 raise ValueError(
-                    f"Probs: {p.probs} ({len(p.probs)}), names: {self.names}"
+                    f"Probs: {p.barHeights} ({len(p.barHeights)}), names: {self.names}"
                     + f" ({len(self.names)})"
                 )
 
-    def format(self):
+    def construct_element_description(self):
         self.changed = False
         self.check_possibilities_length()
-        return FormattedContext(
+        return ElementDescription(
             name=self.name,
             type="softmax",
-            content=dict(
-                possibilities=self.possibilities,
+            configuration=dict(
+                bar_infos=self.possibilities,
                 address=self.endpoint_url,
                 long_contexts=self.long_contexts,
                 names=self.names,

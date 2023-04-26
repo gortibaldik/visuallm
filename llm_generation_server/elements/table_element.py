@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import List
 
-from llm_generation_server.formatters.format import FormattedContext, Formatter
+from .element_base import ElementBase, ElementDescription
 
 
 @dataclass
-class RowConnection:
+class LinkBetweenRows:
     StartTable: str
     StartId: int
     EndTable: str
@@ -14,16 +14,16 @@ class RowConnection:
     Label: str
 
 
-class TableFormatter(Formatter):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+class TableElement(ElementBase):
+    def __init__(self, name="table"):
+        super().__init__(name=name)
         self.clear()
 
     def clear(self):
         self.changed = True
         self._tables = {}
         self.tables = []
-        self.connections = []
+        self.links = []
 
     def check_rows(self, headers: List[str], rows: List[List[str]]):
         for row in rows:
@@ -38,7 +38,7 @@ class TableFormatter(Formatter):
         self._tables[title] = dict(headers=headers, rows=rows, title=title)
         self.tables.append(self._tables[title])
 
-    def add_connection(
+    def add_link_between_rows(
         self,
         start_table: str,
         start_row: int,
@@ -57,16 +57,18 @@ class TableFormatter(Formatter):
                 + f"{len(self._tables[end_table]['rows']), end_row}"
             )
         self.changed = True
-        self.connections.append(
-            RowConnection(start_table, start_row, end_table, end_row, importance, label)
+        self.links.append(
+            LinkBetweenRows(
+                start_table, start_row, end_table, end_row, importance, label
+            )
         )
 
-    def format(self):
+    def construct_element_description(self):
         self.changed = False
-        return FormattedContext(
+        return ElementDescription(
             name=self.name,
             type="connected_tables",
-            content=dict(tables=self.tables, connections=self.connections),
+            configuration=dict(tables=self.tables, links=self.links),
         )
 
     def add_endpoint(self, app):

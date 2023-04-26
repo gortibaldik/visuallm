@@ -25,7 +25,7 @@ class Server:
         )
 
         self.components: List[ComponentBase] = components
-        self.registered_default_urls: Set[str] = set()
+        self.registered_urls: Set[str] = set(["/", "/fetch_components"])
         for component in self.components:
             component.init_app(self)
 
@@ -34,6 +34,8 @@ class Server:
         )
         self.add_endpoint("/fetch_components", self.fetch_components, methods=["GET"])
         CORS(self.app, resources={r"/*": {"origins": "*"}})
+
+        print(f"Server initialized with following endpoints: {self.registered_urls}")
 
     def fetch_components(self):
         paths = []
