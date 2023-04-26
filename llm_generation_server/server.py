@@ -49,8 +49,8 @@ class Server:
             )
         return jsonify(dict(result="success", context=paths))
 
-    def run(self):
-        self.app.run()
+    def run(self, **kwargs):
+        self.app.run(**kwargs)
 
     def add_endpoint(self, url_name: str, f: Callable, methods: List[str]):
         self.app.add_url_rule(
