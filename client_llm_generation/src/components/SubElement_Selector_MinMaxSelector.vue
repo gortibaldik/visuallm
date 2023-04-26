@@ -33,7 +33,8 @@ let component = defineComponent({
       return componentSharedData[getSharedDataUniqueName(this.name, 'text')]
     },
     inputWidth(): string {
-      let w = this.selected.toString().length * 5 + 35
+      // TODO: find some better method of measuring number width
+      let w = this.selected.toString().length * 7 + 35
       let ws = w.toString() + "px"
       console.log(ws)
       return ws

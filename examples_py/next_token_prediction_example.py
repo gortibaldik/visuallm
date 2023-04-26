@@ -39,7 +39,7 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
         self.sample_selector_element = MinMaxSubElement(
             text="Select sample:",
             sample_min=0,
-            sample_max=10,
+            sample_max=10_000_000,
         )
         self.model_selector = ChoicesSubElement(
             text="Select model:", choices=["first", "second", "third"]
