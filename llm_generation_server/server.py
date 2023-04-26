@@ -44,7 +44,7 @@ class Server:
                 ComponentInfo(
                     name=component.name,
                     title=component.title,
-                    default_fetch_path=component.default_url,
+                    default_fetch_path=component.default_url.removeprefix("/"),
                 )
             )
         return jsonify(dict(result="success", context=paths))

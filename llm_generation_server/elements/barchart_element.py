@@ -66,7 +66,7 @@ class BarChartElement(ElementWithEndpoint):
             type="softmax",
             configuration=dict(
                 bar_infos=self.possibilities,
-                address=self.endpoint_url,
+                address=self.endpoint_url.removeprefix("/"),
                 long_contexts=self.long_contexts,
                 names=self.names,
                 selectable=self.selectable,

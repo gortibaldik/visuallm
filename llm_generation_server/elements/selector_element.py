@@ -44,7 +44,7 @@ class SelectorElement(ElementWithEndpoint):
             name=self.name,
             type=self.type,
             configuration=dict(
-                address=self.endpoint_url,
+                address=self.endpoint_url.removeprefix("/"),
                 button_text=self._button_text,
                 subelement_configs=[
                     c.subelement_configuration for c in self._subelements
