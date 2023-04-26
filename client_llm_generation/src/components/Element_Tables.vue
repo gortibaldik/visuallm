@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapElement">
+  <div class="wrapElement spacedTables">
     <div v-for="table in tables" class="table-wrapper">
       <h3 v-if="table.title != undefined">{{ table.title }}</h3>
       <table class="table-style-0">
@@ -250,6 +250,7 @@ function processElementDescr(elementDescr: ElementDescription) {
   padding: 5px;
   border-radius: 5px;
   box-shadow: 0px 35px 50px rgba(0, 0, 0, 0.2);
+  flex: none;
 }
 
 .table-style-0 {
@@ -296,5 +297,12 @@ function processElementDescr(elementDescr: ElementDescription) {
 
 .table-style-0 .active {
   background: #fbd0d0 !important;
+}
+
+.spacedTables {
+  display: flex;
+  flex-direction: column;
+  row-gap: 5px;
+  align-items: center;
 }
 </style>
