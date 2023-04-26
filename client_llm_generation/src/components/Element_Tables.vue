@@ -9,8 +9,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(row, r) in table.rows" :id="`${table.title}_${r}`" :class="{
-              active: displayedLinksRowID == `${table.title}_${r}`
+          <tr v-for="(row, r) in table.rows" :id="`${table.id}_${r}`" :class="{
+              active: displayedLinksRowID == `${table.id}_${r}`
             }">
             <td v-for="col in row">{{ col }}</td>
           </tr>
@@ -31,6 +31,7 @@ import { configurationRequired, valuesRequiredInConfiguration } from '@/assets/e
 
 export type LoadedTable = {
   title: string
+  id: string
   headers: string[]
   rows: string[][]
 }
@@ -90,7 +91,7 @@ let component = defineComponent({
     updateEverything(tables: LoadedTable[]) {
       if (tables !== undefined) {
         for (let t of tables) {
-          t.title = this.table_title_to_id(t.title)
+          t.id = this.table_title_to_id(t.title)
         }
         setTimeout(this.registerLinks.bind(this), this.initializeLinksTimeout)
       }
