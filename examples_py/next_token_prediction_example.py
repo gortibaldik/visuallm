@@ -83,8 +83,11 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
             key=lambda x: x[0],
         )
         bar_heights = [x[:-1] for x in n_largest_probs]
-        bar_annotations = [x[-1] for x in n_largest_probs]
-        self.softmax_element.set_possibilities(bar_heights, bar_annotations)
+        bar_annotations = [[f"{x[0] :.2f}%"] for x in n_largest_probs]
+        annotations = [x[-1] for x in n_largest_probs]
+        self.softmax_element.set_possibilities(
+            bar_heights, bar_annotations, annotations
+        )
 
         return super().fetch_info(fetch_all=fetch_all)
 

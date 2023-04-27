@@ -9,7 +9,7 @@
     <span v-if="useInlineLayout" :style="{ width: trackWidth }" class="inline-bar-block">
       <span class="track rounded">
         <span :style="{ width: barWidth(probabilities[0]) }" class="track-fill rounded">
-          <span class="prob-text">{{ probabilities[0].toFixed(2) }}%</span>
+          <span class="prob-text">{{ annotations[0] }}</span>
         </span>
       </span>
     </span>
@@ -19,7 +19,7 @@
         <div class="inline-bar-block-text"> {{ names[i] }}</div>
         <div class="track rounded">
           <div :style="{ width: barWidth(probability) }" class="track-fill rounded">
-            <span class="prob-text">{{ probability.toFixed(2) }}%</span>
+            <span class="prob-text">{{ annotations[i] }}</span>
           </div>
         </div>
       </span>
@@ -33,6 +33,7 @@ import { defineComponent } from 'vue'
 
 export interface BarInfo {
   barHeights: number[]
+  barAnnotations: string[]
   barTitle: string
 }
 
@@ -66,12 +67,8 @@ let component = defineComponent({
     probabilities() {
       return this.item.barHeights
     },
-    componentType() {
-      if (this.longContexts) {
-        return "div"
-      } else {
-        return "span"
-      }
+    annotations() {
+      return this.item.barAnnotations
     },
     trackWidth(): string {
       let oneTrackWidth = 90

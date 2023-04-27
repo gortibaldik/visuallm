@@ -66,7 +66,8 @@ class ExampleSamplingComponent(ComponentBase):
             [i * 10 + 10, o1, o2]
             for i, (o1, o2) in enumerate(zip(other_probs, yet_other_probs))
         ]
-        self.softmax_element.set_possibilities(probs, rows)
+        probs_annotations = [[f"{pi:.2f}%" for pi in p] for p in probs]
+        self.softmax_element.set_possibilities(probs, probs_annotations, rows)
 
     def select_sample(self):
         self.selector_element.default_select_callback()

@@ -10,6 +10,14 @@ from .element_base import ElementDescription, ElementWithEndpoint
 class BarInfo:
     barTitle: str
     barHeights: List[float]
+    barAnnotations: List[str]
+
+    def __post_init__(self):
+        for height in self.barHeights:
+            if (height < 0) or (height > 100):
+                raise ValueError(
+                    f"Height should be between 0 and 100 (currently {height})"
+                )
 
 
 class BarChartElement(ElementWithEndpoint):
@@ -38,9 +46,17 @@ class BarChartElement(ElementWithEndpoint):
         self._possibilities = value
 
     def set_possibilities(
-        self, bar_heights: Union[List[List[float]], Any], annotations: List[str]
+        self,
+        bar_heights: Union[List[List[float]], Any],
+        bar_annotations: List[List[str]],
+        annotations: List[str],
     ):
-        self.possibilities = [BarInfo(a, b) for a, b in zip(annotations, bar_heights)]
+        self.possibilities = [
+            BarInfo(annot, bar_height, bar_annot)
+            for annot, bar_height, bar_annot in zip(
+                annotations, bar_heights, bar_annotations
+            )
+        ]
 
     def check_possibilities_length(self):
         required_len = len(self.names)
