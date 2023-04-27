@@ -2,8 +2,8 @@
   <div class="wrapElement">
     <div v-for="barInfo in barInfos" class="progress-bar">
       <input v-if="selectable" class="input-radio" type="radio" v-model="picked" :value="barInfo.barTitle" />
-      <DisplayPercentageComponent style="display: inline-block; width: 90%" :item="barInfo" :longContexts="longContexts"
-        :names="names">
+      <DisplayPercentageComponent :style="{ display: 'inline-block', width: percentageElementWidth }" :item="barInfo"
+        :longContexts="longContexts" :names="names">
       </DisplayPercentageComponent>
     </div>
     <div v-if="selectable" style="text-align: center; margin-top: 10px">
@@ -59,6 +59,14 @@ let component = defineComponent({
      */
     selectable(): boolean {
       return componentSharedData[getSharedDataUniqueName(this.name, 'selectable')]
+    },
+
+    percentageElementWidth(): string {
+      if (this.longContexts === false) {
+        return "90%"
+      } else {
+        return "100%"
+      }
     }
   },
   components: {
