@@ -1,4 +1,5 @@
 import random
+from heapq import nlargest
 
 import numpy as np
 import requests
@@ -30,8 +31,8 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
         self.softmax_heading_element = PlainTextElement(
             content="Possible continuations: ", is_heading=True
         )
+        self._n_largest_tokens_to_return = 10
         self.softmax_element = BarChartElement(
-            n_largest_tokens_to_return=10,
             endpoint_callback=self.select_next_token,
             names=["Estimated Probability"],
             selectable=True,
@@ -76,8 +77,14 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
 
     def initial_fetch(self, fetch_all=True):
         probs = self.get_next_token_predictions()
-        words = self.softmax_element.assign_words_to_probs(probs, self.word_vocab)
-        self.softmax_element.possibilities = words
+        n_largest_probs = nlargest(
+            self._n_largest_tokens_to_return,
+            zip(*zip(*probs), self.word_vocab),
+            key=lambda x: x[0],
+        )
+        bar_heights = [x[:-1] for x in n_largest_probs]
+        bar_annotations = [x[-1] for x in n_largest_probs]
+        self.softmax_element.set_possibilities(bar_heights, bar_annotations)
 
         return super().fetch_info(fetch_all=fetch_all)
 
@@ -121,7 +128,7 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
                 )
 
     def get_next_token_predictions(self):
-        n = self.softmax_element.n_largest_tokens_to_return
+        n = self._n_largest_tokens_to_return
         K = n * 3
         twenty_ixes = random.choices(self.ix_arr, k=K)
         twenty_probs = [random.random() for _ in range(K)]

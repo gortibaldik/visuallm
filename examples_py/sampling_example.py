@@ -24,7 +24,6 @@ class ExampleSamplingComponent(ComponentBase):
             endpoint_callback=self.select_sample,
         )
         self.softmax_element = BarChartElement(
-            n_largest_tokens_to_return=10,
             endpoint_callback=lambda: ...,
             long_contexts=True,
             names=["SuperProb", "ExtraProb", "FantasticProb"],
@@ -67,8 +66,7 @@ class ExampleSamplingComponent(ComponentBase):
             [i * 10 + 10, o1, o2]
             for i, (o1, o2) in enumerate(zip(other_probs, yet_other_probs))
         ]
-        words = self.softmax_element.assign_words_to_probs(probs, rows)
-        self.softmax_element.possibilities = words
+        self.softmax_element.set_possibilities(probs, rows)
 
     def select_sample(self):
         self.selector_element.default_select_callback()

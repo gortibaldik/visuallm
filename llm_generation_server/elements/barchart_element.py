@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from heapq import nlargest
 from typing import Any, List, Union
 
 from llm_generation_server.server import Server
@@ -10,13 +9,12 @@ from .element_base import ElementDescription, ElementWithEndpoint
 @dataclass
 class BarInfo:
     barTitle: str
-    barHeights: List[List[float]]
+    barHeights: List[float]
 
 
 class BarChartElement(ElementWithEndpoint):
     def __init__(
         self,
-        n_largest_tokens_to_return: int,
         long_contexts: bool = False,
         names: List[str] = [],
         selectable: bool = True,
@@ -24,7 +22,7 @@ class BarChartElement(ElementWithEndpoint):
         **kwargs,
     ):
         super().__init__(name=name, **kwargs)
-        self.n_largest_tokens_to_return = n_largest_tokens_to_return
+
         self._possibilities: List[BarInfo] = []
         self.long_contexts = long_contexts
         self.names = names
@@ -39,15 +37,10 @@ class BarChartElement(ElementWithEndpoint):
         self.changed = True
         self._possibilities = value
 
-    def assign_words_to_probs(
-        self, probs: Union[List[List[float]], Any], word_vocab: List[str]
+    def set_possibilities(
+        self, bar_heights: Union[List[List[float]], Any], annotations: List[str]
     ):
-        n_largest = nlargest(
-            self.n_largest_tokens_to_return,
-            zip(*zip(*probs), word_vocab),
-            key=lambda x: x[0],
-        )
-        return [BarInfo(x[-1], list(x[0:-1])) for x in n_largest]
+        self.possibilities = [BarInfo(a, b) for a, b in zip(annotations, bar_heights)]
 
     def check_possibilities_length(self):
         required_len = len(self.names)
