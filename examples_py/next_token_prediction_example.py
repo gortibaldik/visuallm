@@ -9,6 +9,7 @@ from llm_generation_server.component_base import ComponentBase
 from llm_generation_server.elements.barchart_element import BarChartElement
 from llm_generation_server.elements.plain_text_element import PlainTextElement
 from llm_generation_server.elements.selector_element import (
+    CheckBoxSubElement,
     ChoicesSubElement,
     MinMaxSubElement,
     SelectorElement,
@@ -45,10 +46,15 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
         self.model_selector = ChoicesSubElement(
             text="Select model:", choices=["first", "second", "third"]
         )
+        self.check_box_selector = CheckBoxSubElement(text="Use Sampling:")
         self.selector_element = SelectorElement(
             button_text="Send Configuration to Server",
             endpoint_callback=self.select_sample,
-            subelements=[self.sample_selector_element, self.model_selector],
+            subelements=[
+                self.sample_selector_element,
+                self.model_selector,
+                self.check_box_selector,
+            ],
         )
 
         super().__init__(
@@ -106,17 +112,18 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
     def load_dataset_sample(self):
         sample_n = self.sample_selector_element.selected
         model = self.model_selector.selected
+        sampling = self.check_box_selector.selected
         print(sample_n, model)
         headers = ["No.", "Turn"]
         rows = [
             [i, x]
             for i, x in enumerate(
                 [
-                    f"[{model}] {sample_n}: This is first row",
-                    f"[{model}] {sample_n}: This is second row",
-                    f"[{model}] {sample_n}: This is third row",
-                    f"[{model}] {sample_n}: This is fourth row",
-                    f"[{model}] {sample_n}: This is fifth row",
+                    f"[{model}] {sample_n}: This is first row (sampling: {sampling})",
+                    f"[{model}] {sample_n}: This is second row (sampling: {sampling})",
+                    f"[{model}] {sample_n}: This is third row (sampling: {sampling})",
+                    f"[{model}] {sample_n}: This is fourth row (sampling: {sampling})",
+                    f"[{model}] {sample_n}: This is fifth row (sampling: {sampling})",
                 ]
             )
         ]

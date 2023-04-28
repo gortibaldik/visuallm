@@ -106,6 +106,9 @@ class SelectorSubElement(ABC):
         self._selected = value
 
     def __init__(self, subtype: str, text: str):
+        """WARNING:
+        `subtype` must match the subtype field in frontend.
+        """
         self.name = str(subtype)
         self._subtype = subtype
         self._selected = None
@@ -163,3 +166,19 @@ class ChoicesSubElement(SelectorSubElement):
     @property
     def _specific_data(self) -> Dict[str, Any]:
         return dict(choices=self._choices)
+
+
+class CheckBoxSubElement(SelectorSubElement):
+    def __init__(self, text: str, default_value: bool = False):
+        super().__init__(subtype="check_box", text=text)
+        self._selected = False
+
+    @SelectorSubElement.selected.setter
+    def selected(self, value: bool):
+        if not isinstance(value, bool):
+            raise ValueError(f"Invalid value assigned to bool: {value}")
+        SelectorSubElement.selected.fset(self, value)
+
+    @property
+    def _specific_data(self) -> Dict[str, Any]:
+        return {}

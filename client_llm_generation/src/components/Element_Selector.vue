@@ -28,6 +28,12 @@ import {
 } from './Subelement_Selector_ChoicesSelector.vue'
 import ChoicesSubElement from './Subelement_Selector_ChoicesSelector.vue'
 
+import {
+  subtype as checkboxSubtype,
+  processSubElementConfiguration as checkboxProcessSubElementConfig
+} from './SubElement_Selector_CheckBox.vue'
+import CheckBoxSubElement from './SubElement_Selector_CheckBox.vue'
+
 let component = defineComponent({
   props: {
     name: {
@@ -58,7 +64,8 @@ let component = defineComponent({
   },
   components: {
     MinMaxSubElement,
-    ChoicesSubElement
+    ChoicesSubElement,
+    CheckBoxSubElement,
   },
   methods: {
     emitClicked() {
@@ -107,6 +114,10 @@ let subElementProcessors = {
   [choicesSubtype]: {
     process: choicesProcessSubElementConfig,
     component: nameof({ ChoicesSubElement })
+  },
+  [checkboxSubtype]: {
+    process: checkboxProcessSubElementConfig,
+    component: nameof({ CheckBoxSubElement })
   }
 }
 
