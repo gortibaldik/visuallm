@@ -43,6 +43,9 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
             sample_min=0,
             sample_max=10_000_000,
         )
+        self.float_number_selector_element = MinMaxSubElement(
+            text="Select float number:", sample_min=0, sample_max=1, step_size=0.01
+        )
         self.model_selector = ChoicesSubElement(
             text="Select model:", choices=["first", "second", "third"]
         )
@@ -54,6 +57,7 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
                 self.sample_selector_element,
                 self.model_selector,
                 self.check_box_selector,
+                self.float_number_selector_element,
             ],
         )
 
@@ -113,17 +117,18 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
         sample_n = self.sample_selector_element.selected
         model = self.model_selector.selected
         sampling = self.check_box_selector.selected
+        float_number = self.float_number_selector_element.selected
         print(sample_n, model)
         headers = ["No.", "Turn"]
         rows = [
             [i, x]
             for i, x in enumerate(
                 [
-                    f"[{model}] {sample_n}: This is first row (sampling: {sampling})",
-                    f"[{model}] {sample_n}: This is second row (sampling: {sampling})",
-                    f"[{model}] {sample_n}: This is third row (sampling: {sampling})",
-                    f"[{model}] {sample_n}: This is fourth row (sampling: {sampling})",
-                    f"[{model}] {sample_n}: This is fifth row (sampling: {sampling})",
+                    f"[{model}] {sample_n}: This is first row (sampling: {sampling}) (float: {float_number})",
+                    f"[{model}] {sample_n}: This is second row (sampling: {sampling}) (float: {float_number})",
+                    f"[{model}] {sample_n}: This is third row (sampling: {sampling}) (float: {float_number})",
+                    f"[{model}] {sample_n}: This is fourth row (sampling: {sampling}) (float: {float_number})",
+                    f"[{model}] {sample_n}: This is fifth row (sampling: {sampling}) (float: {float_number})",
                 ]
             )
         ]

@@ -121,7 +121,9 @@ class MinMaxSubElement(SelectorSubElement):
     a range. E.g. selector between [min, max].
     """
 
-    def __init__(self, sample_min: int, sample_max: int, text: str):
+    def __init__(
+        self, sample_min: int, sample_max: int, text: str, step_size: float = 1.0
+    ):
         super().__init__(subtype="min_max", text=text)
         if sample_min >= sample_max:
             raise ValueError(
@@ -131,6 +133,7 @@ class MinMaxSubElement(SelectorSubElement):
         self._selected: int = sample_min
         self._min = sample_min
         self._max = sample_max
+        self._step_size = step_size
 
     @SelectorSubElement.selected.setter
     def selected(self, value: int):
@@ -143,7 +146,7 @@ class MinMaxSubElement(SelectorSubElement):
 
     @property
     def _specific_data(self) -> Dict[str, Any]:
-        return dict(min=self._min, max=self._max)
+        return dict(min=self._min, max=self._max, step_size=self._step_size)
 
 
 class ChoicesSubElement(SelectorSubElement):
