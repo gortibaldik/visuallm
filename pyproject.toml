@@ -6,7 +6,7 @@ authors = [
 ]
 description = "Simple full stack app for displaying distribution of next token."
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -33,3 +33,19 @@ llm_generation_server = "llm_generation_server"
 
 [tool.isort]
 profile = "black"
+
+[tool.bumpver]
+current_version = "0.0.2"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message = "bump version {old_version} -> {new_version}"
+commit = true
+tag = true
+push = false
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    'current_version = "{version}"',
+]
+"README.md" = [
+    "VERSION: `{version}`",
+]
