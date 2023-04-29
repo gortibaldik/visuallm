@@ -30,6 +30,10 @@ jobs:
         id: last-commit-message
         run: |
           echo "msg=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
+      - name: Get tag
+        run: |
+          echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          echo "tag=${{github.ref_name}}"
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
