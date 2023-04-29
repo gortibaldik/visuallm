@@ -8,14 +8,17 @@
 
 name: Upload Python Package
 
-on: push
+on: release:
+  types:
+    - [published]
 
 permissions:
   contents: write
 
 jobs:
-  deploy:
+  publish_to_pypi:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
 
     steps:
       - uses: actions/checkout@v3
