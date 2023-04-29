@@ -9,8 +9,9 @@
 name: Upload Python Package
 
 on:
-  release:
-    types: created
+  push:
+    tags:
+      - "[0-9].[0-9].[0-9]"
 
 permissions:
   contents: write
@@ -22,18 +23,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@master
-        with:
-          # Fetch the last 2 commits instead of just 1. (Fetching just 1 commit would overwrite the whole history)
-          fetch-depth: 2
-          ref: main
-      - name: Get last commit message
-        id: last-commit-message
-        run: |
-          echo "msg=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
-      - name: Get tag
-        run: |
-          echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-          echo "tag=${{github.ref_name}}"
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
@@ -42,17 +31,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install build
-          pip install bumpver
-      - name: Bump Version
-        run: |
-          bumpver update --patch
-      - name: Commit Updated Version
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: ${{ steps.last-commit-message.outputs.msg }}
-          commit_options: "--amend --no-edit"
-          push_options: "--force"
-          skip_fetch: true
       - name: Build package
         run: python -m build
       - name: Publish package
