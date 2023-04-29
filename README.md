@@ -9,8 +9,10 @@
 
 ## Installation
 
-- right now only installation right from the git is supported, however I plan to deploy the package also to PyPi
-- `pip install git+https://github.com/gortibaldik/visualize_llm_generation#egg=llm_generation_server`
+- install from pypi:
+  - `pip install llm-generation-server`
+- install directly from git:
+  - `pip install git+https://github.com/gortibaldik/visualize_llm_generation#egg=llm_generation_server`
 
 ## Usage
 
