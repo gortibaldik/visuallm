@@ -1,6 +1,6 @@
 # Conditional Language Model Generation Visualization
 
-## VERSION: `0.0.3`
+## VERSION: `0.0.5`
 
 - when evaluating language models it is often pain to see what is generated and why
 - this little package is a `vue.js` frontend together with `flask` backend and it is designed to easily show some interesting visualizations on conditional generation models
@@ -206,7 +206,7 @@ def _initialize_vocab(self):
     self.ix_arr = list(range(len(self.word_vocab)))
 ```
 
-![barchart_page](./readme_images/softmax.png)
+![barchart_page ](./readme_images/softmax.png)
 
 ## More Elaborate Example
 
