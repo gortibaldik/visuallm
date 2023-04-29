@@ -1,6 +1,6 @@
 [project]
 name = "llm_generation_server"
-version = "0.0.9"
+version = "0.0.10"
 authors = [
   { name="Frantisek Trebuna (gortibaldik)", email="ferotre@gmail.com" },
 ]
@@ -35,7 +35,7 @@ llm_generation_server = "llm_generation_server"
 profile = "black"
 
 [tool.bumpver]
-current_version = "0.0.9"
+current_version = "0.0.10"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 commit = true
