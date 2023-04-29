@@ -1,29 +1,28 @@
 <template>
   <span>
-    <!-- This is the annotation over whole bar -->
-    <span v-if="useInlineLayout" class="word-text">"{{ content }}"</span>
-    <span v-else class="context-text" @mouseover="showProbs = true" @mouseleave="showProbs = false">"{{
-      content }}"</span>
-
-    <!-- this is the bar in inline setting-->
-    <span v-if="useInlineLayout" :style="{ width: trackWidth }" class="inline-bar-block">
+    <span v-if="useInlineLayout" class="inline-bar-block">
+      <span class="word-text" :style="{ width: maxTextWidth }">{{ content }}</span>
       <span class="track rounded">
         <span :style="{ width: barWidth(probabilities[0]) }" class="track-fill rounded">
           <span class="prob-text">{{ annotations[0] }}</span>
         </span>
       </span>
     </span>
+    <span v-else>
+      <div class="context-text" @mouseover="showProbs = true" @mouseleave="showProbs = false">"{{
+        content }}"</div>
 
-    <div v-else class="multiline-bar-block" :style="{ width: trackWidth }">
-      <span v-for="(probability, i) in probabilities" class="single-bar-wrapper">
-        <div class="inline-bar-block-text"> {{ names[i] }}</div>
-        <div class="track rounded">
-          <div :style="{ width: barWidth(probability) }" class="track-fill rounded">
-            <span class="prob-text">{{ annotations[i] }}</span>
+      <div class="multiline-bar-block" :style="{ width: trackWidth }">
+        <span v-for="(probability, i) in probabilities" class="single-bar-wrapper">
+          <div class="inline-bar-block-text"> {{ names[i] }}</div>
+          <div class="track rounded">
+            <div :style="{ width: barWidth(probability) }" class="track-fill rounded">
+              <span class="prob-text">{{ annotations[i] }}</span>
+            </div>
           </div>
-        </div>
-      </span>
-    </div>
+        </span>
+      </div>
+    </span>
   </span>
 </template>
 
@@ -49,6 +48,10 @@ let component = defineComponent({
     },
     names: {
       type: Object as PropType<string[]>,
+      required: true
+    },
+    maxTextWidth: {
+      type: String,
       required: true
     }
   },
@@ -90,7 +93,7 @@ export default component
 
 <style scoped>
 .inline-bar-block {
-  display: inline-block;
+  display: flex;
   padding-top: 1px;
   padding-bottom: 1px;
   margin-left: 5px;
@@ -134,7 +137,7 @@ export default component
 
 .word-text {
   display: inline-block;
-  width: 8%;
+  width: fit-content;
   overflow: auto;
   margin-bottom: -7px;
   margin-right: 5px;

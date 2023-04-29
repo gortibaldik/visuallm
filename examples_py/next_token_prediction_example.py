@@ -146,7 +146,7 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
         n = self._n_largest_tokens_to_return
         K = n * 3
         twenty_ixes = random.choices(self.ix_arr, k=K)
-        twenty_probs = [random.random() for i in self.ix_arr]
+        twenty_probs = [random.random() for _ in range(K)]
         twenty_probs = [math.exp(p) for p in twenty_probs]
         twenty_probs_sum = sum(twenty_probs)
         twenty_probs = [p / twenty_probs_sum for p in twenty_probs]

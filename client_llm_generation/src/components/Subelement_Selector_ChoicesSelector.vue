@@ -9,6 +9,7 @@
 </template>
 
 <script lang="ts">
+import { stringWidth } from '@/assets/utils'
 import { valuesRequiredInConfiguration } from '@/assets/elementRegistry'
 import { componentSharedData, getSharedDataUniqueName, assignRequiredValuesToSharedData } from '@/assets/reactiveData'
 import { defineComponent } from 'vue'
@@ -31,12 +32,7 @@ let component = defineComponent({
       return componentSharedData[getSharedDataUniqueName(this.name, 'text')]
     },
     inputWidth(): string {
-      let maxWidth = this.selected.length
-      maxWidth *= 7
-      maxWidth += 30
-
-      let maxWidthPx = maxWidth.toString() + "px"
-      return maxWidthPx
+      return stringWidth(this.selected).toString() + "px"
     }
   },
   watch: {

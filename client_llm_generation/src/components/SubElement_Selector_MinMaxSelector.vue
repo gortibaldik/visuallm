@@ -9,6 +9,7 @@
 
 <script lang="ts">
 import { valuesRequiredInConfiguration } from '@/assets/elementRegistry'
+import { numberWidth } from '@/assets/utils'
 import { componentSharedData, getSharedDataUniqueName, assignRequiredValuesToSharedData } from '@/assets/reactiveData'
 import { defineComponent } from 'vue'
 
@@ -36,11 +37,7 @@ let component = defineComponent({
       return componentSharedData[getSharedDataUniqueName(this.name, 'text')]
     },
     inputWidth(): string {
-      // TODO: find some better method of measuring number width
-      let w = this.selected.toString().length * 7 + 35
-      let ws = w.toString() + "px"
-      console.log(ws)
-      return ws
+      return numberWidth(this.selected).toString() + "px"
     }
   },
   data() {

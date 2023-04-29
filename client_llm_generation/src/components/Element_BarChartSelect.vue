@@ -3,7 +3,7 @@
     <div v-for="barInfo in barInfos" class="progress-bar">
       <input v-if="selectable" class="input-radio" type="radio" v-model="picked" :value="barInfo.barTitle" />
       <DisplayPercentageComponent :style="{ display: 'inline-block', width: percentageElementWidth }" :item="barInfo"
-        :longContexts="longContexts" :names="names">
+        :longContexts="longContexts" :names="names" :maxTextWidth="maxTextWidth">
       </DisplayPercentageComponent>
     </div>
     <div v-if="selectable" style="text-align: center; margin-top: 10px">
@@ -22,6 +22,7 @@ import { configurationRequired, valuesRequiredInConfiguration } from '@/assets/e
 import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib'
 import DisplayPercentageComponent from './SubElement_BarCharSelect_Bar.vue'
 import type { BarInfo } from './SubElement_BarCharSelect_Bar.vue'
+import { stringWidth } from '@/assets/utils'
 
 let component = defineComponent({
   props: {
@@ -62,12 +63,22 @@ let component = defineComponent({
     },
 
     percentageElementWidth(): string {
-      if (this.longContexts === false) {
+      if (this.selectable === true) {
         return "90%"
       } else {
         return "100%"
       }
-    }
+    },
+    maxTextWidth(): string {
+      let maxWidth = 0
+      for (let barInfo of this.barInfos) {
+        let width = stringWidth(barInfo.barTitle)
+        if (width > maxWidth) {
+          maxWidth = width
+        }
+      }
+      return maxWidth.toString() + "px"
+    },
   },
   components: {
     DisplayPercentageComponent
@@ -138,5 +149,6 @@ function processElementDescr(elementDescr: ElementDescription) {
 
 .progress-bar {
   margin-top: 10px;
+  display: flex;
 }
 </style>
