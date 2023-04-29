@@ -243,6 +243,10 @@ function processElementDescr(elementDescr: ElementDescription) {
 }
 
 .table-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
   width: fit-content;
   background-color: rgba(0, 0, 0, 0.127);
   border-style: dashed;
@@ -250,7 +254,6 @@ function processElementDescr(elementDescr: ElementDescription) {
   padding: 5px;
   border-radius: 5px;
   box-shadow: 0px 35px 50px rgba(0, 0, 0, 0.2);
-  flex: none;
 }
 
 .table-style-0 {
