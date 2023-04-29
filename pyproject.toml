@@ -38,13 +38,14 @@ profile = "black"
 current_version = "0.0.2"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
-commit = true
-tag = true
+commit = false
+tag = false
 push = false
 
 [tool.bumpver.file_patterns]
 "pyproject.toml" = [
     'current_version = "{version}"',
+    'version = "{version}"'
 ]
 "README.md" = [
     "VERSION: `{version}`",
