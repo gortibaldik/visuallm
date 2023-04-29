@@ -1,9 +1,9 @@
 from llm_generation_server.component_base import ComponentBase
 from llm_generation_server.elements.plain_text_element import PlainTextElement
-from llm_generation_server.elements.selector_element import (
+from llm_generation_server.elements.selector_elements import (
+    ButtonElement,
     ChoicesSubElement,
     MinMaxSubElement,
-    SelectorElement,
 )
 from llm_generation_server.elements.table_element import TableElement
 
@@ -21,7 +21,7 @@ class ExampleDialogueConnectionsComponent(ComponentBase):
         self.model_selector_element = ChoicesSubElement(
             choices=["first", "second", "third"], text="Select Model:"
         )
-        self.selector_element = SelectorElement(
+        self.selector_element = ButtonElement(
             button_text="Load Dataset Sample",
             subelements=[self.sample_selector_element, self.model_selector_element],
             endpoint_callback=self.select_sample,

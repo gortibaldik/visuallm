@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Dict, List, MutableSet, Optional
 
-from flask import jsonify, request
+from flask import request
 
 from llm_generation_server.server import Server
 
@@ -20,7 +20,7 @@ class SubElementConfiguration:
     parent_name: str
 
 
-class SelectorElement(ElementWithEndpoint):
+class ButtonElement(ElementWithEndpoint):
     def __init__(
         self,
         name: str = "selector",
@@ -28,6 +28,21 @@ class SelectorElement(ElementWithEndpoint):
         button_text="Select",
         **kwargs,
     ):
+        """
+        Args:
+            name (str, optional): name of the element, doesn't have to be
+                provided. Defaults to "selector".
+            subelements (List[SelectorSubElement], optional): input
+                subelements. E.g. if there is a checkbox on each press of a
+                button, the checkbox value will be sent to the backend.
+                Defaults to [].
+            button_text (str, optional): Text displayed in a button input
+                element. Defaults to "Select".
+
+        Keyword Args:
+            endpoint_callback: the callback function that will be called when
+                the user clicks the button on the frontend
+        """
         super().__init__(name=name, **kwargs)
         self.type = "sample_selector"
         self._button_text = button_text
@@ -57,7 +72,7 @@ class SelectorElement(ElementWithEndpoint):
         the relevant selected attributes in subelement selectors
         """
         if not request.is_json:
-            return jsonify(dict(result="failure"))
+            raise RuntimeError()
         response_json = request.get_json()
         for key, value in response_json.items():
             self._subelements_dict[key].selected = value
@@ -112,12 +127,12 @@ class SelectorSubElement(ABC):
         self.name = str(subtype)
         self._subtype = subtype
         self._selected = None
-        self.parent_element: Optional[SelectorElement] = None
+        self.parent_element: Optional[ButtonElement] = None
         self._text = text
 
 
 class MinMaxSubElement(SelectorSubElement):
-    """Subelement in the SelectorElement that creates an int selection in
+    """Subelement in the ButtonElement that creates an int selection in
     a range. E.g. selector between [min, max].
     """
 

@@ -28,97 +28,78 @@ The library is composed of three parts:
 
 - create all the elements from which the page should be composed
 
-```python
-# really_simple_component_example.py
-class ReallyEasyComponent(ComponentBase):
-    def __init__(self):
-        self.main_heading_element = PlainTextElement(
-            is_heading=True, heading_level=2, content="Really Easy Component"
-        )
-        self.text_element = PlainTextElement(
-            content="""
-                Some really interesting text that isn't formatted in any way, it is
-                just a plain simple text
-            """
-        )
-```
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/simple_component.py&lines=1-15&header=# ./examples_py/simple_component.py lines 1-15)-->
+<!-- MARKDOWN-AUTO-DOCS:END-->
 
 - call `super().__init__`, where you specify name and title of the component as well as the created elements in the order that they should appear in the page
 
-```python
-        super().__init__(
-            name="really_easy_component",
-            title="Easy Component",
-            elements=[self.main_heading_element, self.text_element],
-        )
-```
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/simple_component.py&lines=16-21&header=# ./examples_py/simple_component.py lines 16-21)-->
+<!-- MARKDOWN-AUTO-DOCS:END-->
 
 2. Initialize `llm_generation_server.server.Server` and pass in the initialized components
 
-```python
-# app.py
-from llm_generation_server.server import Server
-from really_easy_component_example import ReallyEasyComponent
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/simple_app.py&lines=1-7&header=# ./examples_py/simple_app.py)-->
+<!-- MARKDOWN-AUTO-DOCS:END-->
 
-really_easy_component = ReallyEasyComponent()
-flask_app = Server(__name__, [really_easy_component])
-app = flask_app.app
+3. Standard method to run the flask application, e.g. for the example provided above, it would be
+
+```sh
+python3 -m flask --app examples_py.simple_app run
 ```
 
-3. `flask run`
-   ![really_simple_page](./readme_images/really_simple_page.png)
+![really_simple_page](./readme_images/really_simple_page.png)
 
 ### Implemented Elements
 
 I wrote this library to help me visualize the output distributions of various models I implemented during my master's thesis. Therefore I implemented only few basic elements for ML purposes.
 
-#### Selector Element
+#### Configuration Selection
 
-Input html elements with checks. This element is composed of multiple sub-parts. The design is chosen in such a way that it is possible to configure multiple values on the frontend with just one "send to backend" button.
+Several different kinds of configuration specifier, together with one button element. The button element allows backend communication and by itself it does nothing. However you can specify subelements, for which the button element will provide communication updates. For the example below, the following imports will be used:
+
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/selector_component.py&lines=1-8&header=# ./examples_py/selector_component.py lines 1-8)-->
+<!-- MARKDOWN-AUTO-DOCS:END-->
 
 ##### MinMax SubElement
 
-Input element for setting integer in a range. `text` is a text appearing to the right of the input element. The currently selected value can be accessed as `instance.selected`.
+Input element for setting integer in a range.
 
-```python
-from llm_generation_server.elements.selector_element import MinMaxSubElement
-
-self.sample_selector_element = MinMaxSubElement(
-    text="Select sample:",
-    sample_min=0,
-    sample_max=10,
-)
-```
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/selector_component.py&lines=11-16&header=# ./examples_py/selector_component.py lines 11-16)-->
+<!-- MARKDOWN-AUTO-DOCS:END-->
 
 ##### Choices SubElement
 
-Input element for choosing between a range of choices. `text` is a text appearing to the right of the input element. The currently selected value can be accessed as `instance.selected`.
+Input element for choosing between several choices.
 
-```python
-from llm_generation_server.elements.selector_element import ChoicesSubElement
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/selector_component.py&lines=17-19&header=# ./examples_py/selector_component.py lines 17-19)-->
+<!-- MARKDOWN-AUTO-DOCS:END-->
 
-self.model_selector = ChoicesSubElement(
-    text="Select model:", choices=["first", "second", "third"]
-)
+##### Checkbox SubElement
+
+Simple checkbox input element.
+
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/selector_component.py&lines=20-20&header=# ./examples_py/selector_component.py lines 20)-->
+<!-- MARKDOWN-AUTO-DOCS:END-->
+
+##### Button Element
+
+This is an element that should encapsulate all the other configuration selection elements. It needs a callback method that will be called when the button is pressed and we provide `ButtonElement.default_select_callback()` which handles processing all the changes sent from the frontend and attributing them to `subelement.selected` properties of subelements.
+
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/selector_component.py&lines=21-50&header=# ./examples_py/selector_component.py lines 21-50)-->
+<!-- MARKDOWN-AUTO-DOCS:END-->
+
+###### Show-Case
+
+You can see the generated page by running the following script after cloning the github repository and navigating into it:
+
+```sh
+flask --app examples_py.app run
 ```
 
-##### Main Element
+You can also see that there are several tabs at the top of the page, each tab refers to one `ComponentBase` implementation registered on the `Server` instance.
 
-This element needs also a callback method, that will be called when frontend sends data. The implementation provides method `SelectorElement.default_select_callback()` which loads all the data from the request from frontend to the `instance.selected` of all its subelements.
-
-```python
-from llm_generation_server.elements.selector_element import SelectorElement
-
-self.selector_element = SelectorElement(
-    button_text="Send Configuration to Server",
-    endpoint_callback=self.select_sample,
-    subelements=[self.sample_selector_element, self.model_selector],
-)
-
-def select_sample(self):
-    self.selector_element.default_select_callback()
-    ...
-```
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/app.py&header=# ./examples_py/app.py)-->
+<!-- MARKDOWN-AUTO-DOCS:END-->
 
 ![selector_image](./readme_images/selector.png)
 
@@ -126,39 +107,16 @@ def select_sample(self):
 
 This element can show several tables on the frontend together with a special feature, links between rows of the tables. They may connect different rows of different tables and display some value above links.
 
-```python
-from llm_generation_server.elements.table_element import TableElement
-
-self.table_element = TableElement()
-headers = ["No.", "Turn"]
-rows = [
-    [i, x]
-    for i, x in enumerate(
-        [
-            f"This is first row",
-            f"This is second row",
-            f"This is third row",
-            f"This is fourth row",
-            f"This is fifth row",
-        ]
-    )
-]
-self.table_element.clear()
-TABLE_NAME = "Table1 is a Great Table"
-self.table_element.add_table(TABLE_NAME, headers, rows)
-
-for j in range(len(rows) - 1, 0, -1):
-    for i in range(j):
-        self.table_element.add_link_between_rows(
-            TABLE_NAME, j, TABLE_NAME, i, 3, "some value"
-        )
-```
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/table_component.py&header=# ./examples_py/table_component.py)-->
+<!-- MARKDOWN-AUTO-DOCS:END-->
 
 ![table_page](./readme_images/table.png)
 
 #### BarChart Element
 
 This element displays a horizontal barchart together with radio input elements and a button to send the selected value to the backend. Again, you must provide `endpoint_callback` where the response from the server will be processed.
+
+###### THIS IS THE ONLY SECTION NOT AUTOGENERATED FROM THE CODE, BIG TODO!
 
 ```python
 from llm_generation_server.elements.barchart_element import BarChartElement

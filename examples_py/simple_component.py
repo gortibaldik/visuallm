@@ -2,7 +2,7 @@ from llm_generation_server.component_base import ComponentBase
 from llm_generation_server.elements.plain_text_element import PlainTextElement
 
 
-class ReallyEasyComponent(ComponentBase):
+class SimpleComponent(ComponentBase):
     def __init__(self):
         self.main_heading_element = PlainTextElement(
             is_heading=True, heading_level=2, content="Really Easy Component"
@@ -14,7 +14,7 @@ class ReallyEasyComponent(ComponentBase):
             """
         )
         super().__init__(
-            name="really_easy_component",
-            title="Easy Component",
+            name="simple_component",
+            title="Simple Component",
             elements=[self.main_heading_element, self.text_element],
         )

@@ -8,11 +8,11 @@ from flask import jsonify, request
 from llm_generation_server.component_base import ComponentBase
 from llm_generation_server.elements.barchart_element import BarChartElement
 from llm_generation_server.elements.plain_text_element import PlainTextElement
-from llm_generation_server.elements.selector_element import (
+from llm_generation_server.elements.selector_elements import (
+    ButtonElement,
     CheckBoxSubElement,
     ChoicesSubElement,
     MinMaxSubElement,
-    SelectorElement,
 )
 from llm_generation_server.elements.table_element import TableElement
 
@@ -50,7 +50,7 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
             text="Select model:", choices=["first", "second", "third"]
         )
         self.check_box_selector = CheckBoxSubElement(text="Use Sampling:")
-        self.selector_element = SelectorElement(
+        self.selector_element = ButtonElement(
             button_text="Send Configuration to Server",
             endpoint_callback=self.select_sample,
             subelements=[

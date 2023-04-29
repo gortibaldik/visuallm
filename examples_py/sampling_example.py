@@ -4,9 +4,9 @@ import random
 from llm_generation_server.component_base import ComponentBase
 from llm_generation_server.elements.barchart_element import BarChartElement
 from llm_generation_server.elements.plain_text_element import PlainTextElement
-from llm_generation_server.elements.selector_element import (
+from llm_generation_server.elements.selector_elements import (
+    ButtonElement,
     MinMaxSubElement,
-    SelectorElement,
 )
 
 
@@ -18,7 +18,7 @@ class ExampleSamplingComponent(ComponentBase):
         self.sample_selector_element = MinMaxSubElement(
             sample_min=-5, sample_max=5, text="Select Sample:"
         )
-        self.selector_element = SelectorElement(
+        self.selector_element = ButtonElement(
             button_text="Select Sample",
             subelements=[self.sample_selector_element],
             endpoint_callback=self.select_sample,
