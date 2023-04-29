@@ -1,7 +1,7 @@
+import math
 import random
 from heapq import nlargest
 
-import numpy as np
 import requests
 from flask import jsonify, request
 
@@ -146,9 +146,13 @@ class ExampleNextTokenPredictionComponent(ComponentBase):
         n = self._n_largest_tokens_to_return
         K = n * 3
         twenty_ixes = random.choices(self.ix_arr, k=K)
-        twenty_probs = [random.random() for _ in range(K)]
-        twenty_probs = np.exp(twenty_probs)
-        twenty_probs /= np.sum(twenty_probs)
-        probs = np.zeros((len(self.word_vocab), 1))
-        probs[twenty_ixes, 0] = twenty_probs * 100
+        twenty_probs = [random.random() for i in self.ix_arr]
+        twenty_probs = [math.exp(p) for p in twenty_probs]
+        twenty_probs_sum = sum(twenty_probs)
+        twenty_probs = [p / twenty_probs_sum for p in twenty_probs]
+        probs = [[0.0] for _ in self.ix_arr]
+        j = 0
+        for i in twenty_ixes:
+            probs[i][0] = twenty_probs[j] * 100
+            j += 1
         return probs
