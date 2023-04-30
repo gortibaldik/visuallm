@@ -210,6 +210,7 @@ You can also see that there are several tabs at the top of the page, each tab re
 # ./examples_py/app.py
 from llm_generation_server.server import Server
 
+from .bar_chart_component_advanced import BarChartComponentAdvanced
 from .bar_chart_component_simple import BarChartComponentSimple
 from .selector_component import SelectorComponent
 from .table_component import TableComponent
@@ -217,6 +218,7 @@ from .table_component import TableComponent
 flask_app = Server(
     __name__,
     [
+        BarChartComponentAdvanced(),
         BarChartComponentSimple(),
         BarChartComponentSimple(long_contexts=True, title="Long Contexts BarChart"),
         TableComponent(),
@@ -364,6 +366,57 @@ This example will display the advanced possibilities I use when e.g. comparing d
 When I want to compare several candidates, I can display multi-bar-chart, e.g. add multiple bars with different heights, different annotations, each describing one particular quality of the generated sample.
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/bar_chart_component_advanced.py&lines=1-47&header=# ./examples_py/bar_chart_component_advanced.py lines 1-47)-->
+<!-- The below code snippet is automatically added from ./examples_py/bar_chart_component_advanced.py -->
+```py
+# ./examples_py/bar_chart_component_advanced.py lines 1-47
+import math
+import random
+from typing import List
+
+from llm_generation_server.component_base import ComponentBase
+from llm_generation_server.elements.barchart_element import BarChartElement
+
+
+class BarChartComponentAdvanced(ComponentBase):
+    def __init__(self):
+        self.barchart_element = BarChartElement(
+            long_contexts=True,
+            names=["Quality", "Perplexity", "Consistency", "Fluency"],
+            selectable=False,
+        )
+        self.init_barchart_element()
+        super().__init__(
+            name="advanced_barchart",
+            title="Advanced BarChart",
+            elements=[self.barchart_element],
+        )
+
+    def init_barchart_element(self):
+        ds = []
+        size_of_distro = 5
+        for i in range(len(self.barchart_element.names)):
+            ds.append(make_some_distribution(size_of_distro))
+
+        # bar height is the height of the bar, should be between 0 and 100
+        bar_heights = list(zip(*ds))
+
+        # bar annotation is the text displayed within the bar
+        bar_annotations = [[f"{h:.2f}" for h in hs] for hs in bar_heights]
+
+        # annotation is the name of whole bar sub element
+        annotations = [
+            "Use the portable output format.",
+            "Give very verbose output about all the program knows about.",
+            "Terminate option list.",
+            "You should document the library so that the potential user "
+            + "could make sense of it.",
+            "This will indicate the state of the repository that should be "
+            + "evaluated.",
+        ]
+        self.barchart_element.set_possibilities(
+            bar_heights, bar_annotations, annotations
+        )
+```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ![barchart_advanced](./readme_images/barchart_advanced.png)
