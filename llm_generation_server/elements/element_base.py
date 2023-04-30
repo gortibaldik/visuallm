@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, Optional, Union
 
 from .utils import sanitize_url
 
@@ -69,13 +69,22 @@ class URLNamedWrapper:
 
 class ElementWithEndpoint(ElementBase):
     def __init__(
-        self, name: str, endpoint_callback: Callable, endpoint_url: Optional[str] = None
+        self,
+        name: str,
+        endpoint_callback: Union[bool, Callable],
+        endpoint_url: Optional[str] = None,
     ):
         super().__init__(name)
         if endpoint_url is None:
             endpoint_url = sanitize_url(self.name)
         self.endpoint_url = endpoint_url
-        self.endpoint_callback = endpoint_callback
+        if isinstance(endpoint_callback, bool):
+            if self.endpoint_callback is False:
+                self.endpoint_callback = lambda: ...
+            else:
+                raise ValueError()
+        else:
+            self.endpoint_callback = endpoint_callback
 
     def get_url_named_wrapper(self):
         return URLNamedWrapper(self)

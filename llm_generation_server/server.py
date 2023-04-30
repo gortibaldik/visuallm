@@ -26,6 +26,7 @@ class Server:
 
         self.components: List[ComponentBase] = components
         self.registered_urls: Set[str] = set(["/", "/fetch_components"])
+        self.registered_component_names: Set[str] = set()
         for component in self.components:
             component.init_app(self)
 

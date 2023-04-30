@@ -1,13 +1,13 @@
 <template>
   <div class="wrapElement">
     <div v-for="barInfo in barInfos" class="progress-bar">
-      <input v-if="selectable" class="input-radio" type="radio" v-model="picked" :value="barInfo.barTitle" />
+      <input v-if="selectable" class="input-radio" type="radio" v-model="selected" :value="barInfo.barTitle" />
       <DisplayPercentageComponent :style="{ display: 'inline-block', width: percentageElementWidth }" :item="barInfo"
         :longContexts="longContexts" :names="names" :maxTextWidth="maxTextWidth">
       </DisplayPercentageComponent>
     </div>
     <div v-if="selectable" style="text-align: center; margin-top: 10px">
-      <button class="button" @click="emitClicked()">Select "{{ picked }}"</button>
+      <button class="button" @click="emitClicked()">Select "{{ selected }}"</button>
     </div>
   </div>
 </template>
@@ -88,14 +88,14 @@ let component = defineComponent({
       immediate: true,
       handler(newValue: BarInfo[]) {
         if (newValue !== undefined && newValue.length != 0) {
-          this.picked = newValue[0].barTitle
+          this.selected = newValue[0].barTitle
         }
       }
     }
   },
   data() {
     return {
-      picked: '',
+      selected: '',
       reactiveStore: componentSharedData,
       selectPossibilityPoll: undefined as undefined | PollUntilSuccessPOST
     }
@@ -110,7 +110,7 @@ let component = defineComponent({
         'selectPossibilityPoll',
         `${this.backendAddress}/${this.address}`,
         this.processResponse.bind(this),
-        { token: this.picked }
+        { selected: this.selected }
       )
     },
     processResponse(response: any) {

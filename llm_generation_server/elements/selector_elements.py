@@ -137,7 +137,12 @@ class MinMaxSubElement(SelectorSubElement):
     """
 
     def __init__(
-        self, sample_min: float, sample_max: float, text: str, step_size: float = 1.0
+        self,
+        sample_min: float,
+        sample_max: float,
+        text: str,
+        step_size: float = 1.0,
+        default_value: Optional[float] = None,
     ):
         super().__init__(subtype="min_max", text=text)
         if sample_min >= sample_max:
@@ -145,13 +150,15 @@ class MinMaxSubElement(SelectorSubElement):
                 f"sample_min ({sample_min}) should be bigger than sample_max "
                 + f"({sample_max})"
             )
-        self._selected: float = sample_min
+        if default_value is None:
+            default_value = sample_min
+        self._selected: float = default_value
         self._min = sample_min
         self._max = sample_max
         self._step_size = step_size
 
     @SelectorSubElement.selected.setter
-    def selected(self, value: int):
+    def selected(self, value: float):
         if (value > self._max) or (value < self._min):
             raise ValueError(
                 f"Invalid value to selected ({value}) should be in range: ["
@@ -166,6 +173,7 @@ class MinMaxSubElement(SelectorSubElement):
 
 class ChoicesSubElement(SelectorSubElement):
     def __init__(self, choices: List[str], text: str):
+        """Default selected value is the first value in the `choices` list"""
         super().__init__(subtype="choices", text=text)
         if len(choices) == 0:
             raise RuntimeError("choices should have length at least 1!")
@@ -189,7 +197,7 @@ class ChoicesSubElement(SelectorSubElement):
 class CheckBoxSubElement(SelectorSubElement):
     def __init__(self, text: str, default_value: bool = False):
         super().__init__(subtype="check_box", text=text)
-        self._selected = False
+        self._selected = default_value
 
     @SelectorSubElement.selected.setter
     def selected(self, value: bool):

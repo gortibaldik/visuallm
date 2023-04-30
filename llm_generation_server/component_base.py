@@ -39,6 +39,9 @@ class ComponentBase:
                 register_named(element.get_url_named_wrapper(), app.registered_urls)
             element.add_endpoint(app)
 
+        # ensure that there are no two components shared the same name
+        register_named(self, app.registered_component_names)
+
         # ensure that there are no two components sharing the same default url
         register_named(URLNamedWrapper(self, "default_url"), app.registered_urls)
         app.add_endpoint(self.default_url, self.default_callback, methods=["GET"])
