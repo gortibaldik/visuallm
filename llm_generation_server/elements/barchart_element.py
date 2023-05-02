@@ -98,11 +98,15 @@ class BarChartElement(ElementWithEndpoint):
             self.names = ["" for _ in range(required_len)]
 
         for p in self.possibilities:
-            if len(p.barHeights) != required_len:
-                raise ValueError(
-                    f"Probs: {p.barHeights} ({len(p.barHeights)}), names: {self.names}"
-                    + f" ({len(self.names)})"
-                )
+            for arr, name in [
+                (p.barHeights, "Bar Heights"),
+                (p.barAnnotations, "Bar Annotations"),
+            ]:
+                if len(arr) != required_len:
+                    raise ValueError(
+                        f"{name}: {arr} ({len(arr)}), names: {self.names}"
+                        + f" ({len(self.names)})"
+                    )
 
     def construct_element_description(self):
         self.changed = False
