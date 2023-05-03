@@ -1,3 +1,5 @@
+import time
+
 from llm_generation_server.component_base import ComponentBase
 from llm_generation_server.elements.plain_text_element import PlainTextElement
 from llm_generation_server.elements.selector_elements import (
@@ -47,4 +49,5 @@ class SelectorComponent(ComponentBase):
             f"This library is {c} and I would give "
             + f"it {n} stars out of {n} if I could. ({b})"
         )
+        time.sleep(5)
         return self.fetch_info(fetch_all=False)

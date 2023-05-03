@@ -5,12 +5,14 @@
         :name="subElementConfigFE.name"></component>
     </div>
     <div class="buttonWrapper">
-      <button class="button" @click="emitClicked()">{{ buttonText }}</button>
+      <button class="button" @click="emitClicked()" :disabled="loadingInProgress">{{ buttonText }}</button>
+      <DesignLoading v-if="loadingInProgress" class="loading-indicator" />
     </div>
   </div>
 </template>
 
 <script lang="ts">
+import DesignLoading from './Design_Loading.vue'
 import { defineComponent, shallowRef } from 'vue'
 import { componentSharedData, getSharedDataUniqueName, getSharedDataElementName } from '@/assets/reactiveData'
 import type Formatter from '@/assets/elementRegistry'
@@ -56,7 +58,8 @@ let component = defineComponent({
   data() {
     return {
       reactiveStore: componentSharedData,
-      selectSamplePoll: undefined as undefined | PollUntilSuccessPOST
+      selectSamplePoll: undefined as undefined | PollUntilSuccessPOST,
+      loadingInProgress: false as boolean
     }
   },
   unmounted() {
@@ -66,6 +69,7 @@ let component = defineComponent({
     MinMaxSubElement,
     ChoicesSubElement,
     CheckBoxSubElement,
+    DesignLoading,
   },
   methods: {
     emitClicked() {
@@ -81,6 +85,7 @@ let component = defineComponent({
         dataToSend[elementName] = elementValue
       }
 
+      this.loadingInProgress = true
       PollUntilSuccessPOST.startPoll(
         this,
         'selectSamplePoll',
@@ -91,6 +96,7 @@ let component = defineComponent({
     },
     setContexts(response: any) {
       this.$elementRegistry.retrieveElementsFromResponse(response, this.reactiveStore)
+      this.loadingInProgress = false
     },
     getComponent(subtype: string) {
       let component = subElementProcessors[subtype].component
@@ -195,11 +201,11 @@ function processElementDescr(elementDescr: ElementDescription) {
 }
 
 :deep(.button) {
-  display: inline-block;
   padding: 5px;
   padding-left: 10px;
   padding-right: 10px;
-  margin-left: 5px;
+  /* don't resize */
+  width: fit-content;
 }
 
 :deep(.descr) {
@@ -213,6 +219,9 @@ function processElementDescr(elementDescr: ElementDescription) {
 }
 
 .buttonWrapper {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  row-gap: 10px;
 }
 </style>
