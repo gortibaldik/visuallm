@@ -9,7 +9,7 @@ from llm_generation_server.elements.table_element import (
 
 class TwoTablesComponent(ComponentBase):
     def __init__(self):
-        self._initialize_table_component()
+        self._initialize_table_element()
         super().__init__(
             name="table_component",
             title="Two Tables Component",
@@ -21,7 +21,7 @@ class TwoTablesComponent(ComponentBase):
             ],
         )
 
-    def _initialize_table_component(self):
+    def _initialize_table_element(self):
         """Create a simple table with links pointing to all the rows upwards"""
         self.table_element = TableElement()
 

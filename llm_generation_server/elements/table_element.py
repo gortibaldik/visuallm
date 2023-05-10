@@ -93,7 +93,11 @@ class TableElement(ElementBase):
 
     def add_table(self, title: str, headers: List[str], rows: List[List[str]]):
         if not self.check_rows(headers, rows):
-            raise ValueError()
+            raise ValueError(
+                "The length of some row doesn't match the lenght of headers."
+            )
+        if title in self._tables:
+            raise ValueError("Cannot add two tables with the same name!")
         self.changed = True
         self._tables[title] = dict(headers=headers, rows=rows, title=title)
         self.tables.append(self._tables[title])
