@@ -10,8 +10,8 @@
         </thead>
         <tbody>
           <tr v-for="(row, r) in table.rows" :id="`${table.id}_${r}`" :class="{
-              active: displayedLinksRowID == `${table.id}_${r}`
-            }">
+            active: displayedLinksRowID == `${table.id}_${r}`
+          }">
             <td v-for="col in row">{{ col }}</td>
           </tr>
         </tbody>
@@ -36,13 +36,18 @@ export type LoadedTable = {
   rows: string[][]
 }
 
-export type Link = {
+/**
+ * Structure holding all the information needed to display a link between two
+ * HTML elements.
+ */
+export type LinkBetweenRows = {
   StartTable: string
-  StartId: number
+  StartRow: number
   EndTable: string
-  EndId: number
+  EndRow: number
   Importance: number
   Label: string
+  Color: string
 }
 
 let component = defineComponent({
@@ -61,7 +66,7 @@ let component = defineComponent({
     }
   },
   computed: {
-    links(): Link[] {
+    links(): LinkBetweenRows[] {
       return componentSharedData[getSharedDataUniqueName(this.name, 'links')]
     },
     tables(): LoadedTable[] {
@@ -72,7 +77,7 @@ let component = defineComponent({
     tables(newValue: LoadedTable[]) {
       this.updateEverything(newValue)
     },
-    links(newValue: Link[]) {
+    links(newValue: LinkBetweenRows[]) {
       this.updateEverything(this.tables)
     }
   },
@@ -116,7 +121,7 @@ let component = defineComponent({
     /** Create a displayable link between elStart and elEnd. The link
      * display properties are defined in the link object.
      */
-    createLink(link: Link, elStart: HTMLElement, elEnd: HTMLElement) {
+    createLink(link: LinkBetweenRows, elStart: HTMLElement, elEnd: HTMLElement) {
       return new LeaderLine(elStart, elEnd, {
         startSocket: 'right',
         endSocket: 'right',
@@ -131,7 +136,8 @@ let component = defineComponent({
         endLabel: LeaderLine.captionLabel(link.Label, {
           offset: [25, -25]
         }),
-        hide: true
+        hide: true,
+        color: link.Color
       })
     },
     /** Each displayable link should be in the following structures belonging
@@ -166,8 +172,8 @@ let component = defineComponent({
       for (let i = 0; i < links.length; i++) {
         let link = links[i]
 
-        let startID = `${this.table_title_to_id(link.StartTable)}_${link.StartId}`
-        let endID = `${this.table_title_to_id(link.EndTable)}_${link.EndId}`
+        let startID = `${this.table_title_to_id(link.StartTable)}_${link.StartRow}`
+        let endID = `${this.table_title_to_id(link.EndTable)}_${link.EndRow}`
 
         let elStart = document.getElementById(startID)
         let elEnd = document.getElementById(endID)

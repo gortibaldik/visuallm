@@ -1,6 +1,6 @@
 from llm_generation_server.component_base import ComponentBase
 from llm_generation_server.elements.plain_text_element import PlainTextElement
-from llm_generation_server.elements.table_element import TableElement
+from llm_generation_server.elements.table_element import LinkBetweenRows, TableElement
 
 
 class TableComponent(ComponentBase):
@@ -43,5 +43,5 @@ class TableComponent(ComponentBase):
         for j in range(len(rows) - 1, 0, -1):
             for i in range(j):
                 self.table_element.add_link_between_rows(
-                    TABLE_NAME, j, TABLE_NAME, i, 3, "some value"
+                    LinkBetweenRows(TABLE_NAME, j, TABLE_NAME, i, Label="some value")
                 )
