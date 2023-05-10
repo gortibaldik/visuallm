@@ -250,7 +250,7 @@ from llm_generation_server.elements.table_element import LinkBetweenRows, TableE
 
 class TableComponent(ComponentBase):
     def __init__(self):
-        self._initialize_table_component()
+        self._initialize_table_element()
         super().__init__(
             name="table_component",
             title="Table Component",
@@ -262,7 +262,7 @@ class TableComponent(ComponentBase):
             ],
         )
 
-    def _initialize_table_component(self):
+    def _initialize_table_element(self):
         """Create a simple table with links pointing to all the rows upwards"""
         self.table_element = TableElement()
 
