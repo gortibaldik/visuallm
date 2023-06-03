@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict, List, MutableSet, Optional
+from typing import Any, Dict, Generic, List, MutableSet, Optional, TypeVar
 
 from flask import request
 
@@ -89,7 +89,10 @@ class ButtonElement(ElementWithEndpoint):
         app.add_endpoint(self.endpoint_url, self.endpoint_callback, methods=["POST"])
 
 
-class SelectorSubElement(ABC):
+SelectedType = TypeVar("SelectedType")
+
+
+class SelectorSubElement(ABC, Generic[SelectedType]):
     @property
     def subelement_configuration(self) -> SubElementConfiguration:
         if self.parent_element is None:
@@ -107,11 +110,20 @@ class SelectorSubElement(ABC):
         ...
 
     @property
+    @abstractmethod
     def selected(self):
-        return self._selected
+        ...
 
     @selected.setter
-    def selected(self, value):
+    @abstractmethod
+    def selected(self, value: SelectedType):
+        ...
+
+    def selected_getter(self) -> SelectedType:
+        assert self._selected is not None
+        return self._selected
+
+    def selected_setter(self, value: SelectedType):
         if self.parent_element is None:
             raise ValueError(
                 "Cannot change the value of the element without atributing "
@@ -126,12 +138,12 @@ class SelectorSubElement(ABC):
         """
         self.name = str(subtype)
         self._subtype = subtype
-        self._selected = None
+        self._selected: Optional[SelectedType] = None
         self.parent_element: Optional[ButtonElement] = None
         self._text = text
 
 
-class MinMaxSubElement(SelectorSubElement):
+class MinMaxSubElement(SelectorSubElement[float]):
     """Subelement in the ButtonElement that creates an int selection in
     a range. E.g. selector between [min, max].
     """
@@ -157,21 +169,25 @@ class MinMaxSubElement(SelectorSubElement):
         self._max = sample_max
         self._step_size = step_size
 
-    @SelectorSubElement.selected.setter
+    @property
+    def selected(self):
+        return self.selected_getter()
+
+    @selected.setter
     def selected(self, value: float):
         if (value > self._max) or (value < self._min):
             raise ValueError(
                 f"Invalid value to selected ({value}) should be in range: ["
                 + f"{self._min}, {self._max}]"
             )
-        SelectorSubElement.selected.fset(self, value)  # type: ignore
+        self.selected_setter(value)
 
     @property
     def _specific_data(self) -> Dict[str, Any]:
         return dict(min=self._min, max=self._max, step_size=self._step_size)
 
 
-class ChoicesSubElement(SelectorSubElement):
+class ChoicesSubElement(SelectorSubElement[str]):
     def __init__(self, choices: List[str], text: str):
         """Default selected value is the first value in the `choices` list"""
         super().__init__(subtype="choices", text=text)
@@ -180,30 +196,38 @@ class ChoicesSubElement(SelectorSubElement):
         self._selected = choices[0]
         self._choices = choices
 
-    @SelectorSubElement.selected.setter
-    def selected(self, value):
+    @property
+    def selected(self):
+        return self.selected_getter()
+
+    @selected.setter
+    def selected(self, value: str):
         if value not in self._choices:
             raise ValueError(
                 f"Invalid value to selected ({value}), "
                 + f"possibilities: {self._choices}"
             )
-        SelectorSubElement.selected.fset(self, value)  # type: ignore
+        self.selected_setter(value)
 
     @property
     def _specific_data(self) -> Dict[str, Any]:
         return dict(choices=self._choices)
 
 
-class CheckBoxSubElement(SelectorSubElement):
+class CheckBoxSubElement(SelectorSubElement[bool]):
     def __init__(self, text: str, default_value: bool = False):
         super().__init__(subtype="check_box", text=text)
         self._selected = default_value
 
-    @SelectorSubElement.selected.setter
+    @property
+    def selected(self):
+        return self.selected_getter()
+
+    @selected.setter
     def selected(self, value: bool):
         if not isinstance(value, bool):
             raise ValueError(f"Invalid value assigned to bool: {value}")
-        SelectorSubElement.selected.fset(self, value)
+        self.selected_setter(value)
 
     @property
     def _specific_data(self) -> Dict[str, Any]:

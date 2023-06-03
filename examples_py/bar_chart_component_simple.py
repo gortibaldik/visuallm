@@ -43,7 +43,7 @@ class BarChartComponentSimple(ComponentBase):
 
     def barchart_callback(self):
         self.barchart_element.default_callback(return_response=False)
-        s: str = self.barchart_element.selected
+        s = self.barchart_element.selected
         self.text_element.content = f"Last selected: {s}"
         self.update_barchart_component()
         return self.fetch_info(fetch_all=False)

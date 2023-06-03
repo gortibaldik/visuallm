@@ -49,5 +49,5 @@ class SelectorComponent(ComponentBase):
             f"This library is {c} and I would give "
             + f"it {n} stars out of {n} if I could. ({b})"
         )
-        time.sleep(5)
+        time.sleep(n)
         return self.fetch_info(fetch_all=False)
