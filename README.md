@@ -227,7 +227,7 @@ This is an element that should encapsulate all the other configuration selection
             f"This library is {c} and I would give "
             + f"it {n} stars out of {n} if I could. ({b})"
         )
-        time.sleep(5)
+        time.sleep(n)
         return self.fetch_info(fetch_all=False)
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
@@ -412,7 +412,7 @@ class BarChartComponentSimple(ComponentBase):
 
     def barchart_callback(self):
         self.barchart_element.default_callback(return_response=False)
-        s: str = self.barchart_element.selected
+        s = self.barchart_element.selected
         self.text_element.content = f"Last selected: {s}"
         self.update_barchart_component()
         return self.fetch_info(fetch_all=False)
