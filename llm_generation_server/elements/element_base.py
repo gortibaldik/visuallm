@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, Optional
 
 from .utils import sanitize_url
 
@@ -71,20 +71,18 @@ class ElementWithEndpoint(ElementBase):
     def __init__(
         self,
         name: str,
-        endpoint_callback: Union[bool, Callable],
+        endpoint_callback: Callable,
         endpoint_url: Optional[str] = None,
     ):
         super().__init__(name)
         if endpoint_url is None:
             endpoint_url = sanitize_url(self.name)
         self.endpoint_url = endpoint_url
-        if isinstance(endpoint_callback, bool):
-            if self.endpoint_callback is False:
-                self.endpoint_callback = lambda: ...
-            else:
-                raise ValueError()
-        else:
-            self.endpoint_callback = endpoint_callback
+        self.endpoint_callback = endpoint_callback
+        self.parent_component: Optional[Any] = None
+        """The component that holds all the other elements. This is set
+        in `ComponentBase.register_elements`
+        """
 
     def get_url_named_wrapper(self):
         return URLNamedWrapper(self)

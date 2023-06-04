@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict, Generic, List, MutableSet, Optional, TypeVar
+from typing import Any, Callable, Dict, Generic, List, MutableSet, Optional, TypeVar
 
 from flask import request
 
@@ -21,8 +21,19 @@ class SubElementConfiguration:
 
 
 class ButtonElement(ElementWithEndpoint):
+    """I expect the following flow of data:
+    - In frontend the user selects some value from the selector (automatic)
+    - In frontend the user clicks the button element which is the parent of
+        the selector (automatic)
+    - The data arrives to backend, where each selector is updated and signalizes
+        that is has been updated through `self.updated` flag (automatic)
+    - the programmer can control what is influenced by updated selectors
+    - all the changed elements are sent back to the frontend (automatic)
+    """
+
     def __init__(
         self,
+        processing_callback: Callable[[], None],
         name: str = "selector",
         subelements: List[SelectorSubElement] = [],
         button_text="Select",
@@ -30,6 +41,9 @@ class ButtonElement(ElementWithEndpoint):
     ):
         """
         Args:
+            processing_callback (Callable[[], None]): a function that is
+                called just after all the data from the frontend have been
+                processed.
             name (str, optional): name of the element, doesn't have to be
                 provided. Defaults to "selector".
             subelements (List[SelectorSubElement], optional): input
@@ -38,13 +52,12 @@ class ButtonElement(ElementWithEndpoint):
                 Defaults to [].
             button_text (str, optional): Text displayed in a button input
                 element. Defaults to "Select".
-
-        Keyword Args:
-            endpoint_callback: the callback function that will be called when
-                the user clicks the button on the frontend
         """
+        if "endpoint_callback" not in kwargs:
+            kwargs["endpoint_callback"] = self.default_select_callback
         super().__init__(name=name, **kwargs)
         self.type = "sample_selector"
+        self.processing_callback = processing_callback
         self._button_text = button_text
         self._subelements_dict: Dict[str, SelectorSubElement] = {}
         self._subelements: List[SelectorSubElement] = []
@@ -69,13 +82,19 @@ class ButtonElement(ElementWithEndpoint):
 
     def default_select_callback(self):
         """Goes over the standard format of response from FE and sets all
-        the relevant selected attributes in subelement selectors
+        the relevant selected attributes in subelement selectors, hten returns
+        the control to the programmer for handling of the updated data and
+        then returns everything updated to the frontend.
         """
         if not request.is_json:
             raise RuntimeError()
+        assert self.parent_component is not None
         response_json = request.get_json()
         for key, value in response_json.items():
             self._subelements_dict[key].selected = value
+
+        self.processing_callback()
+        return self.parent_component.fetch_info(fetch_all=False)
 
     def add_subelement(self, subelement: SelectorSubElement):
         if subelement.parent_element is not None:
@@ -93,6 +112,16 @@ SelectedType = TypeVar("SelectedType")
 
 
 class SelectorSubElement(ABC, Generic[SelectedType]):
+    """I expect the following flow of data:
+    - In frontend the user selects some value from the selector (automatic)
+    - In frontend the user clicks the button element which is the parent of
+        the selector (automatic)
+    - The data arrives to backend, where each selector is updated and signalizes
+        that is has been updated through `self.updated` flag (automatic)
+    - the programmer can control what is influenced by updated selectors
+    - all the changed elements are sent back to the frontend (automatic)
+    """
+
     @property
     def subelement_configuration(self) -> SubElementConfiguration:
         if self.parent_element is None:
@@ -100,13 +129,16 @@ class SelectorSubElement(ABC, Generic[SelectedType]):
         return SubElementConfiguration(
             self._subtype,
             self.name,
-            dict(selected=self._selected, text=self._text, **self._specific_data),
+            dict(
+                selected=self._selected,
+                text=self._text,
+                **self.construct_selector_data(),
+            ),
             self.parent_element.name,
         )
 
-    @property
     @abstractmethod
-    def _specific_data(self) -> Dict[str, Any]:
+    def construct_selector_data(self) -> Dict[str, Any]:
         ...
 
     @property
@@ -129,14 +161,21 @@ class SelectorSubElement(ABC, Generic[SelectedType]):
                 "Cannot change the value of the element without atributing "
                 + "the element to the parent component"
             )
-        self.parent_element.changed = True
+        self._updated = value != self._selected
+        self.parent_element.changed = self._updated
         self._selected = value
+
+    @property
+    def updated(self):
+        """Whether the selector was updated by the frontend."""
+        return self._updated
 
     def __init__(self, subtype: str, text: str):
         """WARNING:
         `subtype` must match the subtype field in frontend.
         """
         self.name = str(subtype)
+        self._updated = True
         self._subtype = subtype
         self._selected: Optional[SelectedType] = None
         self.parent_element: Optional[ButtonElement] = None
@@ -182,8 +221,8 @@ class MinMaxSubElement(SelectorSubElement[float]):
             )
         self.selected_setter(value)
 
-    @property
-    def _specific_data(self) -> Dict[str, Any]:
+    def construct_selector_data(self) -> Dict[str, Any]:
+        self._updated = False
         return dict(min=self._min, max=self._max, step_size=self._step_size)
 
 
@@ -209,8 +248,8 @@ class ChoicesSubElement(SelectorSubElement[str]):
             )
         self.selected_setter(value)
 
-    @property
-    def _specific_data(self) -> Dict[str, Any]:
+    def construct_selector_data(self) -> Dict[str, Any]:
+        self._updated = False
         return dict(choices=self._choices)
 
 
@@ -229,6 +268,6 @@ class CheckBoxSubElement(SelectorSubElement[bool]):
             raise ValueError(f"Invalid value assigned to bool: {value}")
         self.selected_setter(value)
 
-    @property
-    def _specific_data(self) -> Dict[str, Any]:
+    def construct_selector_data(self) -> Dict[str, Any]:
+        self._updated = False
         return {}

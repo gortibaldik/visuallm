@@ -27,9 +27,8 @@ class BarChartElement(ElementWithEndpoint):
         self,
         long_contexts: bool = False,
         names: List[str] = [],
-        selectable: bool = True,
+        processing_callback: Optional[Callable[[], Any]] = None,
         name="barchart",
-        endpoint_callback: Optional[Callable] = None,
         **kwargs,
     ):
         """
@@ -41,25 +40,22 @@ class BarChartElement(ElementWithEndpoint):
                 names are displayed above each individual bar if there are
                 more than 1 bar or if `long_contexts` is set. There should be
                 equal number of names to bar_heights. Defaults to [].
-            `selectable` (bool, optional): If this flag is set, then there is
-                an input radio selector displayed near each bar and a select
-                button is displayed under the bar display. Defaults to True.
+            `processing_callback` (Optional[Callable[[], None]): the callback
+                function will be called just after the `BarChartElement`
+                updated `self.selected,` so you can handle the change.
+                Defaults to None, if `processing_callback == None` then no
+                `Select` button will display on the frontend.
             `name` (str, optional): name of the element, doesn't have to be
                 provided. Defaults to "barchart".
-            `endpoint_callback`: the callback function that will be called when
-                the user clicks the button on the frontend. Defaults to False.
-                False means that empty function will be used as a callback.
         """
-        if endpoint_callback is None:
-            endpoint_callback = self.default_callback
 
-        super().__init__(name=name, endpoint_callback=endpoint_callback, **kwargs)
+        super().__init__(name=name, endpoint_callback=self.default_callback, **kwargs)
 
+        self.processing_callback = processing_callback
         self._possibilities: List[BarInfo] = []
         self._selected: Optional[str] = None
         self.long_contexts = long_contexts
         self.names = names
-        self.selectable = selectable
 
     @property
     def possibilities(self) -> List[BarInfo]:
@@ -72,9 +68,12 @@ class BarChartElement(ElementWithEndpoint):
 
     @property
     def selected(self) -> str:
-        if self._selected is None:
-            raise ValueError()
+        assert self._selected is not None
         return self._selected
+
+    @property
+    def selectable(self):
+        return self.processing_callback is not None
 
     def set_possibilities(
         self,
@@ -126,10 +125,7 @@ class BarChartElement(ElementWithEndpoint):
     def add_endpoint(self, app: Server):
         app.add_endpoint(self.endpoint_url, self.endpoint_callback, methods=["POST"])
 
-    def default_callback(self, return_response=True):
-        if return_response:
-            return dict(result="success")
-
+    def default_callback(self):
         if not request.is_json:
             raise RuntimeError()
 
@@ -138,3 +134,8 @@ class BarChartElement(ElementWithEndpoint):
             raise RuntimeError()
 
         self._selected = request.json.get("selected")
+        assert self.processing_callback is not None
+        self.processing_callback()
+
+        assert self.parent_component is not None
+        return self.parent_component.fetch_info(fetch_all=False)

@@ -55,11 +55,12 @@ class ComponentBase:
                 element, self.registered_element_names, self.registered_elements
             )
 
-            # ensure that there are no two url endpoints with the same name
             if isinstance(element, ElementWithEndpoint):
+                # ensure that there are no two url endpoints with the same name
                 register_named(
                     element.get_url_named_wrapper(), self.registered_url_endpoints
                 )
+                element.parent_component = self
 
     def fetch_info(self, fetch_all: bool = True, debug_print: bool = False):
         res = dict(

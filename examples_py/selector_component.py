@@ -21,12 +21,12 @@ class SelectorComponent(ComponentBase):
         )
         self.checkbox_element = CheckBoxSubElement(text="Have you slept?:")
         self.button_element = ButtonElement(
+            processing_callback=self.button_clicked,
             subelements=[
                 self.number_selector_element,
                 self.choices_element,
                 self.checkbox_element,
             ],
-            endpoint_callback=self.button_clicked,
         )
         super().__init__(
             name="selector_component",
@@ -41,13 +41,21 @@ class SelectorComponent(ComponentBase):
         )
 
     def button_clicked(self):
-        self.button_element.default_select_callback()
         n = self.number_selector_element.selected
         c = self.choices_element.selected
-        b = self.checkbox_element.selected
+        b = (
+            "I say it as a well-relaxed man!"
+            if self.checkbox_element.selected
+            else "Don't take me seriously."
+        )
+        any_updated = (
+            self.number_selector_element.updated
+            or self.choices_element.updated
+            or self.checkbox_element.updated
+        )
         self.text_element.content = (
             f"This library is {c} and I would give "
             + f"it {n} stars out of {n} if I could. ({b})"
+            + f" This {'has' if any_updated else 'has not'} changed!"
         )
         time.sleep(n)
-        return self.fetch_info(fetch_all=False)

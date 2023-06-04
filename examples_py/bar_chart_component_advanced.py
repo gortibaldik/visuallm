@@ -11,7 +11,6 @@ class BarChartComponentAdvanced(ComponentBase):
         self.barchart_element = BarChartElement(
             long_contexts=True,
             names=["Quality", "Perplexity", "Consistency", "Fluency"],
-            selectable=False,
         )
         self.init_barchart_element()
         super().__init__(
