@@ -162,7 +162,7 @@ class SelectorSubElement(ABC, Generic[SelectedType]):
                 + "the element to the parent component"
             )
         self._updated = value != self._selected
-        self.parent_element.changed = self._updated
+        self.parent_element.changed |= self._updated
         self._selected = value
 
     @property
