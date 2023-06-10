@@ -253,6 +253,13 @@ class ChoicesSubElement(SelectorSubElement[str]):
             )
         self.selected_setter(value)
 
+    def set_choices(self, new_choices: List[str]):
+        if len(new_choices) == 0:
+            raise RuntimeError("Choices should have length at least 1!")
+        self._choices = new_choices
+        self._selected = self._choices[0]
+        self.force_set_updated()
+
     def construct_selector_data(self) -> Dict[str, Any]:
         self._updated = False
         return dict(choices=self._choices)
