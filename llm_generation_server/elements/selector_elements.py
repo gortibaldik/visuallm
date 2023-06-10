@@ -165,6 +165,11 @@ class SelectorSubElement(ABC, Generic[SelectedType]):
         self.parent_element.changed |= self._updated
         self._selected = value
 
+    def force_set_updated(self):
+        """Set updated to true, so that any changes associated with the update
+        are triggered"""
+        self._updated = True
+
     @property
     def updated(self):
         """Whether the selector was updated by the frontend."""
