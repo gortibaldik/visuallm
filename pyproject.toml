@@ -21,8 +21,8 @@ dependencies = [
 huggingface=["transformers", "datasets"]
 
 [project.urls]
-"Homepage" = "https://github.com/gortibaldik/visualize_llm_generation"
-"Bug Tracker" = "https://github.com/gortibaldik/visualize_llm_generation/issues"
+"Homepage" = "https://github.com/gortibaldik/llm_generation_server"
+"Bug Tracker" = "https://github.com/gortibaldik/llm_generation_server/issues"
 
 [build-system]
 requires = ["setuptools"]
