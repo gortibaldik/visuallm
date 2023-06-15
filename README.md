@@ -32,8 +32,8 @@ The library is composed of three parts:
 <!-- The below code snippet is automatically added from ./examples_py/simple_component.py -->
 ```py
 # ./examples_py/simple_component.py lines 1-15
-from llm_generation_server.component_base import ComponentBase
-from llm_generation_server.elements.plain_text_element import PlainTextElement
+from visuallm.component_base import ComponentBase
+from visuallm.elements.plain_text_element import PlainTextElement
 
 
 class SimpleComponent(ComponentBase):
@@ -70,7 +70,7 @@ class SimpleComponent(ComponentBase):
 <!-- The below code snippet is automatically added from ./examples_py/simple_app.py -->
 ```py
 # ./examples_py/simple_app.py
-from llm_generation_server.server import Server
+from visuallm.server import Server
 
 from .simple_component import SimpleComponent
 
@@ -97,7 +97,7 @@ In the following paragraphs I'll explain how to create configuration selectors, 
 <!-- The below code snippet is automatically added from ./examples_py/app.py -->
 ```py
 # ./examples_py/app.py
-from llm_generation_server.server import Server
+from visuallm.server import Server
 
 from .bar_chart_component_advanced import BarChartComponentAdvanced
 from .bar_chart_component_simple import BarChartComponentSimple
@@ -136,9 +136,9 @@ Several different kinds of configuration specifier, together with one button ele
 # ./examples_py/selector_component.py lines 1-10
 import time
 
-from llm_generation_server.component_base import ComponentBase
-from llm_generation_server.elements.plain_text_element import PlainTextElement
-from llm_generation_server.elements.selector_elements import (
+from visuallm.component_base import ComponentBase
+from visuallm.elements.plain_text_element import PlainTextElement
+from visuallm.elements.selector_elements import (
     ButtonElement,
     CheckBoxSubElement,
     ChoicesSubElement,
@@ -251,9 +251,9 @@ The below example displays, how to generate one table on the frontend with the l
 <!-- The below code snippet is automatically added from ./examples_py/table_component.py -->
 ```py
 # ./examples_py/table_component.py
-from llm_generation_server.component_base import ComponentBase
-from llm_generation_server.elements.plain_text_element import PlainTextElement
-from llm_generation_server.elements.table_element import LinkBetweenRows, TableElement
+from visuallm.component_base import ComponentBase
+from visuallm.elements.plain_text_element import PlainTextElement
+from visuallm.elements.table_element import LinkBetweenRows, TableElement
 
 
 class TableComponent(ComponentBase):
@@ -313,13 +313,13 @@ Firstly, we will import `Colors` enumeration to color links to different tables 
 <!-- The below code snippet is automatically added from ./examples_py/two_tables_component.py -->
 ```py
 # ./examples_py/two_tables_component.py lines 1-7
-from llm_generation_server.component_base import ComponentBase
-from llm_generation_server.elements.plain_text_element import PlainTextElement
-from llm_generation_server.elements.table_element import (
-    Colors,
-    LinkBetweenRows,
-    TableElement,
-)
+from visuallm.component_base import ComponentBase
+from visuallm.elements.plain_text_element import PlainTextElement
+from visuallm.elements.table_element import Colors, LinkBetweenRows, TableElement
+
+
+class TwoTablesComponent(ComponentBase):
+    def __init__(self):
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -329,10 +329,6 @@ Secondly, we will create the links in such a way, that links going within the sa
 <!-- The below code snippet is automatically added from ./examples_py/two_tables_component.py -->
 ```py
 # ./examples_py/two_tables_component.py lines 69-99
-        # add links pointing from each row of the second table to all the rows
-        # of the first table and also to all the rows of the second table
-        # upwards
-        for j in range(len(rows[1]) - 1, 0, -1):
             # links going from the row j of the second table to all the upper
             # rows in the second table
             for i in range(j):
@@ -381,9 +377,9 @@ import random
 
 import requests
 
-from llm_generation_server.component_base import ComponentBase
-from llm_generation_server.elements.barchart_element import BarChartElement
-from llm_generation_server.elements.plain_text_element import PlainTextElement
+from visuallm.component_base import ComponentBase
+from visuallm.elements.barchart_element import BarChartElement
+from visuallm.elements.plain_text_element import PlainTextElement
 
 
 class BarChartComponentSimple(ComponentBase):
@@ -445,8 +441,8 @@ import math
 import random
 from typing import List
 
-from llm_generation_server.component_base import ComponentBase
-from llm_generation_server.elements.barchart_element import BarChartElement
+from visuallm.component_base import ComponentBase
+from visuallm.elements.barchart_element import BarChartElement
 
 
 class BarChartComponentAdvanced(ComponentBase):
