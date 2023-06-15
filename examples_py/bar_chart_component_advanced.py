@@ -2,8 +2,8 @@ import math
 import random
 from typing import List
 
-from llm_generation_server.component_base import ComponentBase
-from llm_generation_server.elements.barchart_element import BarChartElement
+from visuallm.component_base import ComponentBase
+from visuallm.elements.barchart_element import BarChartElement
 
 
 class BarChartComponentAdvanced(ComponentBase):

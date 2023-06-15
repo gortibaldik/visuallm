@@ -1,10 +1,6 @@
-from llm_generation_server.component_base import ComponentBase
-from llm_generation_server.elements.plain_text_element import PlainTextElement
-from llm_generation_server.elements.table_element import (
-    Colors,
-    LinkBetweenRows,
-    TableElement,
-)
+from visuallm.component_base import ComponentBase
+from visuallm.elements.plain_text_element import PlainTextElement
+from visuallm.elements.table_element import Colors, LinkBetweenRows, TableElement
 
 
 class TwoTablesComponent(ComponentBase):

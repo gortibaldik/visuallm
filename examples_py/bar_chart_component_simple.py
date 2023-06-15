@@ -4,9 +4,9 @@ import random
 
 import requests
 
-from llm_generation_server.component_base import ComponentBase
-from llm_generation_server.elements.barchart_element import BarChartElement
-from llm_generation_server.elements.plain_text_element import PlainTextElement
+from visuallm.component_base import ComponentBase
+from visuallm.elements.barchart_element import BarChartElement
+from visuallm.elements.plain_text_element import PlainTextElement
 
 
 class BarChartComponentSimple(ComponentBase):

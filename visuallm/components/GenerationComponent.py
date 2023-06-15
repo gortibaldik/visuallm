@@ -5,27 +5,27 @@ from transformers import PreTrainedModel, PreTrainedTokenizer
 from transformers.generation.utils import GenerateOutput
 from transformers.tokenization_utils_base import BatchEncoding
 
-from llm_generation_server.component_base import ComponentBase
-from llm_generation_server.components.mixins.data_preparation_mixin import (
+from visuallm.component_base import ComponentBase
+from visuallm.components.mixins.data_preparation_mixin import (
     DATASET_TYPE,
     DATASETS_TYPE,
     DataPreparationMixin,
 )
-from llm_generation_server.components.mixins.generation_selectors_mixin import (
+from visuallm.components.mixins.generation_selectors_mixin import (
     SELECTORS_TYPE,
     GenerationSelectorsMixin,
 )
-from llm_generation_server.components.mixins.metrics_mixin import (
+from visuallm.components.mixins.metrics_mixin import (
     GENERATED_TEXT_METRIC,
     PROBS_METRIC,
     MetricsMixin,
 )
-from llm_generation_server.components.mixins.model_selection_mixin import (
+from visuallm.components.mixins.model_selection_mixin import (
     MODEL_TOKENIZER_CHOICES,
     ModelSelectionMixin,
 )
-from llm_generation_server.elements.element_base import ElementBase
-from llm_generation_server.elements.plain_text_element import PlainTextElement
+from visuallm.elements.element_base import ElementBase
+from visuallm.elements.plain_text_element import PlainTextElement
 
 
 class InteractiveGenerationComponent(

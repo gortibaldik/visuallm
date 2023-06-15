@@ -1,5 +1,5 @@
-from llm_generation_server.component_base import ComponentBase
-from llm_generation_server.elements.plain_text_element import PlainTextElement
+from visuallm.component_base import ComponentBase
+from visuallm.elements.plain_text_element import PlainTextElement
 
 
 class SimpleComponent(ComponentBase):

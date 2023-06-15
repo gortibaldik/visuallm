@@ -1,4 +1,4 @@
-# client_llm_generation
+# client_visuallm
 
 This template should help get you started developing with Vue 3 in Vite.
 

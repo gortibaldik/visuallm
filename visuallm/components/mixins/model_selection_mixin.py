@@ -2,11 +2,8 @@ from typing import Callable, Dict, Optional, Tuple, Union
 
 from transformers import PreTrainedModel, PreTrainedTokenizer
 
-from llm_generation_server.elements.plain_text_element import PlainTextElement
-from llm_generation_server.elements.selector_elements import (
-    ButtonElement,
-    ChoicesSubElement,
-)
+from visuallm.elements.plain_text_element import PlainTextElement
+from visuallm.elements.selector_elements import ButtonElement, ChoicesSubElement
 
 TOKENIZER_MODEL_TUPLE = Tuple[PreTrainedTokenizer, PreTrainedModel]
 MODEL_TOKENIZER_CHOICES = Union[

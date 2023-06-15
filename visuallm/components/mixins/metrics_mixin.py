@@ -1,11 +1,8 @@
 from typing import Any, Callable, Dict, List, Sequence, Tuple
 
-from llm_generation_server.elements.barchart_element import BarChartElement
-from llm_generation_server.elements.plain_text_element import PlainTextElement
-from llm_generation_server.elements.selector_elements import (
-    ButtonElement,
-    CheckBoxSubElement,
-)
+from visuallm.elements.barchart_element import BarChartElement
+from visuallm.elements.plain_text_element import PlainTextElement
+from visuallm.elements.selector_elements import ButtonElement, CheckBoxSubElement
 
 GENERATED_TEXT_METRIC = Tuple[Callable[[str, str], Any], str, bool]
 """Args:

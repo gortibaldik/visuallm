@@ -5,18 +5,18 @@ import torch
 from numpy.typing import NDArray
 from transformers import PreTrainedModel, PreTrainedTokenizer
 
-from llm_generation_server.component_base import ComponentBase
-from llm_generation_server.components.mixins.data_preparation_mixin import (
+from visuallm.component_base import ComponentBase
+from visuallm.components.mixins.data_preparation_mixin import (
     DATASET_TYPE,
     DATASETS_TYPE,
     DataPreparationMixin,
 )
-from llm_generation_server.components.mixins.model_selection_mixin import (
+from visuallm.components.mixins.model_selection_mixin import (
     MODEL_TOKENIZER_CHOICES,
     ModelSelectionMixin,
 )
-from llm_generation_server.elements.barchart_element import BarChartElement
-from llm_generation_server.elements.plain_text_element import PlainTextElement
+from visuallm.elements.barchart_element import BarChartElement
+from visuallm.elements.plain_text_element import PlainTextElement
 
 
 class NextTokenPredictionComponent(

@@ -3,7 +3,7 @@ from typing import Any, Callable, List, Optional, Union
 
 from flask import request
 
-from llm_generation_server.server import Server
+from visuallm.server import Server
 
 from .element_base import ElementDescription, ElementWithEndpoint
 

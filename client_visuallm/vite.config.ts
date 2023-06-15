@@ -13,7 +13,7 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: path.join('..', 'llm_generation_server', 'dist'),
+    outDir: path.join('..', 'visuallm', 'dist'),
     emptyOutDir: true
   }
 })

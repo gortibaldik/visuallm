@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, Generic, List, MutableSet, Optional, Typ
 
 from flask import request
 
-from llm_generation_server.server import Server
+from visuallm.server import Server
 
 from .element_base import ElementDescription, ElementWithEndpoint
 from .utils import register_named

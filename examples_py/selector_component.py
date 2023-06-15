@@ -1,8 +1,8 @@
 import time
 
-from llm_generation_server.component_base import ComponentBase
-from llm_generation_server.elements.plain_text_element import PlainTextElement
-from llm_generation_server.elements.selector_elements import (
+from visuallm.component_base import ComponentBase
+from visuallm.elements.plain_text_element import PlainTextElement
+from visuallm.elements.selector_elements import (
     ButtonElement,
     CheckBoxSubElement,
     ChoicesSubElement,

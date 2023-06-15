@@ -28,4 +28,4 @@ repos:
     rev: "v8.38.0" # Use the sha / tag you want to point at
     hooks:
       - id: eslint
-        args: ["-c", "client_llm_generation/.eslintrc.cjs"]
+        args: ["-c", "client_visuallm/.eslintrc.cjs"]

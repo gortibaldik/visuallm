@@ -6,7 +6,7 @@ from typing import Callable, List, Set
 from flask import Flask, jsonify, redirect
 from flask_cors import CORS
 
-from llm_generation_server.component_base import ComponentBase
+from .component_base import ComponentBase
 
 
 @dataclass

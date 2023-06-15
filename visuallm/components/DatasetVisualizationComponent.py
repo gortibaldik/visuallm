@@ -1,12 +1,12 @@
 from typing import Optional
 
-from llm_generation_server.component_base import ComponentBase
-from llm_generation_server.components.mixins.data_preparation_mixin import (
+from visuallm.component_base import ComponentBase
+from visuallm.components.mixins.data_preparation_mixin import (
     DATASET_TYPE,
     DATASETS_TYPE,
     DataPreparationMixin,
 )
-from llm_generation_server.elements.plain_text_element import PlainTextElement
+from visuallm.elements.plain_text_element import PlainTextElement
 
 
 class DatasetVisualization(ComponentBase, DataPreparationMixin):

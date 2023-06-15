@@ -1,7 +1,7 @@
 from typing import Any, Callable, Dict, List, Tuple, Union
 
-from llm_generation_server.elements.plain_text_element import PlainTextElement
-from llm_generation_server.elements.selector_elements import (
+from visuallm.elements.plain_text_element import PlainTextElement
+from visuallm.elements.selector_elements import (
     ButtonElement,
     CheckBoxSubElement,
     ChoicesSubElement,
