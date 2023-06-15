@@ -1,5 +1,5 @@
 [project]
-name = "llm_generation_server"
+name = "visuallm"
 version = "0.1.3"
 authors = [
   { name="Frantisek Trebuna (gortibaldik)", email="ferotre@gmail.com" },
@@ -21,8 +21,8 @@ dependencies = [
 huggingface=["transformers", "datasets"]
 
 [project.urls]
-"Homepage" = "https://github.com/gortibaldik/llm_generation_server"
-"Bug Tracker" = "https://github.com/gortibaldik/llm_generation_server/issues"
+"Homepage" = "https://github.com/gortibaldik/visuallm"
+"Bug Tracker" = "https://github.com/gortibaldik/visuallm/issues"
 
 [build-system]
 requires = ["setuptools"]
@@ -32,7 +32,7 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [tool.setuptools.package-dir]
-llm_generation_server = "llm_generation_server"
+visuallm = "visuallm"
 
 [tool.isort]
 profile = "black"
