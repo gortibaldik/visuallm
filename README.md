@@ -1,6 +1,6 @@
 # Conditional Language Model Generation Visualization
 
-## VERSION: `0.1.5`
+## VERSION: `0.1.7`
 
 - when evaluating language models it is often pain to see what is generated and why
 - this little package is a `vue.js` frontend together with `flask` backend and it is designed to easily show some interesting visualizations on conditional generation models
