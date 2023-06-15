@@ -17,6 +17,9 @@ dependencies = [
     "Flask-Cors>=3.0.10"
 ]
 
+[project.optional-dependencies]
+huggingface=["transformers", "datasets"]
+
 [project.urls]
 "Homepage" = "https://github.com/gortibaldik/visualize_llm_generation"
 "Bug Tracker" = "https://github.com/gortibaldik/visualize_llm_generation/issues"
