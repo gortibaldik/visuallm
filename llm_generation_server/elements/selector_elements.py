@@ -201,10 +201,10 @@ class MinMaxSubElement(SelectorSubElement[float]):
         default_value: Optional[float] = None,
     ):
         super().__init__(subtype="min_max", text=text)
-        if sample_min >= sample_max:
+        if sample_min > sample_max:
             raise ValueError(
-                f"sample_min ({sample_min}) should be bigger than sample_max "
-                + f"({sample_max})"
+                f"sample_min ({sample_min}) should be bigger than or equal "
+                f"to sample_max ({sample_max})"
             )
         if default_value is None:
             default_value = sample_min
@@ -257,7 +257,8 @@ class ChoicesSubElement(SelectorSubElement[str]):
         if len(new_choices) == 0:
             raise RuntimeError("Choices should have length at least 1!")
         self._choices = new_choices
-        self._selected = self._choices[0]
+        if self._selected not in self._choices:
+            self._selected = self._choices[0]
         self.force_set_updated()
 
     def construct_selector_data(self) -> Dict[str, Any]:

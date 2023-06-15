@@ -81,6 +81,17 @@ class BarChartElement(ElementWithEndpoint):
         bar_annotations: List[List[str]],
         annotations: List[str],
     ):
+        """
+        Args:
+            bar_heights (Union[List[List[float]], Any]): List of bar heights for each bar to be displayed.
+                e.g. if the shape of list is len(bar_heigths) = N, and len(bar_heights[i]) = M for each i,
+                then N lines each with M bars will be displayed.
+            bar_annotations (List[List[str]]): List of bar annotations for each bar to be displayed.
+                e.g. as in the previous example, bar_annotations[i][j] would be the text in
+                j-th bar in i-th line
+            annotations (List[str]): List of annotations for each group of bars to be displayed on
+                single line.
+        """
         self.possibilities = [
             BarInfo(annot, bar_height, bar_annot)
             for annot, bar_height, bar_annot in zip(
@@ -93,8 +104,11 @@ class BarChartElement(ElementWithEndpoint):
         if required_len == 0:
             # if there isn't any name provided, then populate self.names
             # with number of empty strings equal to size of first barHeights
-            required_len = len(self.possibilities[0].barHeights)
-            self.names = ["" for _ in range(required_len)]
+            if len(self.possibilities) != 0:
+                required_len = len(self.possibilities[0].barHeights)
+                self.names = ["" for _ in range(required_len)]
+            else:
+                self.names = []
 
         for p in self.possibilities:
             for arr, name in [
