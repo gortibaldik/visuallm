@@ -19,7 +19,12 @@ gen = Generation(
     dataset=dataset,
     model=model,
     tokenizer=tokenizer,
-    selectors={"do_sample": False, "top_k": (0, 1000), "max_new_tokens": (10, 100, 30)},
+    selectors={
+        "do_sample": False,
+        "top_k": (0, 1000),
+        "max_new_tokens": (10, 100, 30),
+        "num_return_sequences": (1, 20),
+    },
     metrics_on_probs={"Perplexity": (Perplexity(), "{:5f}", False)},
 )
 ntp = NTP(model=model, tokenizer=tokenizer, dataset=dataset)

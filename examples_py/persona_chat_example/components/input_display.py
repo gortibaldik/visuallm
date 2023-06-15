@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List
 
 from visuallm.elements.element_base import ElementBase
 from visuallm.elements.plain_text_element import PlainTextElement
@@ -6,6 +6,9 @@ from visuallm.elements.table_element import TableElement
 
 
 class PersonaChatVisualization:
+    def __init__(self):
+        self._loaded_sample: Any = 1
+
     def init_model_input_display(self) -> List[ElementBase]:
         self.table_element = TableElement()
         self.initial_context_raw_heading = PlainTextElement(
@@ -19,8 +22,10 @@ class PersonaChatVisualization:
         ]
 
     def update_model_input_display(self, add_target: bool = True):
-        sample = self._loaded_sample  # type: ignore
-        context = sample["history"] if add_target else sample["history"][:-1]
+        sample = self._loaded_sample
+        context = sample["history"]
+        if add_target:
+            context.append(sample["candidates"][-1])
         persona = sample["personality"]
 
         sentences = [s for part in [persona, context] for s in part]
