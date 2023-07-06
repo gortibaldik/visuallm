@@ -4,6 +4,7 @@ from .bar_chart_component_advanced import BarChartComponentAdvanced
 from .bar_chart_component_simple import BarChartComponentSimple
 from .selector_component import SelectorComponent
 from .table_component import TableComponent
+from .text_input_component import TextInputComponent
 from .two_tables_component import TwoTablesComponent
 
 flask_app = Server(
@@ -15,6 +16,7 @@ flask_app = Server(
         TableComponent(),
         TwoTablesComponent(),
         SelectorComponent(),
+        TextInputComponent(),
     ],
 )
 app = flask_app.app

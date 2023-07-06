@@ -1,5 +1,7 @@
 # Conditional Language Model Generation Visualization
 
+You aren't in the `main` branch, therefore there are changes and the app from this branch may not run correctly. [You can read the goals of this branch here.](./branch_README.md)
+
 ## VERSION: `0.1.8`
 
 - when evaluating language models it is often pain to see what is generated and why
@@ -101,6 +103,7 @@ from .bar_chart_component_advanced import BarChartComponentAdvanced
 from .bar_chart_component_simple import BarChartComponentSimple
 from .selector_component import SelectorComponent
 from .table_component import TableComponent
+from .text_input_component import TextInputComponent
 from .two_tables_component import TwoTablesComponent
 
 flask_app = Server(
@@ -112,6 +115,7 @@ flask_app = Server(
         TableComponent(),
         TwoTablesComponent(),
         SelectorComponent(),
+        TextInputComponent(),
     ],
 )
 app = flask_app.app
@@ -463,3 +467,36 @@ class BarChartComponentAdvanced(ComponentBase):
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ![barchart_advanced](./readme_images/barchart_advanced.png)
+
+#### Text Input Element
+
+Allows chat-like interfaces with the models.
+
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/text_input_component.py&header=# ./examples_py/text_input_component.py)-->
+<!-- The below code snippet is automatically added from ./examples_py/text_input_component.py -->
+```py
+# ./examples_py/text_input_component.py
+from visuallm.component_base import ComponentBase
+from visuallm.elements.plain_text_element import PlainTextElement
+from visuallm.elements.text_input_element import TextInputElement
+
+
+class TextInputComponent(ComponentBase):
+    def __init__(self):
+        self.text_display_element = PlainTextElement(
+            content="Nothing has been typed in yet."
+        )
+        self.text_input_element = TextInputElement(processing_callback=self.text_sent)
+
+        super().__init__(
+            name="text_input_component",
+            title="Text Input Component",
+            elements=[self.text_display_element, self.text_input_element],
+        )
+
+    def text_sent(self):
+        self.text_display_element.content = self.text_input_element.text_input
+```
+<!-- MARKDOWN-AUTO-DOCS:END-->
+
+![text-input-component](./readme_images/text_input.png)

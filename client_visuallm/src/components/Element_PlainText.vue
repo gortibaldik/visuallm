@@ -15,7 +15,7 @@ import { defineComponent, shallowRef } from 'vue'
 import { componentSharedData, getSharedDataUniqueName } from '@/assets/reactiveData'
 import type ElementRegistry from '@/assets/elementRegistry'
 import { ElementDescription } from '@/assets/elementRegistry'
-import { configurationRequired, valuesRequiredInConfiguration } from '@/assets/elementRegistry'
+import { valuesRequiredInConfiguration } from '@/assets/elementRegistry'
 
 let component = defineComponent({
   props: {

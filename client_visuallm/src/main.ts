@@ -5,6 +5,7 @@ import { registerElement as registerPlain } from './components/Element_PlainText
 import { registerElement as registerBarChartSelect } from './components/Element_BarChartSelect.vue'
 import { registerElement as registerTables } from './components/Element_Tables.vue'
 import { registerElement as registerSampleSelector } from './components/Element_Selector.vue'
+import { registerElement as registerTextInput } from './components/Element_TextInput.vue'
 import ElementRegistry from './assets/elementRegistry'
 import FetchPathsResolver from './assets/fetchPathsResolver'
 
@@ -15,6 +16,7 @@ registerPlain(elementRegistry)
 registerBarChartSelect(elementRegistry)
 registerTables(elementRegistry)
 registerSampleSelector(elementRegistry)
+registerTextInput(elementRegistry)
 
 const router = createRouter({
   history: createWebHashHistory(),
