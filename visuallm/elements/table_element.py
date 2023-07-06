@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Union
 
-from .element_base import ElementBase, ElementDescription
+from .element_base import ElementBase
 
 
 class Colors(Enum):
@@ -76,7 +76,7 @@ class LinkBetweenRows:
 
 class TableElement(ElementBase):
     def __init__(self, name="table"):
-        super().__init__(name=name)
+        super().__init__(name=name, type="connected_tables")
         self.clear()
 
     def clear(self):
@@ -118,13 +118,5 @@ class TableElement(ElementBase):
         self.changed = True
         self.links.append(link)
 
-    def construct_element_description(self):
-        self.changed = False
-        return ElementDescription(
-            name=self.name,
-            type="connected_tables",
-            configuration=dict(tables=self.tables, links=self.links),
-        )
-
-    def add_endpoint(self, app):
-        pass
+    def construct_element_configuration(self):
+        return dict(tables=self.tables, links=self.links)

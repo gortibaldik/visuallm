@@ -1,4 +1,4 @@
-from .element_base import ElementBase, ElementDescription
+from .element_base import ElementBase
 
 
 class PlainTextElement(ElementBase):
@@ -9,7 +9,7 @@ class PlainTextElement(ElementBase):
         heading_level=3,
         name="plain_text",
     ):
-        super().__init__(name=name)
+        super().__init__(name=name, type="plain")
         self._content = content
         self.is_heading = is_heading
         self.heading_level = heading_level
@@ -23,17 +23,9 @@ class PlainTextElement(ElementBase):
         self.changed = True
         self._content = value
 
-    def construct_element_description(self):
-        self.changed = False
-        return ElementDescription(
-            name=self.name,
-            type="plain",
-            configuration=dict(
-                value=self.content,
-                heading=self.is_heading,
-                heading_level=self.heading_level,
-            ),
+    def construct_element_configuration(self):
+        return dict(
+            value=self.content,
+            heading=self.is_heading,
+            heading_level=self.heading_level,
         )
-
-    def add_endpoint(self, app):
-        pass

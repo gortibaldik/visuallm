@@ -26,8 +26,7 @@ import LeaderLine from 'leader-line-new'
 import { shallowRef } from 'vue'
 import { componentSharedData, getSharedDataUniqueName } from '@/assets/reactiveData'
 import type ElementRegistry from '@/assets/elementRegistry'
-import type { ElementDescription } from '@/assets/elementRegistry'
-import { configurationRequired, valuesRequiredInConfiguration } from '@/assets/elementRegistry'
+import { ElementDescription, configurationRequired, valuesRequiredInConfiguration } from '@/assets/elementRegistry'
 
 export type LoadedTable = {
   title: string
@@ -231,13 +230,17 @@ export function registerElement(formatter: ElementRegistry) {
   }
 }
 
-function processElementDescr(elementDescr: ElementDescription) {
-  configurationRequired(elementDescr)
-  valuesRequiredInConfiguration(elementDescr.configuration, ['tables', 'links'])
+class ElementConfiguration extends ElementDescription {
+  tables!: any
+  links!: any
+}
+
+function processElementDescr(elementDescr: ElementConfiguration) {
+  valuesRequiredInConfiguration(elementDescr, ['tables', 'links'])
 
   return {
-    loadedTables: elementDescr.configuration.tables,
-    links: elementDescr.configuration.links
+    loadedTables: elementDescr.tables,
+    links: elementDescr.links
   }
 }
 </script>

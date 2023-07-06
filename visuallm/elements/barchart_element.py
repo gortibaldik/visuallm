@@ -3,9 +3,7 @@ from typing import Any, Callable, List, Optional, Union
 
 from flask import request
 
-from visuallm.server import Server
-
-from .element_base import ElementDescription, ElementWithEndpoint
+from .element_base import ElementWithEndpoint
 
 
 @dataclass
@@ -49,7 +47,7 @@ class BarChartElement(ElementWithEndpoint):
                 provided. Defaults to "barchart".
         """
 
-        super().__init__(name=name, endpoint_callback=self.default_callback, **kwargs)
+        super().__init__(name=name, type="softmax", **kwargs)
 
         self.processing_callback = processing_callback
         self._possibilities: List[BarInfo] = []
@@ -121,25 +119,16 @@ class BarChartElement(ElementWithEndpoint):
                         + f" ({len(self.names)})"
                     )
 
-    def construct_element_description(self):
-        self.changed = False
+    def construct_element_configuration(self):
         self.check_possibilities_length()
-        return ElementDescription(
-            name=self.name,
-            type="softmax",
-            configuration=dict(
-                bar_infos=self.possibilities,
-                address=self.endpoint_url.removeprefix("/"),
-                long_contexts=self.long_contexts,
-                names=self.names,
-                selectable=self.selectable,
-            ),
+        return dict(
+            bar_infos=self.possibilities,
+            long_contexts=self.long_contexts,
+            names=self.names,
+            selectable=self.selectable,
         )
 
-    def add_endpoint(self, app: Server):
-        app.add_endpoint(self.endpoint_url, self.endpoint_callback, methods=["POST"])
-
-    def default_callback(self):
+    def endpoint_callback(self):
         if not request.is_json:
             raise RuntimeError()
 

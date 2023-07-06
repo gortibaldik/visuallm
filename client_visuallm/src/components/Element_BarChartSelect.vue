@@ -17,7 +17,7 @@ import { shallowRef } from 'vue'
 import { defineComponent } from 'vue'
 import { componentSharedData, getSharedDataUniqueName } from '@/assets/reactiveData'
 import type Formatter from '@/assets/elementRegistry'
-import type { ElementDescription } from '@/assets/elementRegistry'
+import { ElementDescription } from '@/assets/elementRegistry'
 import { configurationRequired, valuesRequiredInConfiguration } from '@/assets/elementRegistry'
 import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib'
 import DisplayPercentageComponent from './SubElement_BarCharSelect_Bar.vue'
@@ -128,16 +128,23 @@ export function registerElement(formatter: Formatter) {
   }
 }
 
-function processElementDescr(elementDescr: ElementDescription) {
-  configurationRequired(elementDescr)
-  valuesRequiredInConfiguration(elementDescr.configuration, ['address', 'bar_infos', 'long_contexts', 'names'])
+class ElementConfiguration extends ElementDescription {
+  address!: string
+  bar_infos!: any
+  long_contexts!: any
+  names!: any
+  selectable!: boolean
+}
+
+function processElementDescr(elementDescr: ElementConfiguration) {
+  valuesRequiredInConfiguration(elementDescr, ['address', 'bar_infos', 'long_contexts', 'names', 'selectable'])
 
   return {
-    address: elementDescr.configuration.address,
-    barInfos: elementDescr.configuration.bar_infos,
-    longContexts: elementDescr.configuration.long_contexts,
-    names: elementDescr.configuration.names,
-    selectable: elementDescr.configuration.selectable,
+    address: elementDescr.address,
+    barInfos: elementDescr.bar_infos,
+    longContexts: elementDescr.long_contexts,
+    names: elementDescr.names,
+    selectable: elementDescr.selectable,
   }
 }
 </script>
