@@ -1,11 +1,15 @@
 # Conditional Language Model Generation Visualization
 
-## VERSION: `0.1.8`
-
 - when evaluating language models it is often pain to see what is generated and why
 - this little package is a `vue.js` frontend together with `flask` backend and it is designed to easily show some interesting visualizations on conditional generation models
 - it handles frontend-backend communication as well as frontend rendering
 - hence the developper can focus only on ML aspects of his work!
+
+## VERSION: `0.2.0` changelog
+
+- added `visuallm.elements.text_input_element.TextInputElement`
+- refactoring and better code quality
+- resolved one dependabot alert
 
 <!-- ## Installation
 
@@ -28,6 +32,7 @@ The library is composed of three parts:
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/simple_component.py&lines=1-15&header=# ./examples_py/simple_component.py lines 1-15)-->
 <!-- The below code snippet is automatically added from ./examples_py/simple_component.py -->
+
 ```py
 # ./examples_py/simple_component.py lines 1-15
 from visuallm.component_base import ComponentBase
@@ -46,12 +51,14 @@ class SimpleComponent(ComponentBase):
             """
         )
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 - call `super().__init__`, where you specify name and title of the component as well as the created elements in the order that they should appear in the page
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/simple_component.py&lines=16-21&header=# ./examples_py/simple_component.py lines 16-21)-->
 <!-- The below code snippet is automatically added from ./examples_py/simple_component.py -->
+
 ```py
 # ./examples_py/simple_component.py lines 16-21
         super().__init__(
@@ -60,12 +67,14 @@ class SimpleComponent(ComponentBase):
             elements=[self.main_heading_element, self.text_element],
         )
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 2. Initialize `llm_generation_server.server.Server` and pass in the initialized components
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/simple_app.py&lines=1-7&header=# ./examples_py/simple_app.py)-->
 <!-- The below code snippet is automatically added from ./examples_py/simple_app.py -->
+
 ```py
 # ./examples_py/simple_app.py
 from visuallm.server import Server
@@ -75,6 +84,7 @@ from .simple_component import SimpleComponent
 server = Server(__name__, [SimpleComponent()])
 app = server.app
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 3. Standard method to run the flask application, e.g. for the example provided above, it would be
@@ -93,6 +103,7 @@ In the following paragraphs I'll explain how to create configuration selectors, 
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/app.py&header=# ./examples_py/app.py)-->
 <!-- The below code snippet is automatically added from ./examples_py/app.py -->
+
 ```py
 # ./examples_py/app.py
 from visuallm.server import Server
@@ -118,6 +129,7 @@ flask_app = Server(
 )
 app = flask_app.app
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 You can see the generated page by running the following script after cloning the github repository and navigating into it:
@@ -132,6 +144,7 @@ Several different kinds of configuration specifier, together with one button ele
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/selector_component.py&lines=1-10&header=# ./examples_py/selector_component.py lines 1-10)-->
 <!-- The below code snippet is automatically added from ./examples_py/selector_component.py -->
+
 ```py
 # ./examples_py/selector_component.py lines 1-10
 import time
@@ -145,6 +158,7 @@ from visuallm.elements.selector_elements import (
     MinMaxSubElement,
 )
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ##### MinMax SubElement
@@ -153,6 +167,7 @@ Input element for setting integer in a range.
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/selector_component.py&lines=13-18&header=# ./examples_py/selector_component.py lines 13-18)-->
 <!-- The below code snippet is automatically added from ./examples_py/selector_component.py -->
+
 ```py
 # ./examples_py/selector_component.py lines 13-18
 class SelectorComponent(ComponentBase):
@@ -162,6 +177,7 @@ class SelectorComponent(ComponentBase):
             sample_min=0, sample_max=10, text="Select Number:"
         )
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ##### Choices SubElement
@@ -170,12 +186,14 @@ Input element for choosing between several choices.
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/selector_component.py&lines=19-21&header=# ./examples_py/selector_component.py lines 19-21)-->
 <!-- The below code snippet is automatically added from ./examples_py/selector_component.py -->
+
 ```py
 # ./examples_py/selector_component.py lines 19-21
         self.choices_element = ChoicesSubElement(
             choices=["super", "magnificent", "incredible"], text="This library is:"
         )
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ##### Checkbox SubElement
@@ -184,10 +202,12 @@ Simple checkbox input element.
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/selector_component.py&lines=22-22&header=# ./examples_py/selector_component.py lines 22)-->
 <!-- The below code snippet is automatically added from ./examples_py/selector_component.py -->
+
 ```py
 # ./examples_py/selector_component.py lines 22
         self.checkbox_element = CheckBoxSubElement(text="Have you slept?:")
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ##### Button Element
@@ -196,6 +216,7 @@ This is an element that should encapsulate all the other configuration selection
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/selector_component.py&lines=23-61&header=# ./examples_py/selector_component.py lines 23-61)-->
 <!-- The below code snippet is automatically added from ./examples_py/selector_component.py -->
+
 ```py
 # ./examples_py/selector_component.py lines 23-61
         self.button_element = ButtonElement(
@@ -238,6 +259,7 @@ This is an element that should encapsulate all the other configuration selection
         )
         time.sleep(n)
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ![selector_image](./readme_images/selector.png)
@@ -249,6 +271,7 @@ The below example displays, how to generate one table on the frontend with the l
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/table_component.py&header=# ./examples_py/table_component.py)-->
 <!-- The below code snippet is automatically added from ./examples_py/table_component.py -->
+
 ```py
 # ./examples_py/table_component.py
 from visuallm.component_base import ComponentBase
@@ -299,6 +322,7 @@ class TableComponent(ComponentBase):
                     LinkBetweenRows(TABLE_NAME, j, TABLE_NAME, i, Label="some value")
                 )
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ![table_page](./readme_images/table.png)
@@ -311,6 +335,7 @@ Firstly, we will import `Colors` enumeration to color links to different tables 
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/two_tables_component.py&header=# ./examples_py/two_tables_component.py lines 1-7&lines=1-7)-->
 <!-- The below code snippet is automatically added from ./examples_py/two_tables_component.py -->
+
 ```py
 # ./examples_py/two_tables_component.py lines 1-7
 from visuallm.component_base import ComponentBase
@@ -321,12 +346,14 @@ from visuallm.elements.table_element import Colors, LinkBetweenRows, TableElemen
 class TwoTablesComponent(ComponentBase):
     def __init__(self):
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 Secondly, we will create the links in such a way, that links going within the same table will be colored orange (the default color), while the links going to the other table will be colored light blue. Also links within one table will be thin, while links to the other table will be thick (`Importance` parameter).
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/two_tables_component.py&header=# ./examples_py/two_tables_component.py lines 65-69&lines=65-69)-->
 <!-- The below code snippet is automatically added from ./examples_py/two_tables_component.py -->
+
 ```py
 # ./examples_py/two_tables_component.py lines 65-69
         # add links pointing from each row of the second table to all the rows
@@ -335,6 +362,7 @@ Secondly, we will create the links in such a way, that links going within the sa
         for j in range(len(rows[1]) - 1, 0, -1):
             # links going from the row j of the second table to all the upper
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ![table_advanced](./readme_images/table_advanced.png)
@@ -347,6 +375,7 @@ The default bar-chart displays a horizontal selectable bar-chart. It is useful f
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/bar_chart_component_simple.py&lines=1-47&header=# ./examples_py/bar_chart_component_simple.py lines 1-47)-->
 <!-- The below code snippet is automatically added from ./examples_py/bar_chart_component_simple.py -->
+
 ```py
 # ./examples_py/bar_chart_component_simple.py lines 1-47
 import heapq
@@ -397,6 +426,7 @@ class BarChartComponentSimple(ComponentBase):
         self.text_element.content = f"Last selected: {s}"
         self.update_barchart_component()
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ![barchart_simple](./readme_images/barchart_simple.png)
@@ -413,6 +443,7 @@ When I want to compare several candidates, I can display multi-bar-chart, e.g. a
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/bar_chart_component_advanced.py&lines=1-46&header=# ./examples_py/bar_chart_component_advanced.py lines 1-46)-->
 <!-- The below code snippet is automatically added from ./examples_py/bar_chart_component_advanced.py -->
+
 ```py
 # ./examples_py/bar_chart_component_advanced.py lines 1-46
 import math
@@ -462,6 +493,7 @@ class BarChartComponentAdvanced(ComponentBase):
             bar_heights, bar_annotations, annotations
         )
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ![barchart_advanced](./readme_images/barchart_advanced.png)
@@ -472,6 +504,7 @@ Allows chat-like interfaces with the models.
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/text_input_component.py&header=# ./examples_py/text_input_component.py)-->
 <!-- The below code snippet is automatically added from ./examples_py/text_input_component.py -->
+
 ```py
 # ./examples_py/text_input_component.py
 from visuallm.component_base import ComponentBase
@@ -495,6 +528,7 @@ class TextInputComponent(ComponentBase):
     def text_sent(self):
         self.text_display_element.content = self.text_input_element.text_input
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ![text-input-component](./readme_images/text_input.png)
