@@ -14,8 +14,8 @@
 import { defineComponent, shallowRef } from 'vue'
 import { componentSharedData, getSharedDataUniqueName } from '@/assets/reactiveData'
 import type ElementRegistry from '@/assets/elementRegistry'
-import type { ElementDescription } from '@/assets/elementRegistry'
-import { configurationRequired, valuesRequiredInConfiguration } from '@/assets/elementRegistry'
+import { ElementDescription } from '@/assets/elementRegistry'
+import { valuesRequiredInConfiguration } from '@/assets/elementRegistry'
 
 let component = defineComponent({
   props: {
@@ -45,13 +45,18 @@ export function registerElement(formatter: ElementRegistry) {
   }
 }
 
-function processElementDescr(elementDescr: ElementDescription) {
-  configurationRequired(elementDescr)
-  valuesRequiredInConfiguration(elementDescr.configuration, ['value', 'heading', 'heading_level'])
+class ElementConfiguration extends ElementDescription {
+  value!: string
+  heading!: any
+  heading_level!: any
+}
+
+function processElementDescr(elementDescr: ElementConfiguration) {
+  valuesRequiredInConfiguration(elementDescr, ['value', 'heading', 'heading_level'])
   return {
-    value: elementDescr.configuration.value,
-    heading: elementDescr.configuration.heading,
-    headingLevel: elementDescr.configuration.heading_level
+    value: elementDescr.value,
+    heading: elementDescr.heading,
+    headingLevel: elementDescr.heading_level
   }
 }
 </script>

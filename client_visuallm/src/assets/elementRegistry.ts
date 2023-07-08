@@ -14,14 +14,10 @@ export type ProcessedContext = {
  *
  *  ## `type`
  *  - type of the element, one of predefined types
- *
- *  ## `configuration`
- *  - configuration values specific for each element
  */
-export type ElementDescription = {
-  name: string
-  type: string
-  configuration: any
+export class ElementDescription {
+  name!: string;
+  type!: string;
 }
 
 export function* entries(obj: any) {
@@ -30,6 +26,11 @@ export function* entries(obj: any) {
   }
 }
 
+/**
+ * Class holding all the elements that can be created from the backend.
+ * It also provides utilities for unpacking the element data which arrive
+ * from the backend.
+ */
 export default class ElementRegistry {
   registeredElements: { [id: string]: { [name: string]: any } }
 
@@ -88,7 +89,12 @@ export default class ElementRegistry {
   }
 }
 
-export function configurationRequired(elementDescr: any) {
+/**
+ * Check whether the `elementDescr` dictionary contains key `configuration`.
+ * If not raise a RangeError exception.
+ * @param elementDescr dictionary with all the values specifying the element
+ */
+export function configurationRequired(elementDescr: {[name: string]: any}) {
   if (!('configuration' in elementDescr)) {
     throw RangeError("Invalid elementDescr ('configuration' not in elementDescr)")
   }

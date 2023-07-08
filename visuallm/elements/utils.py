@@ -1,15 +1,6 @@
-from typing import List, MutableSet, Optional, Protocol, TypeVar
+from typing import List, MutableSet, Optional, TypeVar
 
-
-class NamedProtocol(Protocol):
-    @property
-    def name(self) -> str:
-        ...
-
-    @name.setter
-    def name(self, value):
-        ...
-
+from visuallm.named import NamedProtocol
 
 T = TypeVar("T", bound=NamedProtocol)
 
@@ -35,7 +26,7 @@ def register_named(
         while c_name in registered_names_set:
             ix += 1
             c_name = f"{named.name}_{ix}"
-        named.name = c_name
+        named.set_name(c_name)
     if registered_named_list is not None:
         registered_named_list.append(named)
     registered_names_set.add(named.name)

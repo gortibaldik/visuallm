@@ -1,12 +1,15 @@
+from __future__ import annotations
+
 import os
 import sys
 from dataclasses import dataclass
-from typing import Callable, List, Set
+from typing import TYPE_CHECKING, Callable, List, Set
 
 from flask import Flask, jsonify, redirect
 from flask_cors import CORS
 
-from .component_base import ComponentBase
+if TYPE_CHECKING:
+    from .component_base import ComponentBase
 
 
 @dataclass
@@ -28,7 +31,7 @@ class Server:
         self.registered_urls: Set[str] = set(["/", "/fetch_components"])
         self.registered_component_names: Set[str] = set()
         for component in self.components:
-            component.init_app(self)
+            component.register_to_server(self)
 
         self.add_endpoint(
             "/", lambda: redirect("/index.html", code=302), methods=["GET"]
@@ -53,9 +56,21 @@ class Server:
     def run(self, **kwargs):
         self.app.run(**kwargs)
 
-    def add_endpoint(self, url_name: str, f: Callable, methods: List[str]):
+    def add_endpoint(self, url_name: str, api_method: Callable, methods: List[str]):
+        """Add API endpoint with name `url_name`, which will on invocation
+        call method `api_method`. The `api_method` is invoked each time when
+        the frontend makes request to `url_name` with any of specified
+        `methods`, e.g. "GET", "POST" or others.
+
+        Args:
+            url_name (str): name of the endpoint
+            api_method (Callable): method invoked when a request to `url_name`
+                is made
+            methods (List[str]): list of REST methods which is linked to
+                the enpoint
+        """
         self.app.add_url_rule(
-            rule=url_name, endpoint=url_name, view_func=f, methods=methods
+            rule=url_name, endpoint=url_name, view_func=api_method, methods=methods
         )
 
     def _retrieve_static_files_path(self):

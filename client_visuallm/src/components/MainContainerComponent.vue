@@ -4,8 +4,9 @@ import type { PollUntilSuccessGET } from '@/assets/pollUntilSuccessLib'
 import type { ProcessedContext, ElementDescription } from '@/assets/elementRegistry'
 import Element_PlainText from './Element_PlainText.vue'
 import Element_BarChartSelect from './Element_BarChartSelect.vue'
-import DisplaySampleSelectorComponent from './Element_Selector.vue'
+import Element_Selector from './Element_Selector.vue'
 import Element_Tables from './Element_Tables.vue'
+import Element_TextInput from './Element_TextInput.vue'
 import { fetchDefault } from '@/assets/fetchPathsResolver'
 import { componentSharedData } from '@/assets/reactiveData'
 
@@ -28,8 +29,9 @@ export default defineComponent({
   components: {
     Element_PlainText,
     Element_BarChartSelect,
-    DisplaySampleSelectorComponent,
-    Element_Tables
+    Element_Selector,
+    Element_Tables,
+    Element_TextInput
   },
   methods: {
     resetReactiveStore() {

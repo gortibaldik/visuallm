@@ -6,9 +6,9 @@ from typing import Any, Callable, Dict, Generic, List, MutableSet, Optional, Typ
 
 from flask import request
 
-from visuallm.server import Server
+from visuallm.named import Named
 
-from .element_base import ElementDescription, ElementWithEndpoint
+from .element_base import ElementWithEndpoint
 from .utils import register_named
 
 
@@ -53,10 +53,7 @@ class ButtonElement(ElementWithEndpoint):
             button_text (str, optional): Text displayed in a button input
                 element. Defaults to "Select".
         """
-        if "endpoint_callback" not in kwargs:
-            kwargs["endpoint_callback"] = self.default_select_callback
-        super().__init__(name=name, **kwargs)
-        self.type = "sample_selector"
+        super().__init__(name=name, type="sample_selector", **kwargs)
         self.processing_callback = processing_callback
         self._button_text = button_text
         self._subelements_dict: Dict[str, SelectorSubElement] = {}
@@ -66,21 +63,13 @@ class ButtonElement(ElementWithEndpoint):
         for subelement in subelements:
             self.add_subelement(subelement)
 
-    def construct_element_description(self):
-        self.changed = False
-        return ElementDescription(
-            name=self.name,
-            type=self.type,
-            configuration=dict(
-                address=self.endpoint_url.removeprefix("/"),
-                button_text=self._button_text,
-                subelement_configs=[
-                    c.subelement_configuration for c in self._subelements
-                ],
-            ),
+    def construct_element_configuration(self):
+        return dict(
+            button_text=self._button_text,
+            subelement_configs=[c.subelement_configuration for c in self._subelements],
         )
 
-    def default_select_callback(self):
+    def endpoint_callback(self):
         """Goes over the standard format of response from FE and sets all
         the relevant selected attributes in subelement selectors, hten returns
         the control to the programmer for handling of the updated data and
@@ -104,14 +93,11 @@ class ButtonElement(ElementWithEndpoint):
         register_named(subelement, self._subelement_names, self._subelements)
         self._subelements_dict[subelement.name] = subelement
 
-    def add_endpoint(self, app: Server):
-        app.add_endpoint(self.endpoint_url, self.endpoint_callback, methods=["POST"])
-
 
 SelectedType = TypeVar("SelectedType")
 
 
-class SelectorSubElement(ABC, Generic[SelectedType]):
+class SelectorSubElement(ABC, Generic[SelectedType], Named):
     """I expect the following flow of data:
     - In frontend the user selects some value from the selector (automatic)
     - In frontend the user clicks the button element which is the parent of
@@ -179,7 +165,7 @@ class SelectorSubElement(ABC, Generic[SelectedType]):
         """WARNING:
         `subtype` must match the subtype field in frontend.
         """
-        self.name = str(subtype)
+        super().__init__(name=str(subtype))
         self._updated = True
         self._subtype = subtype
         self._selected: Optional[SelectedType] = None

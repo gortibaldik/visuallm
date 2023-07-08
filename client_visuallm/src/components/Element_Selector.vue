@@ -1,14 +1,14 @@
 <template>
-  <div class="wrapElement">
+  <form class="wrapElement" @submit="submit" @keypress.enter="submit">
     <div class="subSelectorsWrapper">
       <component v-for="subElementConfigFE in subElementConfigurationsFE" :is="getComponent(subElementConfigFE.subtype)"
         :name="subElementConfigFE.name"></component>
     </div>
     <div class="buttonWrapper">
-      <button class="button" @click="emitClicked()" :disabled="loadingInProgress">{{ buttonText }}</button>
+      <button class="button" :disabled="loadingInProgress" type="submit">{{ buttonText }}</button>
       <DesignLoading v-if="loadingInProgress" class="loading-indicator" />
     </div>
-  </div>
+  </form>
 </template>
 
 <script lang="ts">
@@ -16,8 +16,7 @@ import DesignLoading from './Design_Loading.vue'
 import { defineComponent, shallowRef } from 'vue'
 import { componentSharedData, getSharedDataUniqueName, getSharedDataElementName } from '@/assets/reactiveData'
 import type Formatter from '@/assets/elementRegistry'
-import type { ElementDescription } from '@/assets/elementRegistry'
-import { configurationRequired, valuesRequiredInConfiguration, entries } from '@/assets/elementRegistry'
+import { ElementDescription, valuesRequiredInConfiguration, entries } from '@/assets/elementRegistry'
 import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib'
 import {
   subtype as minMaxSubtype,
@@ -48,7 +47,7 @@ let component = defineComponent({
       return componentSharedData[getSharedDataUniqueName(this.name, 'subElementConfigs')]
     },
     callbackAddress(): string {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'callbackAddress')]
+      return componentSharedData[getSharedDataUniqueName(this.name, 'address')]
     },
     buttonText(): string {
       return componentSharedData[getSharedDataUniqueName(this.name, 'buttonText')]
@@ -72,7 +71,7 @@ let component = defineComponent({
     DesignLoading,
   },
   methods: {
-    emitClicked() {
+    submit() {
       let dataToSend = {} as { [key: string]: any }
 
       for (let key in Object.keys(this.subElementConfigurationsFE)) {
@@ -80,7 +79,6 @@ let component = defineComponent({
         let subElementValueName = getSharedDataUniqueName(config.name, "selected")
         let elementName = getSharedDataElementName(config.name)
         let elementValue = componentSharedData[subElementValueName]
-        console.log("selected subElement:", elementName, elementValue)
 
         dataToSend[elementName] = elementValue
       }
@@ -139,10 +137,10 @@ interface SubElementConfigurationFE {
   name: string
 }
 
-interface ElementConfiguration {
-  subelement_configs: SubElementConfigurationFromBE[]
-  address: string
-  button_text: string
+class ElementConfiguration extends ElementDescription {
+  subelement_configs!: SubElementConfigurationFromBE[]
+  address!: string
+  button_text!: string
 }
 
 export function registerElement(formatter: Formatter) {
@@ -152,13 +150,11 @@ export function registerElement(formatter: Formatter) {
   }
 }
 
-function processElementDescr(elementDescr: ElementDescription) {
-  configurationRequired(elementDescr)
-  valuesRequiredInConfiguration(elementDescr.configuration, ['subelement_configs', 'address', 'button_text'])
+function processElementDescr(configuration: ElementConfiguration) {
+  valuesRequiredInConfiguration(configuration, ['subelement_configs', 'address', 'button_text'])
 
-  let configuration: ElementConfiguration = elementDescr.configuration
   let data = {
-    callbackAddress: configuration.address,
+    address: configuration.address,
     buttonText: configuration.button_text,
     subElementConfigs: [] as SubElementConfigurationFE[]
   } as { [key: string]: any }

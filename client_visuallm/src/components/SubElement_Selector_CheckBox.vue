@@ -1,7 +1,7 @@
 <template>
-    <div class="wrapElement">
+    <div :class="{ wrapElement: true, focused: isFocused }">
         <span class="checkbox-text">{{ text }}</span>
-        <input type="checkbox" v-model="selected" />
+        <input type="checkbox" v-model="selected" @focus="isFocused = true" @blur="isFocused = false" />
     </div>
 </template>
 
@@ -27,7 +27,8 @@ let component = defineComponent({
     },
     data() {
         return {
-            selected: false as boolean
+            selected: false as boolean,
+            isFocused: false as boolean,
         }
     },
     watch: {
