@@ -6,7 +6,7 @@ from visuallm.elements.text_input_element import TextInputElement
 class TextInputComponent(ComponentBase):
     def __init__(self):
         self.text_display_element = PlainTextElement(
-            content="Nothing has been typed in yet."
+            content="Nothing has been typed in yet"
         )
         self.text_input_element = TextInputElement(processing_callback=self.text_sent)
 
