@@ -1,15 +1,16 @@
 <template>
-  <div class="wrapElement">
-    <div v-for="barInfo in barInfos" class="progress-bar">
-      <input v-if="selectable" class="input-radio" type="radio" v-model="selected" :value="barInfo.barTitle" />
+  <form class="wrapElement" @submit="submit">
+    <div v-for="(barInfo, i) in barInfos" :class="{ 'progress-bar': true, focused: focusedBarInfos[i] }">
+      <input v-if="selectable" class="input-radio" type="radio" v-model="selected" :value="barInfo.barTitle"
+        @focus="focusedBarInfos[i] = true" @blur="focusedBarInfos[i] = false" />
       <DisplayPercentageComponent :style="{ display: 'inline-block', width: percentageElementWidth }" :item="barInfo"
         :longContexts="longContexts" :names="names" :maxTextWidth="maxTextWidth">
       </DisplayPercentageComponent>
     </div>
     <div v-if="selectable" style="text-align: center; margin-top: 10px">
-      <button class="button" @click="emitClicked()">Select "{{ selected }}"</button>
+      <button class="button" type="submit">Select "{{ selected }}"</button>
     </div>
-  </div>
+  </form>
 </template>
 
 <script lang="ts" scoped>
@@ -18,7 +19,7 @@ import { defineComponent } from 'vue'
 import { componentSharedData, getSharedDataUniqueName } from '@/assets/reactiveData'
 import type Formatter from '@/assets/elementRegistry'
 import { ElementDescription } from '@/assets/elementRegistry'
-import { configurationRequired, valuesRequiredInConfiguration } from '@/assets/elementRegistry'
+import { valuesRequiredInConfiguration } from '@/assets/elementRegistry'
 import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib'
 import DisplayPercentageComponent from './SubElement_BarCharSelect_Bar.vue'
 import type { BarInfo } from './SubElement_BarCharSelect_Bar.vue'
@@ -89,6 +90,11 @@ let component = defineComponent({
       handler(newValue: BarInfo[]) {
         if (newValue !== undefined && newValue.length != 0) {
           this.selected = newValue[0].barTitle
+          let focusedBarInfos = [] as boolean[]
+          for (let i = 0; i < newValue.length; i++) {
+            focusedBarInfos.push(false)
+          }
+          this.focusedBarInfos = focusedBarInfos
         }
       }
     }
@@ -97,14 +103,15 @@ let component = defineComponent({
     return {
       selected: '',
       reactiveStore: componentSharedData,
-      selectPossibilityPoll: undefined as undefined | PollUntilSuccessPOST
+      selectPossibilityPoll: undefined as undefined | PollUntilSuccessPOST,
+      focusedBarInfos: [] as boolean[]
     }
   },
   unmounted() {
     this.selectPossibilityPoll?.clear()
   },
   methods: {
-    emitClicked() {
+    submit() {
       PollUntilSuccessPOST.startPoll(
         this,
         'selectPossibilityPoll',
@@ -155,7 +162,8 @@ function processElementDescr(elementDescr: ElementConfiguration) {
 }
 
 .progress-bar {
-  margin-top: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
   display: flex;
 }
 </style>

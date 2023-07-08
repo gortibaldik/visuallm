@@ -1,14 +1,14 @@
 <template>
-  <div class="wrapElement">
+  <form class="wrapElement" @submit="submit" @keypress.enter="submit">
     <div class="subSelectorsWrapper">
       <component v-for="subElementConfigFE in subElementConfigurationsFE" :is="getComponent(subElementConfigFE.subtype)"
         :name="subElementConfigFE.name"></component>
     </div>
     <div class="buttonWrapper">
-      <button class="button" @click="emitClicked()" :disabled="loadingInProgress">{{ buttonText }}</button>
+      <button class="button" :disabled="loadingInProgress" type="submit">{{ buttonText }}</button>
       <DesignLoading v-if="loadingInProgress" class="loading-indicator" />
     </div>
-  </div>
+  </form>
 </template>
 
 <script lang="ts">
@@ -16,7 +16,7 @@ import DesignLoading from './Design_Loading.vue'
 import { defineComponent, shallowRef } from 'vue'
 import { componentSharedData, getSharedDataUniqueName, getSharedDataElementName } from '@/assets/reactiveData'
 import type Formatter from '@/assets/elementRegistry'
-import { ElementDescription, configurationRequired, valuesRequiredInConfiguration, entries } from '@/assets/elementRegistry'
+import { ElementDescription, valuesRequiredInConfiguration, entries } from '@/assets/elementRegistry'
 import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib'
 import {
   subtype as minMaxSubtype,
@@ -71,7 +71,7 @@ let component = defineComponent({
     DesignLoading,
   },
   methods: {
-    emitClicked() {
+    submit() {
       let dataToSend = {} as { [key: string]: any }
 
       for (let key in Object.keys(this.subElementConfigurationsFE)) {

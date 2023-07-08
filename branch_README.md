@@ -20,3 +20,6 @@ During the chat the following elements must be resolved:
 - styling of the frontend element :heavy_check_mark:
 - possibility of multiline text input ? :heavy_check_mark:
 - implicit enter :heavy_check_mark:
+- implicit enter for other elements :heavy_check_mark:
+- an actual huggingface chat component!
+- README showcase for all current components (maybe in the other mr ?)

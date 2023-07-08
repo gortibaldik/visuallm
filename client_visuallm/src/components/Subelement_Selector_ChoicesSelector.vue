@@ -1,7 +1,8 @@
 <template>
-  <div class="sample-selector wrapElement">
+  <div :class="{ 'sample-selector': true, 'wrapElement': true, focused: isFocused }" @focus="isFocused = true"
+    @blur="isFocused = false">
     <span class="descr">{{ text }}</span>
-    <select :style="{ width: inputWidth }" v-model="selected">
+    <select :style="{ width: inputWidth }" v-model="selected" @focus="isFocused = true" @blur="isFocused = false">
       <option disabled value="">Please select one</option>
       <option v-for="option in choices">{{ option }}</option>
     </select>
@@ -47,8 +48,6 @@ let component = defineComponent({
         this.selected = new_value
         let nameSelected = getSharedDataUniqueName(this.name, "selected")
         componentSharedData[nameSelected] = this.selected
-
-        console.log(nameSelected, this.selected, componentSharedData[nameSelected])
       },
       immediate: true
     }
@@ -56,7 +55,8 @@ let component = defineComponent({
   data() {
     return {
       reactiveStore: componentSharedData,
-      selected: '' as string
+      selected: '' as string,
+      isFocused: false as boolean,
     }
   },
 })

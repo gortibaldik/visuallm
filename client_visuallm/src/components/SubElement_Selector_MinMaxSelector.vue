@@ -1,8 +1,9 @@
 <template>
-  <div class="sample-selector wrapElement">
+  <div :class="{ 'sample-selector': true, wrapElement: true, focused: isFocused }">
     <span class="descr"> {{ text }} </span>
     <span class="selectorWrapper">
-      <input :style="{ width: inputWidth }" type="number" :min="min" :max="max" v-model="selected" :step="stepSize" />
+      <input :style="{ width: inputWidth }" type="number" :min="min" :max="max" v-model="selected" :step="stepSize"
+        @focus="isFocused = true" @blur="isFocused = false" />
     </span>
   </div>
 </template>
@@ -43,7 +44,8 @@ let component = defineComponent({
   data() {
     return {
       reactiveStore: componentSharedData,
-      selected: 0 as number
+      selected: 0 as number,
+      isFocused: false as boolean,
     }
   },
   watch: {
@@ -52,8 +54,6 @@ let component = defineComponent({
         this.selected = Math.max(Math.min(new_value, this.max), this.min)
         let nameSelected = getSharedDataUniqueName(this.name, "selected")
         componentSharedData[nameSelected] = this.selected
-
-        console.log(nameSelected, this.selected, componentSharedData[nameSelected])
       },
       immediate: true
     },
