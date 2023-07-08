@@ -87,7 +87,7 @@ class NextTokenPredictionComponent(
         return [self.input_display]
 
     def update_model_input_display_on_sample_change(self):
-        self.input_display.content = self._loaded_sample
+        self.input_display.content = self.loaded_sample
 
     def update_model_input_display_on_selected_token(self, detokenized_token: str):
         self.input_display.content += detokenized_token
@@ -98,7 +98,7 @@ class NextTokenPredictionComponent(
 
     def on_model_change_callback(self):
         self.init_word_vocab()
-        self.data_force_update()
+        self.force_set_updated()
         self.dataset_callback()
 
     def _one_token_prediction(self):

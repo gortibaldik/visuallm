@@ -29,4 +29,4 @@ class Generation(InteractiveGenerationComponent, PersonaChatVisualization):
         ).input_ids
 
     def get_target_str(self):
-        return self._loaded_sample["history"][-1]
+        return self.loaded_sample["candidates"][-1]

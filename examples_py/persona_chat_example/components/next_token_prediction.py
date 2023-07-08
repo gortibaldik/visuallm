@@ -27,9 +27,7 @@ class NTP(NextTokenPredictionComponent, PersonaChatVisualization):
 
     def update_model_input_display_on_sample_change(self):
         PersonaChatVisualization.update_model_input_display(self, add_target=False)
-        self.expected_outputs_raw_element.content = self._loaded_sample["candidates"][
-            -1
-        ]
+        self.expected_outputs_raw_element.content = self.loaded_sample["candidates"][-1]
 
     def create_model_inputs(self):
         return self._tokenizer(

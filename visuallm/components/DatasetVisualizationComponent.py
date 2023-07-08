@@ -42,7 +42,7 @@ class DatasetVisualization(ComponentBase, DataPreparationMixin):
         return [self.sample_vis_element]
 
     def update_sample_vis_elements(self):
-        self.sample_vis_element.content = self._loaded_sample
+        self.sample_vis_element.content = self.loaded_sample
 
     def on_sample_change_callback(self):
         self.update_sample_vis_elements()

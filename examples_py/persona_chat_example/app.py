@@ -1,12 +1,13 @@
-from components.generation import Generation
-from components.metrics import Perplexity
-from components.next_token_prediction import NTP
-from components.visualization import Visualization
 from datasets import load_dataset
 from transformers.models.auto.modeling_auto import AutoModelForCausalLM
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
 from visuallm.server import Server
+
+from .components.generation import Generation
+from .components.metrics import Perplexity
+from .components.next_token_prediction import NTP
+from .components.visualization import Visualization
 
 # load models
 dataset = load_dataset("bavard/personachat_truecased")

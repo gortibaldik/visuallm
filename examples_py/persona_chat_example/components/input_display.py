@@ -7,7 +7,8 @@ from visuallm.elements.table_element import TableElement
 
 class PersonaChatVisualization:
     def __init__(self):
-        self._loaded_sample: Any = 1
+        # just for the typechecker to not complain
+        self.loaded_sample: Any = 1
 
     def init_model_input_display(self) -> List[ElementBase]:
         self.table_element = TableElement()
@@ -22,7 +23,7 @@ class PersonaChatVisualization:
         ]
 
     def update_model_input_display(self, add_target: bool = True):
-        sample = self._loaded_sample
+        sample = self.loaded_sample
         context = sample["history"]
         if add_target:
             context.append(sample["candidates"][-1])

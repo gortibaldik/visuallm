@@ -91,14 +91,29 @@ class InteractiveGenerationComponent(
         )
 
     def init_model_input_display(self) -> List[ElementBase]:
+        """Init elements that should display the dataset sample.
+
+        Returns:
+            List[ElementBase]: list of elements, it will be
+                registered in the same order on the page.
+        """
         self.input_display = PlainTextElement()
         return [self.input_display]
 
     def update_model_input_display(self):
-        """Updated dataset sample is in `self._loaded_sample`"""
-        self.input_display.content = self._loaded_sample
+        """Update the elements that display the dataset sample.
+
+        This method is called each time a new dataset sample is loaded,
+        and the loaded dataset sample is stored in `self.loaded_sample`
+        """
+        self.input_display.content = self.loaded_sample
 
     def create_model_inputs(self):
+        """_summary_
+
+        Returns:
+            _type_: _description_
+        """
         context = self.input_display.content
         model_inputs = self._tokenizer(context, return_tensors="pt")
         return model_inputs
@@ -140,7 +155,7 @@ class InteractiveGenerationComponent(
         self.compute_metrics_on_target(self.get_target_str(), probs, output_sequences)
 
     def on_model_change_callback(self):
-        self.data_force_update()
+        self.force_set_updated()
         self.dataset_callback()
 
     def on_sample_change_callback(self):
