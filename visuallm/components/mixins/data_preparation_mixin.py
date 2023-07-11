@@ -53,6 +53,9 @@ class DataPreparationMixin:
         - selector for specific sample split
         - if multiple dataset were provided, a selector for specific dataset
 
+        Warning:
+            You should either provide the dataset or dataset choices, not both at once.
+
         Args:
             on_sample_change_callback (Callable[[], None]): what to do after the new sample is
                 loaded, can be used e.g. for updating the components that display the dataset
@@ -127,16 +130,6 @@ class DataPreparationMixin:
         else:
             return dataset_constructor
 
-    @property
-    def dataset(self):
-        """Currently loaded dataset"""
-        return self._dataset
-
-    @property
-    def loaded_sample(self):
-        """Currently loaded sample"""
-        return self._loaded_sample
-
     def load_cached_dataset(
         self, load_dataset_fn: Callable[[], DatasetProtocol], name: Optional[str] = None
     ):
@@ -165,6 +158,21 @@ class DataPreparationMixin:
 
         self.dataset_split_selector_element.set_choices(self.get_dataset_splits())
         self._update_after_split_change()
+
+    @property
+    def dataset(self):
+        """Currently loaded dataset"""
+        return self._dataset
+
+    @property
+    def loaded_sample(self):
+        """Currently loaded sample"""
+        return self._loaded_sample
+
+    @property
+    def dataset_elements(self) -> List[ElementBase]:
+        """All the elements that should be displayed on the frontend."""
+        return [self.dataset_selector_heading, self.dataset_button]
 
     def _update_after_split_change(self):
         """When dataset split is updated then the sample selector
@@ -240,11 +248,6 @@ class DataPreparationMixin:
         if self.dataset is None:
             return ["dummy_sample", "dummy_sample_2"]
         return self.dataset[self.dataset_split_selector_element.selected]
-
-    @property
-    def dataset_elements(self) -> List[ElementBase]:
-        """All the elements that should be displayed on the frontend."""
-        return [self.dataset_selector_heading, self.dataset_button]
 
     def dataset_callback(self):
         """

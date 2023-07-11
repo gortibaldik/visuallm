@@ -18,29 +18,65 @@ MODEL_TOKENIZER_CHOICES = Union[
 class ModelSelectionMixin:
     def __init__(
         self,
-        on_model_change_callback: Callable[[], None],
+        on_model_change_callback: Optional[Callable[[], None]] = None,
         model: Optional[PreTrainedModel] = None,
         tokenizer: Optional[PreTrainedTokenizer] = None,
         model_tokenizer_choices: Optional[MODEL_TOKENIZER_CHOICES] = None,
         keep_models_in_memory: bool = True,
     ):
+        """This mixin implements model handling server methods. If only the
+        model and the tokenizer is provided, the mixin just makes `self.model` and
+        `self.tokenizer` properties available. If the `model_tokenizer_choices` is available
+        then the mixin creates frontend elements which let the user select the model and
+        the tokenizer.
+
+        Warning:
+            You should either provide the model and the tokenizer or model_tokenizer_choices,
+            not both at once.
+
+        Args:
+            on_model_change_callback (Callable[[], None], optional): what to do after the new model and
+                tokenizer is loaded.
+            model (Optional[PreTrainedModel], optional): Huggingface model. Defaults to None.
+            tokenizer (Optional[PreTrainedTokenizer], optional): Huggingface tokenizer. Defaults to None.
+            model_tokenizer_choices (Optional[MODEL_TOKENIZER_CHOICES], optional): dictionary where key
+                is the name of the tuple and value is tuple of tokenizer and model. Defaults to None.
+            keep_models_in_memory (bool, optional): Whether to load the tokenizer and model to cache, so that
+                when a new tokenizer and model is loaded, the old one remains in memory. It makes switching
+                between different tokenizers and models faster. Defaults to True.
+        """
         if model is None and (
             model_tokenizer_choices is None or len(model_tokenizer_choices) == 0
         ):
-            raise ValueError()
+            raise ValueError(
+                "You have to provide either model and tokenizer or a not "
+                + "empty model_tokenizer_choices dictionary"
+            )
 
-        if model is None or tokenizer is None:
+        if model is None and tokenizer is None:
             assert model_tokenizer_choices is not None
+            if on_model_change_callback is None:
+                self._on_model_change_callback = lambda: None
+            else:
+                self._on_model_change_callback = on_model_change_callback
             self._model_choices = model_tokenizer_choices
+        elif model is None or tokenizer is None:
+            raise ValueError(
+                "If you provide the model, you should also provide the tokenizer."
+            )
         else:
-            assert model_tokenizer_choices is None
+            if model_tokenizer_choices is not None:
+                raise ValueError(
+                    "If model, tokenizer and model_tokenizer_choices is all "
+                    + "not None, the library cannot decide which should be "
+                    + "selected."
+                )
             self._model_choices = None
             self._model, self._tokenizer = model, tokenizer
 
         self._cache: Optional[Dict[str, TOKENIZER_MODEL_TUPLE]] = None
         if keep_models_in_memory:
             self._cache = {}
-        self._on_model_change_callback = on_model_change_callback
         self.initialize_model_elements()
 
         if model_tokenizer_choices is not None:
@@ -50,17 +86,62 @@ class ModelSelectionMixin:
 
     def load_model(
         self,
-        value: Union[
+        model_constructor: Union[
             TOKENIZER_MODEL_TUPLE,
             Callable[[], TOKENIZER_MODEL_TUPLE],
         ],
     ):
-        if isinstance(value, tuple):
-            return value
+        """Load the model and the tokenizer using the provided `model_constructor`
+
+        Args:
+            model_constructor (Union[ TOKENIZER_MODEL_TUPLE, Callable[[], TOKENIZER_MODEL_TUPLE], ]): either
+                the model and the tokenizer tuple or a function that loads the model and
+                the tokenizer tuple.
+
+        Returns:
+            TOKENIZER_MODEL_TUPLE: loaded tokenizer and model
+        """
+        if isinstance(model_constructor, tuple):
+            return model_constructor
         else:
-            return value()
+            return model_constructor()
+
+    def load_cached_model(
+        self,
+        model_constructor: Callable[[], TOKENIZER_MODEL_TUPLE],
+        name: Optional[str] = None,
+    ) -> None:
+        """The behavior of this function depends on whether the caching is set or unset.
+
+        If set, the function at first checks whether the tokenizer and the model with `name`
+        is already in the cache and skips the loading and returns the cached value, or if it
+        isn't then it loads the tokenizer and the model, and stores it into the cache and
+        returns.
+
+        If unset, the function just loads the tokenizer and the model and returns it.
+
+        Important:
+            The loaded tokenizer is stored in the property: `self.tokenizer` and the loaded
+            model is stored in the property: `self.model`
+
+        Args:
+            name (str): name of the tokenizer and the model, the tuple will be stored in the
+                cache under this name.
+            model_constructor (Callable[[], TOKENIZER_MODEL_TUPLE]): function that loads the
+                tokenizer and the model.
+        """
+        if self._cache is not None and name in self._cache:
+            self._tokenizer, self._model = self._cache[name]
+        self._tokenizer, self._model = model_constructor()
+        if self._cache is not None and name is not None:
+            self._cache[name] = (self._tokenizer, self._model)
 
     def initialize_model_elements(self):
+        """Initializes a heading with text "Model Settings" and a selector
+        element, which contains:
+        - selector for specific tokenizer and model if multiple tokenizers and models
+            are provided
+        """
         if self._model_choices is None:
             return
 
@@ -78,20 +159,21 @@ class ModelSelectionMixin:
 
     @property
     def model_elements(self):
+        """All the elements that should be displayed on the frontend."""
         if self._model_choices is None:
             return []
         return [self.model_selector_heading, self.button_element]
 
     def model_callback(self):
+        """
+        This method is called each time when a request from frontend comes to load
+        a different tokenizer and model.
+        """
         assert self._model is not None
         if self._model_choices is None:
             return
         if self.model_selector_element.updated:
-            key = self.model_selector_element.selected
-            if self._cache is not None and key in self._cache:
-                self._tokenizer, self._model = self._cache[key]
-            else:
-                self._tokenizer, self._model = self.load_model(self._model_choices[key])
-                if self._cache is not None:
-                    self._cache[key] = (self._tokenizer, self._model)
+            name = self.model_selector_element.selected
+            model_tokenizer = self._model_choices[name]
+            self.load_cached_model(lambda: self.load_model(model_tokenizer), name)
             self._on_model_change_callback()
