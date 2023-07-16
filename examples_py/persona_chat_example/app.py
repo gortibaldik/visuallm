@@ -2,6 +2,10 @@ from datasets import load_dataset
 from transformers.models.auto.modeling_auto import AutoModelForCausalLM
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
+from visuallm.components.mixins.generation_selectors_mixin import (
+    CheckBoxSelectorType,
+    MinMaxSelectorType,
+)
 from visuallm.server import Server
 
 from .components.generation import Generation
@@ -21,10 +25,10 @@ gen = Generation(
     model=model,
     tokenizer=tokenizer,
     selectors={
-        "do_sample": False,
-        "top_k": (0, 1000),
-        "max_new_tokens": (10, 100, 30),
-        "num_return_sequences": (1, 20),
+        "do_sample": CheckBoxSelectorType(False),
+        "top_k": MinMaxSelectorType(0, 1000),
+        "max_new_tokens": MinMaxSelectorType(10, 100, default_value=30),
+        "num_return_sequences": MinMaxSelectorType(1, 20),
     },
     metrics_on_probs={"Perplexity": (Perplexity(), "{:5f}", False)},
 )

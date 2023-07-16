@@ -63,11 +63,7 @@ class InteractiveGenerationComponent(
             dataset=dataset,
             dataset_choices=dataset_choices,
         )
-        GenerationSelectorsMixin.__init__(
-            self,
-            selectors=selectors,
-            on_generation_changed_callback=self.on_sample_change_callback,
-        )
+        GenerationSelectorsMixin.__init__(self, selectors=selectors)
         MetricsMixin.__init__(
             self,
             on_metrics_change=self.on_sample_change_callback,
@@ -161,6 +157,9 @@ class InteractiveGenerationComponent(
     def on_sample_change_callback(self):
         self.update_model_input_display()
         self.update_generated_output_display()
+
+    def on_generation_changed_callback(self):
+        return self.on_sample_change_callback()
 
 
 def generate_output(
