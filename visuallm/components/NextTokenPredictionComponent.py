@@ -1,5 +1,5 @@
 from heapq import nlargest
-from typing import Optional
+from typing import List, Optional
 
 import torch
 from numpy.typing import NDArray
@@ -15,7 +15,7 @@ from visuallm.components.mixins.model_selection_mixin import (
     MODEL_TOKENIZER_CHOICES,
     ModelSelectionMixin,
 )
-from visuallm.elements.barchart_element import BarChartElement
+from visuallm.elements.barchart_element import BarChartElement, PieceInfo
 from visuallm.elements.plain_text_element import PlainTextElement
 
 
@@ -46,7 +46,6 @@ class NextTokenPredictionComponent(
         )
         DataPreparationMixin.__init__(
             self,
-            on_sample_change_callback=self.on_sample_change_callback,
             dataset=dataset,
             dataset_choices=dataset_choices,
         )
@@ -118,14 +117,19 @@ class NextTokenPredictionComponent(
 
     def update_softmax_element(self):
         probs = self._one_token_prediction()
-        n_largest_probs = self._get_n_largest_tokens_and_probs(probs)
+        n_largest_probs_tokens = self._get_n_largest_tokens_and_probs(probs)
 
-        bar_heights = [[x[0]] for x in n_largest_probs]
-        bar_annotations = [[f"{x[0]: .3f}%"] for x in n_largest_probs]
-        annotations = [x[1] for x in n_largest_probs]
-        self.softmax_element.set_possibilities(
-            bar_heights, bar_annotations, annotations
-        )
+        piece_infos: List[PieceInfo] = []
+        for prob_token_tuple in n_largest_probs_tokens:
+            piece_infos.append(
+                PieceInfo(
+                    pieceTitle=prob_token_tuple[1],
+                    barHeights=[prob_token_tuple[0]],
+                    barAnnotations=["{:.3f}%".format(prob_token_tuple[0])],
+                    barNames=[""],
+                )
+            )
+        self.softmax_element.set_piece_infos(piece_infos)
 
     def select_next_token(self):
         token = self.softmax_element.selected

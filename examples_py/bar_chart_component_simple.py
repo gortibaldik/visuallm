@@ -5,7 +5,7 @@ import random
 import requests
 
 from visuallm.component_base import ComponentBase
-from visuallm.elements.barchart_element import BarChartElement
+from visuallm.elements.barchart_element import BarChartElement, PieceInfo
 from visuallm.elements.plain_text_element import PlainTextElement
 
 
@@ -26,20 +26,21 @@ class BarChartComponentSimple(ComponentBase):
 
     def update_barchart_component(self):
         probs = sample_ten_words(self.word_ids)
-        ten_largest_probs = heapq.nlargest(10, zip(*zip(*probs), self.word_vocab))
+        K = 10
+        ten_largest_probs = heapq.nlargest(K, zip(*zip(*probs), self.word_vocab))
 
-        # bar height is the height of the bar, should be between 0 and 100
-        bar_heights = [[x[0]] for x in ten_largest_probs]
+        piece_infos = []
+        for i in range(K):
+            piece_infos.append(
+                PieceInfo(
+                    pieceTitle=ten_largest_probs[i][1],
+                    barHeights=[ten_largest_probs[i][0]],
+                    barAnnotations=[f"{ten_largest_probs[i][0]:.2f}%"],
+                    barNames=[""],
+                )
+            )
 
-        # bar annotation is the text displayed within the bar
-        bar_annotations = [[f"{x[0]:.2f}%"] for x in ten_largest_probs]
-
-        # annotation is the name of whole bar sub element
-        annotations = [x[-1] for x in ten_largest_probs]
-
-        self.barchart_element.set_possibilities(
-            bar_heights, bar_annotations, annotations
-        )
+        self.barchart_element.set_piece_infos(piece_infos)
 
     def barchart_callback(self):
         s = self.barchart_element.selected

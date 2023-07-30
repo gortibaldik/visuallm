@@ -22,7 +22,6 @@ class DatasetVisualization(ComponentBase, DataPreparationMixin):
         sample_vis_elements = self.initialize_sample_vis_elements()
         DataPreparationMixin.__init__(
             self,
-            on_sample_change_callback=self.on_sample_change_callback,
             dataset=dataset,
             dataset_choices=dataset_choices,
         )

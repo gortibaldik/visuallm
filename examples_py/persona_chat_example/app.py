@@ -2,6 +2,7 @@ from datasets import load_dataset
 from transformers.models.auto.modeling_auto import AutoModelForCausalLM
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
+from visuallm.components.GenerationComponent import ProbsMetric
 from visuallm.components.mixins.generation_selectors_mixin import (
     CheckBoxSelectorType,
     MinMaxSelectorType,
@@ -30,7 +31,7 @@ gen = Generation(
         "max_new_tokens": MinMaxSelectorType(10, 100, default_value=30),
         "num_return_sequences": MinMaxSelectorType(1, 20),
     },
-    metrics_on_probs={"Perplexity": (Perplexity(), "{:5f}", False)},
+    metrics_on_probs={"Perplexity": ProbsMetric("{:.5f}", False, Perplexity())},
 )
 ntp = NTP(model=model, tokenizer=tokenizer, dataset=dataset)
 server = Server(__name__, [vis, gen, ntp])

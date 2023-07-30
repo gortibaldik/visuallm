@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import (  # noqa
     Any,
     Callable,
@@ -33,10 +34,9 @@ DATASETS_TYPE = Union[
 ]
 
 
-class DataPreparationMixin:
+class DataPreparationMixin(ABC):
     def __init__(
         self,
-        on_sample_change_callback: Callable[[], None],
         dataset: Optional[DATASET_TYPE] = None,
         dataset_choices: Optional[DATASETS_TYPE] = None,
         keep_datasets_in_memory: bool = True,
@@ -57,9 +57,6 @@ class DataPreparationMixin:
             You should either provide the dataset or dataset choices, not both at once.
 
         Args:
-            on_sample_change_callback (Callable[[], None]): what to do after the new sample is
-                loaded, can be used e.g. for updating the components that display the dataset
-                sample.
             dataset (Optional[DATASET_TYPE], optional): Dataset or a function that loads
                 the dataset. Defaults to None.
             dataset_choices (Optional[DATASETS_TYPE], optional): Dictionary of datasets, or
@@ -98,7 +95,6 @@ class DataPreparationMixin:
             self._dataset_choices = None
             self.load_cached_dataset(lambda: self.load_dataset(dataset))
 
-        self._on_sample_change_callback = on_sample_change_callback
         self._loaded_sample: Any = self.get_split()[
             int(self.sample_selector_element.selected)
         ]
@@ -270,6 +266,14 @@ class DataPreparationMixin:
             self._loaded_sample = self.get_split()[
                 int(self.sample_selector_element.selected)
             ]
-            self._on_sample_change_callback()
+            self.on_sample_change_callback()
         elif self._update_on_data_config_sent:
-            self._on_sample_change_callback()
+            self.on_sample_change_callback()
+
+    @abstractmethod
+    def on_sample_change_callback(self) -> None:
+        """This callback is called right after the dataset sample selectors
+        are updated and a new sample / dataset is loaded into the
+        `self.dataset` and `self.loaded_sample` properties
+        """
+        ...

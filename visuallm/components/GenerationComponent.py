@@ -16,9 +16,9 @@ from visuallm.components.mixins.generation_selectors_mixin import (
     GenerationSelectorsMixin,
 )
 from visuallm.components.mixins.metrics_mixin import (
-    GENERATED_TEXT_METRIC,
-    PROBS_METRIC,
+    GeneratedTextMetric,
     MetricsMixin,
+    ProbsMetric,
 )
 from visuallm.components.mixins.model_selection_mixin import (
     MODEL_TOKENIZER_CHOICES,
@@ -41,8 +41,8 @@ class InteractiveGenerationComponent(
         model: Optional[PreTrainedModel] = None,
         tokenizer: Optional[PreTrainedTokenizer] = None,
         model_tokenizer_choices: Optional[MODEL_TOKENIZER_CHOICES] = None,
-        metrics_on_generated_text: Dict[str, GENERATED_TEXT_METRIC] = {},
-        metrics_on_probs: Dict[str, PROBS_METRIC] = {},
+        metrics_on_generated_text: Dict[str, GeneratedTextMetric] = {},
+        metrics_on_probs: Dict[str, ProbsMetric] = {},
         dataset: Optional[DATASET_TYPE] = None,
         dataset_choices: Optional[DATASETS_TYPE] = None,
         selectors: SELECTORS_TYPE = {},
@@ -58,15 +58,11 @@ class InteractiveGenerationComponent(
             tokenizer=tokenizer,
         )
         DataPreparationMixin.__init__(
-            self,
-            on_sample_change_callback=self.on_sample_change_callback,
-            dataset=dataset,
-            dataset_choices=dataset_choices,
+            self, dataset=dataset, dataset_choices=dataset_choices
         )
         GenerationSelectorsMixin.__init__(self, selectors=selectors)
         MetricsMixin.__init__(
             self,
-            on_metrics_change=self.on_sample_change_callback,
             metrics_on_generated_text=metrics_on_generated_text,
             metrics_on_probs=metrics_on_probs,
         )
@@ -80,9 +76,9 @@ class InteractiveGenerationComponent(
                 *self.dataset_elements,
                 *self.model_elements,
                 *self.generation_elements,
-                *self.metrics_selection,
+                *self.metrics_selection_elements,
                 *input_display_elements,
-                *self.metrics_display,
+                *self.metrics_display_elements,
             ],
         )
 
@@ -159,6 +155,9 @@ class InteractiveGenerationComponent(
         self.update_generated_output_display()
 
     def on_generation_changed_callback(self):
+        return self.on_sample_change_callback()
+
+    def metrics_processing_callback(self):
         return self.on_sample_change_callback()
 
 
