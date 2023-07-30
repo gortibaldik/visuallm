@@ -360,7 +360,7 @@ import random
 import requests
 
 from visuallm.component_base import ComponentBase
-from visuallm.elements.barchart_element import BarChartElement
+from visuallm.elements.barchart_element import BarChartElement, PieceInfo
 from visuallm.elements.plain_text_element import PlainTextElement
 
 
@@ -381,25 +381,25 @@ class BarChartComponentSimple(ComponentBase):
 
     def update_barchart_component(self):
         probs = sample_ten_words(self.word_ids)
-        ten_largest_probs = heapq.nlargest(10, zip(*zip(*probs), self.word_vocab))
+        K = 10
+        ten_largest_probs = heapq.nlargest(K, zip(*zip(*probs), self.word_vocab))
 
-        # bar height is the height of the bar, should be between 0 and 100
-        bar_heights = [[x[0]] for x in ten_largest_probs]
+        piece_infos = []
+        for i in range(K):
+            piece_infos.append(
+                PieceInfo(
+                    pieceTitle=ten_largest_probs[i][1],
+                    barHeights=[ten_largest_probs[i][0]],
+                    barAnnotations=[f"{ten_largest_probs[i][0]:.2f}%"],
+                    barNames=[""],
+                )
+            )
 
-        # bar annotation is the text displayed within the bar
-        bar_annotations = [[f"{x[0]:.2f}%"] for x in ten_largest_probs]
-
-        # annotation is the name of whole bar sub element
-        annotations = [x[-1] for x in ten_largest_probs]
-
-        self.barchart_element.set_possibilities(
-            bar_heights, bar_annotations, annotations
-        )
+        self.barchart_element.set_piece_infos(piece_infos)
 
     def barchart_callback(self):
         s = self.barchart_element.selected
         self.text_element.content = f"Last selected: {s}"
-        self.update_barchart_component()
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -424,15 +424,13 @@ import random
 from typing import List
 
 from visuallm.component_base import ComponentBase
-from visuallm.elements.barchart_element import BarChartElement
+from visuallm.elements.barchart_element import BarChartElement, PieceInfo
 
 
 class BarChartComponentAdvanced(ComponentBase):
     def __init__(self):
-        self.barchart_element = BarChartElement(
-            long_contexts=True,
-            names=["Quality", "Perplexity", "Consistency", "Fluency"],
-        )
+        self._names_of_bars = ["Quality", "Perplexity", "Consistency", "Fluency"]
+        self.barchart_element = BarChartElement(long_contexts=True)
         self.init_barchart_element()
         super().__init__(
             name="advanced_barchart",
@@ -441,19 +439,13 @@ class BarChartComponentAdvanced(ComponentBase):
         )
 
     def init_barchart_element(self):
-        ds = []
+        distributions: List[List[float]] = []
         size_of_distro = 5
-        for i in range(len(self.barchart_element.names)):
-            ds.append(make_some_distribution(size_of_distro))
+        for i in range(len(self._names_of_bars)):
+            distributions.append(make_some_distribution(size_of_distro))
 
-        # bar height is the height of the bar, should be between 0 and 100
-        bar_heights = list(zip(*ds))
-
-        # bar annotation is the text displayed within the bar
-        bar_annotations = [[f"{h:.2f}" for h in hs] for hs in bar_heights]
-
-        # annotation is the name of whole bar sub element
-        annotations = [
+        # names of the whole piece with multiple bars
+        piece_names = [
             "Use the portable output format.",
             "Give very verbose output about all the program knows about.",
             "Terminate option list.",
@@ -462,9 +454,17 @@ class BarChartComponentAdvanced(ComponentBase):
             "This will indicate the state of the repository that should be "
             + "evaluated.",
         ]
-        self.barchart_element.set_possibilities(
-            bar_heights, bar_annotations, annotations
-        )
+
+        piece_infos: List[PieceInfo] = []
+        for i in range(size_of_distro):
+            # heights of individual bars in the piece
+            bar_heights = [distro[i] for distro in distributions]
+
+            # annotations inside individual bars in the piece
+            bar_annotations = [f"{h:.2f}" for h in bar_heights]
+            piece_infos.append(
+                PieceInfo(
+                    pieceTitle=piece_names[i],
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
