@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Sequence
 
+import torch
+
 from visuallm.elements.barchart_element import BarChartElement, PieceInfo
 from visuallm.elements.plain_text_element import PlainTextElement
 from visuallm.elements.selector_elements import ButtonElement, CheckBoxSubElement
@@ -35,6 +37,12 @@ class ProbsMetric(MetricDescription):
 
 
 class MetricsMixin(ABC):
+    """This mixin prepares two types of elements.
+
+    1. the selectors, which allow to select which metrics should be computed on
+    the particular input and expected output pairs
+    2. the barchart elements which display the metrics"""
+
     def __init__(
         self,
         metrics_on_generated_text: Dict[str, GeneratedTextMetric] = {},
@@ -49,7 +57,7 @@ class MetricsMixin(ABC):
         self._display_metrics_heading = PlainTextElement(
             content="Metrics on Generated Outputs", is_heading=True
         )
-        self._display_metrics_element = BarChartElement(long_contexts=True)
+        self._display_metrics_on_predicted_element = BarChartElement(long_contexts=True)
         self._display_metrics_on_target_heading = PlainTextElement(
             content="Metrics on Target", is_heading=True
         )
@@ -65,6 +73,9 @@ class MetricsMixin(ABC):
     def create_ordering(
         metrics_on_generated_text: Dict[str, Any], metrics_on_probs: Dict[str, Any]
     ):
+        """Create ordering of metrics in which the metrics would be displayed on the
+        frontend.
+        """
         return list(metrics_on_generated_text.keys()) + list(metrics_on_probs.keys())
 
     def _prepare_metrics_selection_frontend(self, ordering: List[str]):
@@ -96,26 +107,36 @@ class MetricsMixin(ABC):
             self._display_metrics_on_target_heading,
             self._display_metrics_on_target_element,
             self._display_metrics_heading,
-            self._display_metrics_element,
+            self._display_metrics_on_predicted_element,
         ]
 
-    def _compute_metrics_for_element(
+    def _compute_n_display_metrics_for_element(
         self,
         generated_text_list: Sequence[str],
-        label_text_list: Sequence[str],
-        probs_encoded_list: Sequence[Any],
-        generated_encoded_list: Sequence[Any],
+        label_text: str,
+        probs_encoded_list: Sequence[torch.Tensor],
+        generated_encoded_list: Sequence[torch.Tensor],
         element: BarChartElement,
     ):
+        """Calculate generation metrics for each element of `generated_text_list` and
+        probability metrics for each element of `probs_encoded_list`.
+
+        Args:
+            generated_text_list (Sequence[str]): Sequence with generations of the model.
+            label_text (str): Gold output.
+            probs_encoded_list (Sequence[torch.Tensor]): Sequence of sequences of probabilities of each
+                generated token.
+            generated_encoded_list (Sequence[torch.Tensor]): Sequence of sequences of ids of each
+                target token.
+            element (BarChartElement): Element where to display computed metrics.
+        """
         piece_infos: List[PieceInfo] = []
         for (
             generated_text,
-            label_text,
             labels_encoded,
             generated_encoded,
         ) in zip(
             generated_text_list,
-            label_text_list,
             probs_encoded_list,
             generated_encoded_list,
         ):
@@ -155,30 +176,51 @@ class MetricsMixin(ABC):
 
         element.set_piece_infos(piece_infos)
 
-    def compute_metrics_on_predicted(
+    def compute_n_display_metrics_on_predicted(
         self,
         generated_text_list: Sequence[str],
-        label_text_list: Sequence[str],
-        probs_encoded_list: Sequence[Any],
-        generated_encoded_list: Sequence[Any],
+        label_text: str,
+        probs_encoded_list: Sequence[torch.Tensor],
+        generated_encoded_list: Sequence[torch.Tensor],
     ):
-        self._compute_metrics_for_element(
+        """Compute metrics on the predictions of the model and
+        display them with `self._display_metrics_on_predicted_element`.
+
+        Args:
+            generated_text_list (Sequence[str]): list of generations of the model.
+            label_text (str): gold output.
+            probs_encoded_list (Sequence[torch.Tensor]): Sequence of sequences of probabilities of each
+                generated token.
+            generated_encoded_list (Sequence[torch.Tensor]): Sequence of sequences of ids of each
+                target token.
+        """
+        self._compute_n_display_metrics_for_element(
             generated_text_list,
-            label_text_list,
+            label_text,
             probs_encoded_list,
             generated_encoded_list,
-            self._display_metrics_element,
+            self._display_metrics_on_predicted_element,
         )
 
-    def compute_metrics_on_target(
+    def compute_n_display_metrics_on_target(
         self,
         target: str,
-        probs_target: Any,
-        target_encoded: Any,
+        probs_target: Sequence[torch.Tensor],
+        target_encoded: Sequence[torch.Tensor],
     ):
-        self._compute_metrics_for_element(
+        """
+        Compute metrics on the targets.
+
+        Args:
+            target (str): gold output.
+            probs_target (Sequence[torch.Tensor]): Sequence of sequences of probabilities of each
+                target token.
+            generated_encoded_list (Sequence[torch.Tensor]): Sequence of sequences of ids of each
+                target token.
+        """
+        self._compute_n_display_metrics_for_element(
             [target],
-            [target],
+            target,
             probs_target,
             target_encoded,
             self._display_metrics_on_target_element,
@@ -186,4 +228,8 @@ class MetricsMixin(ABC):
 
     @abstractmethod
     def metrics_processing_callback(self):
+        """What to do right after the selection of which metrics to display is
+        updated. (This mixin does not automatically calculate metrics as it may
+        require e.g. non-trivial manipulation with the inputs. Hence you need to
+        implement metrics computation in this method.)"""
         ...
