@@ -3,7 +3,6 @@ from typing import Dict, List, Optional, cast
 import torch
 from transformers import PreTrainedModel, PreTrainedTokenizer
 from transformers.generation.utils import GenerateOutput
-from transformers.tokenization_utils_base import BatchEncoding
 
 from visuallm.component_base import ComponentBase
 from visuallm.components.mixins.data_preparation_mixin import (
@@ -127,24 +126,27 @@ class InteractiveGenerationComponent(
             model=self._model,
             **self.selected_generation_parameters,
         )
-        decoded = decode_output(self._tokenizer, model_inputs, output)
+        input_length = model_inputs.input_ids.size(1)
+        decoded = decode_output(self._tokenizer, input_length, output)
 
         # compute mterics on generated
         probs, output_sequences = measure_output_probability(
-            self._model, output.sequences, model_inputs
+            self._model, output.sequences, input_length
         )
-        self.compute_metrics_on_predicted(
+        self.compute_n_display_metrics_on_predicted(
             decoded,
-            [self.get_target_str() for _ in range(len(decoded))],
+            self.get_target_str(),
             probs,
             output_sequences,
         )
 
         # compute scores on target
         probs, output_sequences = measure_output_probability(
-            self._model, self.create_target_encoding(), model_inputs
+            self._model, self.create_target_encoding(), input_length
         )
-        self.compute_metrics_on_target(self.get_target_str(), probs, output_sequences)
+        self.compute_n_display_metrics_on_target(
+            self.get_target_str(), probs, output_sequences
+        )
 
     def on_model_change_callback(self):
         self.force_set_updated()
@@ -185,45 +187,61 @@ def generate_output(
 
 def decode_output(
     tokenizer: PreTrainedTokenizer,
-    tokenized_inputs: BatchEncoding,
+    input_length: int,
     output: GenerateOutput,
 ):
+    """Decode generated output and remove the input part from it.
+
+    Args:
+        tokenizer (PreTrainedTokenizer): tokenizer to use for decoding output
+        input_length (int): length of input (we would remove the first part
+            of the generated sequences, so that only the part that the model
+            generated is returned)
+        output (GenerateOutput): the output from huggingface model.generate
+
+    Returns:
+        List[str]: list of generated outputs from the model (only the generated part
+            is returned, the input part is removed)
+    """
     detokenized_outputs = tokenizer.batch_decode(
-        output.sequences, skip_special_tokens=True
+        output.sequences[:, input_length:],
+        skip_special_tokens=True,
     )
-    detokenized_context = tokenizer.decode(
-        tokenized_inputs.input_ids[0], skip_special_tokens=True
-    )
-    detokenized_outputs = [
-        d.removeprefix(detokenized_context) for d in detokenized_outputs
-    ]
 
     return detokenized_outputs
 
 
 def measure_output_probability(
     model: PreTrainedModel,
-    output_sequences: torch.Tensor,
-    tokenized_inputs: BatchEncoding,
+    sequences: torch.Tensor,
+    input_length: int,
 ):
     """
-    Returns:
-        Tuple[List[float], List[float], List[float]]: log_probs,
-            penalty_log_probs, probs
-    """
-    input_length = tokenized_inputs.input_ids.size(1)
-    output_probs_list = []
-    output_sequences_list = []
-    for i in range(output_sequences.size(0)):
-        with torch.no_grad():
-            output = model(
-                output_sequences[i : i + 1, :-1].contiguous(),
-            )
-            output_logits = output.logits
-            output_probs = torch.softmax(cast(torch.Tensor, output_logits), dim=-1)
-            output_probs = output_probs[:, input_length - 1 :, :]
-            output_sequences_new = output_sequences[i : i + 1, input_length:]
-        output_probs_list.append(output_probs)
-        output_sequences_list.append(output_sequences_new)
+    At first model is used to generate tokens. Then we want to compute probabilities of
+    individual tokens. While this method is really suboptimal, it is quite robust.
 
-    return output_probs_list, output_sequences_list
+    Sequences is a tensor of shape (NUMBER_OF_GENERATIONS, LONGEST_GENERATION_LEN).
+    Args:
+        model (PreTrainedModel): the model with which to compute probabilities of tokens
+        sequences (Tensor): sequences of ids to predict probabilities on
+        input_length (int): length of the
+
+    Returns:
+        List[torch.Tensor], List[torch.Tensor]: assigned probabilities, only generated ids tensor
+    """
+    probabilities: List[torch.Tensor] = []
+    output_sequences_list: List[torch.Tensor] = []
+    for i in range(sequences.size(0)):
+        with torch.no_grad():
+            # TODO: here I should somehow treat generations of different lengths
+            output = model(
+                sequences[i : i + 1, :-1].contiguous(),
+            )
+            logits = output.logits
+            probs = torch.softmax(cast(torch.Tensor, logits), dim=-1)
+            probs = probs[:, input_length - 1 :, :]
+            predicted_token_ids = sequences[i : i + 1, input_length:]
+        probabilities.append(probs)
+        output_sequences_list.append(predicted_token_ids)
+
+    return probabilities, output_sequences_list
