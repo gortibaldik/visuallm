@@ -18,7 +18,6 @@ MODEL_TOKENIZER_CHOICES = Union[
 class ModelSelectionMixin:
     def __init__(
         self,
-        on_model_change_callback: Optional[Callable[[], None]] = None,
         model: Optional[PreTrainedModel] = None,
         tokenizer: Optional[PreTrainedTokenizer] = None,
         model_tokenizer_choices: Optional[MODEL_TOKENIZER_CHOICES] = None,
@@ -35,8 +34,6 @@ class ModelSelectionMixin:
             not both at once.
 
         Args:
-            on_model_change_callback (Callable[[], None], optional): what to do after the new model and
-                tokenizer is loaded.
             model (Optional[PreTrainedModel], optional): Huggingface model. Defaults to None.
             tokenizer (Optional[PreTrainedTokenizer], optional): Huggingface tokenizer. Defaults to None.
             model_tokenizer_choices (Optional[MODEL_TOKENIZER_CHOICES], optional): dictionary where key
@@ -55,10 +52,6 @@ class ModelSelectionMixin:
 
         if model is None and tokenizer is None:
             assert model_tokenizer_choices is not None
-            if on_model_change_callback is None:
-                self._on_model_change_callback = lambda: None
-            else:
-                self._on_model_change_callback = on_model_change_callback
             self._model_choices = model_tokenizer_choices
         elif model is None or tokenizer is None:
             raise ValueError(
@@ -164,6 +157,10 @@ class ModelSelectionMixin:
             return []
         return [self.model_selector_heading, self.button_element]
 
+    def on_model_change_callback(self):
+        """What to do after the new model and tokenizer is loaded."""
+        pass
+
     def model_callback(self):
         """
         This method is called each time when a request from frontend comes to load
@@ -176,4 +173,4 @@ class ModelSelectionMixin:
             name = self.model_selector_element.selected
             model_tokenizer = self._model_choices[name]
             self.load_cached_model(lambda: self.load_model(model_tokenizer), name)
-            self._on_model_change_callback()
+            self.on_model_change_callback()

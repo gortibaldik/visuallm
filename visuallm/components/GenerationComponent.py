@@ -46,12 +46,33 @@ class InteractiveGenerationComponent(
         dataset_choices: Optional[DATASETS_TYPE] = None,
         selectors: SELECTORS_TYPE = {},
     ):
+        """This component provides generation capabilities. The user provides model, tokenizer
+        and dataset, and this component displays all the elements needed to select element of the
+        dataset, select generation parameters, display dataset element, model generations and the
+        computed metrics.
+
+        Args:
+            title (str, optional): The title of the component. Defaults to "Interactive Generation".
+            model (Optional[PreTrainedModel], optional): Huggingface model. Defaults to None.
+            tokenizer (Optional[PreTrainedTokenizer], optional): Huggingface tokenizer. Defaults to None.
+            model_tokenizer_choices (Optional[MODEL_TOKENIZER_CHOICES], optional): dictionary where key
+                is the name of the tuple and value is tuple of tokenizer and model. Defaults to None.
+            metrics_on_generated_text (Dict[str, GeneratedTextMetric], optional):
+                Metrics which are computed on pairs of strings. Defaults to {}.
+            metrics_on_probs (Dict[str, ProbsMetric], optional):
+                Metrics which are computed on the probabilities of generations. Defaults to {}.
+            dataset (Optional[DATASET_TYPE], optional): Dataset or a function that loads
+                the dataset. Defaults to None.
+            dataset_choices (Optional[DATASETS_TYPE], optional): Dictionary of datasets, or
+                dictionary of functions that load the dataset. Defaults to None.
+            selectors (SELECTORS_TYPE): dictionary of all the selectors which should
+                be displayed on the frontend.
+        """
         self.main_heading_element = PlainTextElement(
             is_heading=True, heading_level=2, content=title
         )
         ModelSelectionMixin.__init__(
             self,
-            on_model_change_callback=self.on_model_change_callback,
             model_tokenizer_choices=model_tokenizer_choices,
             model=model,
             tokenizer=tokenizer,
@@ -100,25 +121,34 @@ class InteractiveGenerationComponent(
         self.input_display.content = self.loaded_sample
 
     def create_model_inputs(self):
-        """_summary_
+        """Create inputs for the model, which will be put in the huggingface
+        model generate.
 
         Returns:
-            _type_: _description_
+            Mapping[str, Tensor]: inputs to the model.generate
         """
         context = self.input_display.content
         model_inputs = self._tokenizer(context, return_tensors="pt")
         return model_inputs
 
     def create_target_encoding(self):
+        """Create encoding of the target by the tokenizer.
+
+        Returns:
+            torch.Tensor: encoding of the target
+        """
         context = self.input_display.content
         target = context + self.get_target_str()
         model_inputs = self._tokenizer(target, return_tensors="pt")
         return model_inputs.input_ids
 
     def get_target_str(self) -> str:
+        """Get string that would be used for the computation of generation metrics."""
         return ""
 
     def update_generated_output_display(self):
+        """Generate outputs with the model, measure probabilities, compute all the
+        metrics and update metrics display elements."""
         model_inputs = self.create_model_inputs()
         output = generate_output(
             model_inputs,

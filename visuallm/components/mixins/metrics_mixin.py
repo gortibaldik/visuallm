@@ -48,6 +48,18 @@ class MetricsMixin(ABC):
         metrics_on_generated_text: Dict[str, GeneratedTextMetric] = {},
         metrics_on_probs: Dict[str, ProbsMetric] = {},
     ):
+        """This mixin adds the following elements to the frontend and the following
+        capabilities:
+        1. select which metrics to compute
+        2. display computed metrics
+        3. compute the metrics
+
+        Args:
+            metrics_on_generated_text (Dict[str, GeneratedTextMetric], optional):
+                Metrics which are computed on pairs of strings. Defaults to {}.
+            metrics_on_probs (Dict[str, ProbsMetric], optional):
+                Metrics which are computed on the probabilities of generations. Defaults to {}.
+        """
         self._ordering = self.create_ordering(
             metrics_on_generated_text, metrics_on_probs
         )
