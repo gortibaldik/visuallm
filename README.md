@@ -5,6 +5,8 @@
 - it handles frontend-backend communication as well as frontend rendering
 - hence the developper can focus only on ML aspects of his work!
 
+![example workflow](https://github.com/gortibaldik/visuallm/actions/workflows/python-test.yaml/badge.svg)
+
 ## VERSION: `0.2.0` changelog
 
 - added `visuallm.elements.text_input_element.TextInputElement`
