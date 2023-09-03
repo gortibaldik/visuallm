@@ -11,7 +11,7 @@ class NTP(NextTokenPredictionComponent, PersonaChatVisualization):
         super().__init__(*args, **kwargs)
         self.on_model_change_callback()
 
-    def init_model_input_display(self):
+    def init_model_input_display_elements(self):
         self.expected_outputs_raw_heading = PlainTextElement(
             is_heading=True, content="Expected Output"
         )

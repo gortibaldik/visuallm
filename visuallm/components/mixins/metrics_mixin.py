@@ -47,6 +47,7 @@ class MetricsMixin(ABC):
         self,
         metrics_on_generated_text: Dict[str, GeneratedTextMetric] = {},
         metrics_on_probs: Dict[str, ProbsMetric] = {},
+        use_target_metrics: bool = True,
     ):
         """This mixin adds the following elements to the frontend and the following
         capabilities:
@@ -59,10 +60,13 @@ class MetricsMixin(ABC):
                 Metrics which are computed on pairs of strings. Defaults to {}.
             metrics_on_probs (Dict[str, ProbsMetric], optional):
                 Metrics which are computed on the probabilities of generations. Defaults to {}.
+            use_target_metrics (bool): whether to display also the metrics computed on
+                targets
         """
         self._ordering = self.create_ordering(
             metrics_on_generated_text, metrics_on_probs
         )
+        self.use_target_metrics = use_target_metrics
         self._prepare_metrics_selection_frontend(self._ordering)
         self._metrics_on_generated_text = metrics_on_generated_text
         self._metrics_on_probs = metrics_on_probs
@@ -70,10 +74,13 @@ class MetricsMixin(ABC):
             content="Metrics on Generated Outputs", is_heading=True
         )
         self._display_metrics_on_predicted_element = BarChartElement(long_contexts=True)
-        self._display_metrics_on_target_heading = PlainTextElement(
-            content="Metrics on Target", is_heading=True
-        )
-        self._display_metrics_on_target_element = BarChartElement(long_contexts=True)
+        if self.use_target_metrics:
+            self._display_metrics_on_target_heading = PlainTextElement(
+                content="Metrics on Target", is_heading=True
+            )
+            self._display_metrics_on_target_element = BarChartElement(
+                long_contexts=True
+            )
 
         self.metric_button_element = ButtonElement(
             subelements=list(self._select_metrics_elements.values()),
@@ -115,12 +122,16 @@ class MetricsMixin(ABC):
         """Elements that display the metrics on the target and on the
         generated outputs.
         """
-        return [
-            self._display_metrics_on_target_heading,
-            self._display_metrics_on_target_element,
+        ret = [
             self._display_metrics_heading,
             self._display_metrics_on_predicted_element,
         ]
+        if self.use_target_metrics:
+            ret = [
+                self._display_metrics_on_target_heading,
+                self._display_metrics_on_target_element,
+            ] + ret
+        return ret
 
     def _compute_n_display_metrics_for_element(
         self,
@@ -230,6 +241,8 @@ class MetricsMixin(ABC):
             generated_encoded_list (Sequence[torch.Tensor]): Sequence of sequences of ids of each
                 target token.
         """
+        if not self.use_target_metrics:
+            raise ValueError("This component wasn't configured for target metrics!")
         self._compute_n_display_metrics_for_element(
             [target],
             target,

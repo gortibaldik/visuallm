@@ -51,6 +51,9 @@ class ElementBase(Named, ABC):
 
     @abstractmethod
     def construct_element_configuration(self) -> Dict[str, Any]:
+        """Construct the message with all the parts needed to recreate the
+        same state of the element on the frontend
+        """
         pass
 
     def register_to_server(self, server: Server):
@@ -112,6 +115,7 @@ class ElementWithEndpoint(ElementBase):
         pass
 
     def construct_element_description(self) -> Dict[str, Any]:
+        self.changed = False
         return dict(
             name=self.name,
             type=self.type,

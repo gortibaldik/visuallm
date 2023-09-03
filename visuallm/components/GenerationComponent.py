@@ -179,7 +179,7 @@ class InteractiveGenerationComponent(
         )
 
     def on_model_change_callback(self):
-        self.force_set_updated()
+        self.force_set_dataset_selector_updated()
         self.dataset_callback()
 
     def on_sample_change_callback(self):

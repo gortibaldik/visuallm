@@ -100,7 +100,7 @@ class DataPreparationMixin(ABC):
         ]
         self._update_on_data_config_sent = update_on_data_config_sent
 
-    def force_set_updated(self):
+    def force_set_dataset_selector_updated(self):
         """Set all the components to "updated" state, so that the dataset
         is reloaded, and the samples are reloaded on next `dataset_callback`"""
         self.dataset_split_selector_element.force_set_updated()

@@ -57,6 +57,12 @@ class BarChartElement(ElementWithEndpoint):
         **kwargs,
     ):
         """
+        Initialize BarChart Element. This element serves to display metrics and can have 2
+        major use-cases:
+        1. selectable: processing callback is set to some function and allows the user to
+            select some value according to metrics
+        2. non-selectable: just display the metrics
+
         Args:
             `long_contexts` (bool, optional): If this flag is set, then the
                 bars are displayed under the piece title, if it is not set, then the
@@ -79,20 +85,32 @@ class BarChartElement(ElementWithEndpoint):
 
     @property
     def selected(self) -> str:
-        assert self._selected is not None
+        """Return the last value that the user selected in the frontend for the barchart element."""
+        if not self.selectable:
+            raise ValueError(
+                "The BarChart element isn't in the configuration where user can select anything "
+                + "in the frontend (self.processing_callback is None) hence the `selected` prop "
+                + "is undefined!"
+            )
+        if self._selected is None:
+            raise RuntimeError("selected wasn't populated yet!")
         return self._selected
 
     @property
     def selectable(self):
+        """
+        Whether the user can select a value in the frontend of this element.
+        """
         return self.processing_callback is not None
 
     @property
     def piece_infos(self) -> List[PieceInfo]:
-        self.changed = True
         return self._piece_infos
 
     def set_piece_infos(self, piece_infos: List[PieceInfo]):
-        """ """
+        # changed is a property that is checked to include every change
+        # in the message from BE to FE, essential for the app to function
+        self.changed = True
         self._piece_infos = piece_infos
 
     def construct_element_configuration(self):
@@ -116,6 +134,9 @@ class BarChartElement(ElementWithEndpoint):
         if request.json is None:
             raise RuntimeError()
 
+        # changed is simply set to True as we do not have any means of testing whether
+        # the user simply didn't selected the same value multiple times
+        self.changed = True
         self._selected = request.json.get("selected")
         assert self.processing_callback is not None
         self.processing_callback()

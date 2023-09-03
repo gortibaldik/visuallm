@@ -147,13 +147,18 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
                 "Cannot change the value of the element without atributing "
                 + "the element to the parent component"
             )
-        self._updated = value != self._selected
-        self.parent_element.changed |= self._updated
+        self.force_set_updated()
         self._selected = value
 
     def force_set_updated(self):
         """Set updated to true, so that any changes associated with the update
         are triggered"""
+        if self.parent_element is None:
+            raise ValueError(
+                "Cannot set the element to the updated state without "
+                + "atributing the element to the parent component"
+            )
+        self.parent_element.changed = True
         self._updated = True
 
     @property
