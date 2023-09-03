@@ -139,6 +139,7 @@ Several different kinds of configuration specifier, together with one button ele
 ```py
 # ./examples_py/selector_component.py lines 1-10
 import time
+from typing import Optional
 
 from visuallm.component_base import ComponentBase
 from visuallm.elements.plain_text_element import PlainTextElement
@@ -147,7 +148,6 @@ from visuallm.elements.selector_elements import (
     CheckBoxSubElement,
     ChoicesSubElement,
     MinMaxSubElement,
-)
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -161,10 +161,9 @@ Input element for setting integer in a range.
 # ./examples_py/selector_component.py lines 13-18
 class SelectorComponent(ComponentBase):
     def __init__(self):
-        self.text_element = PlainTextElement(content="Nothing was selected")
+        self.text_element = PlainTextElement()
         self.number_selector_element = MinMaxSubElement(
             sample_min=0, sample_max=10, text="Select Number:"
-        )
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -176,9 +175,9 @@ Input element for choosing between several choices.
 <!-- The below code snippet is automatically added from ./examples_py/selector_component.py -->
 ```py
 # ./examples_py/selector_component.py lines 19-21
+        )
         self.choices_element = ChoicesSubElement(
             choices=["super", "magnificent", "incredible"], text="This library is:"
-        )
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -190,7 +189,7 @@ Simple checkbox input element.
 <!-- The below code snippet is automatically added from ./examples_py/selector_component.py -->
 ```py
 # ./examples_py/selector_component.py lines 22
-        self.checkbox_element = CheckBoxSubElement(text="Have you slept?:")
+        )
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -202,6 +201,12 @@ This is an element that should encapsulate all the other configuration selection
 <!-- The below code snippet is automatically added from ./examples_py/selector_component.py -->
 ```py
 # ./examples_py/selector_component.py lines 23-61
+        self.checkbox_element = CheckBoxSubElement(text="Have you slept?:")
+        self.set_text_element(
+            self.choices_element.selected,
+            self.number_selector_element.selected,
+            "First Message",
+        )
         self.button_element = ButtonElement(
             processing_callback=self.button_clicked,
             subelements=[
@@ -225,7 +230,7 @@ This is an element that should encapsulate all the other configuration selection
     def button_clicked(self):
         n = self.number_selector_element.selected
         c = self.choices_element.selected
-        b = (
+        message = (
             "I say it as a well-relaxed man!"
             if self.checkbox_element.selected
             else "Don't take me seriously."
@@ -235,12 +240,6 @@ This is an element that should encapsulate all the other configuration selection
             or self.choices_element.updated
             or self.checkbox_element.updated
         )
-        self.text_element.content = (
-            f"This library is {c} and I would give "
-            + f"it {n} stars out of {n} if I could. ({b})"
-            + f" This {'has' if any_updated else 'has not'} changed!"
-        )
-        time.sleep(n)
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
