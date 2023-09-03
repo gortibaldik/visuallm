@@ -53,9 +53,7 @@ class NextTokenPredictionComponent(
                 the largest probability assigned by the language model. Defaults to 10.
         """
         self.main_heading_element = PlainTextElement(
-            is_heading=True,
-            heading_level=2,
-            content=title,
+            is_heading=True, heading_level=2, content=title
         )
         ModelSelectionMixin.__init__(
             self,

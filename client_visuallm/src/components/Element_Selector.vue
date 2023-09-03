@@ -144,7 +144,7 @@ class ElementConfiguration extends ElementDescription {
 }
 
 export function registerElement(formatter: Formatter) {
-  formatter.registeredElements['sample_selector'] = {
+  formatter.registeredElements['button'] = {
     component: shallowRef(component),
     process: processElementDescr
   }

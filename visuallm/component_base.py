@@ -1,16 +1,14 @@
 from __future__ import annotations
 
 from pprint import pprint
-from typing import TYPE_CHECKING, Callable, List, MutableSet, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, MutableSet, Optional
 
 if TYPE_CHECKING:
-    from .elements.element_base import ElementBase
+    from visuallm.elements.element_base import ElementBase
     from visuallm.server import Server
 
-from flask import jsonify
-
-from .elements.utils import register_named, sanitize_url
-from .named import Named, NamedWrapper
+from visuallm.elements.utils import register_named, sanitize_url
+from visuallm.named import Named, NamedWrapper
 
 
 class ComponentBase(Named):
@@ -51,7 +49,9 @@ class ComponentBase(Named):
         register_named(NamedWrapper(self, "default_url"), server.registered_urls)
         server.add_endpoint(self.default_url, self.default_callback, methods=["GET"])
 
-    def fetch_info(self, fetch_all: bool = True, debug_print: bool = False):
+    def fetch_info(
+        self, fetch_all: bool = True, debug_print: bool = False
+    ) -> Dict[str, Any]:
         res = dict(
             result="success",
             elementDescriptions=[
@@ -62,4 +62,4 @@ class ComponentBase(Named):
         )
         if debug_print:
             pprint(res)
-        return jsonify(res)
+        return res

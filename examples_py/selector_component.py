@@ -1,4 +1,5 @@
 import time
+from typing import Optional
 
 from visuallm.component_base import ComponentBase
 from visuallm.elements.plain_text_element import PlainTextElement
@@ -12,7 +13,7 @@ from visuallm.elements.selector_elements import (
 
 class SelectorComponent(ComponentBase):
     def __init__(self):
-        self.text_element = PlainTextElement(content="Nothing was selected")
+        self.text_element = PlainTextElement()
         self.number_selector_element = MinMaxSubElement(
             sample_min=0, sample_max=10, text="Select Number:"
         )
@@ -20,6 +21,11 @@ class SelectorComponent(ComponentBase):
             choices=["super", "magnificent", "incredible"], text="This library is:"
         )
         self.checkbox_element = CheckBoxSubElement(text="Have you slept?:")
+        self.set_text_element(
+            self.choices_element.selected,
+            self.number_selector_element.selected,
+            "First Message",
+        )
         self.button_element = ButtonElement(
             processing_callback=self.button_clicked,
             subelements=[
@@ -43,7 +49,7 @@ class SelectorComponent(ComponentBase):
     def button_clicked(self):
         n = self.number_selector_element.selected
         c = self.choices_element.selected
-        b = (
+        message = (
             "I say it as a well-relaxed man!"
             if self.checkbox_element.selected
             else "Don't take me seriously."
@@ -53,9 +59,22 @@ class SelectorComponent(ComponentBase):
             or self.choices_element.updated
             or self.checkbox_element.updated
         )
-        self.text_element.content = (
-            f"This library is {c} and I would give "
-            + f"it {n} stars out of {n} if I could. ({b})"
-            + f" This {'has' if any_updated else 'has not'} changed!"
-        )
+        self.set_text_element(c, n, message, any_updated)
         time.sleep(n)
+
+    def set_text_element(
+        self,
+        choice: str,
+        number: float,
+        message: str,
+        any_updated: Optional[bool] = None,
+    ):
+        self.text_element.content = (
+            f"This library is {choice} and I would give "
+            + f"it {number} stars out of {number} if I could. ({message})"
+            + (
+                ""
+                if any_updated is None
+                else f" This {'has' if any_updated else 'has not'} changed!"
+            )
+        )

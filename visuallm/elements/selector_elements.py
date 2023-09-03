@@ -34,7 +34,7 @@ class ButtonElement(ElementWithEndpoint):
     def __init__(
         self,
         processing_callback: Callable[[], None],
-        name: str = "selector",
+        name: str = "button",
         subelements: List[SelectorSubElement] = [],
         button_text="Select",
         **kwargs,
@@ -53,7 +53,7 @@ class ButtonElement(ElementWithEndpoint):
             button_text (str, optional): Text displayed in a button input
                 element. Defaults to "Select".
         """
-        super().__init__(name=name, type="sample_selector", **kwargs)
+        super().__init__(name=name, type="button", **kwargs)
         self.processing_callback = processing_callback
         self._button_text = button_text
         self._subelements_dict: Dict[str, SelectorSubElement] = {}
@@ -64,10 +64,19 @@ class ButtonElement(ElementWithEndpoint):
             self.add_subelement(subelement)
 
     def construct_element_configuration(self):
+        subelement_configs = []
+        for c in self._subelements:
+            subelement_configs.append(c.subelement_configuration)
+            c.unset_updated()
         return dict(
             button_text=self._button_text,
-            subelement_configs=[c.subelement_configuration for c in self._subelements],
+            subelement_configs=subelement_configs,
         )
+
+    def get_response(self) -> Dict:
+        if not request.is_json:
+            raise RuntimeError("The data in request should be json!")
+        return request.get_json()
 
     def endpoint_callback(self):
         """Goes over the standard format of response from FE and sets all
@@ -75,14 +84,15 @@ class ButtonElement(ElementWithEndpoint):
         the control to the programmer for handling of the updated data and
         then returns everything updated to the frontend.
         """
-        if not request.is_json:
-            raise RuntimeError()
-        assert self.parent_component is not None
-        response_json = request.get_json()
+        response_json = self.get_response()
         for key, value in response_json.items():
             self._subelements_dict[key].selected = value
 
         self.processing_callback()
+        if self.parent_component is None:
+            raise RuntimeError(
+                "Endpoint Callback shouldn't be called without parent element being assigned!"
+            )
         return self.parent_component.fetch_info(fetch_all=False)
 
     def add_subelement(self, subelement: SelectorSubElement):
@@ -147,7 +157,8 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
                 "Cannot change the value of the element without atributing "
                 + "the element to the parent component"
             )
-        self.force_set_updated()
+        if value != self._selected:
+            self.force_set_updated()
         self._selected = value
 
     def force_set_updated(self):
@@ -160,6 +171,10 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
             )
         self.parent_element.changed = True
         self._updated = True
+
+    def unset_updated(self):
+        """Set updated to False."""
+        self._updated = False
 
     @property
     def updated(self):
@@ -218,7 +233,6 @@ class MinMaxSubElement(SelectorSubElement[float]):
         self.selected_setter(value)
 
     def construct_selector_data(self) -> Dict[str, Any]:
-        self._updated = False
         return dict(min=self._min, max=self._max, step_size=self._step_size)
 
 
@@ -253,7 +267,6 @@ class ChoicesSubElement(SelectorSubElement[str]):
         self.force_set_updated()
 
     def construct_selector_data(self) -> Dict[str, Any]:
-        self._updated = False
         return dict(choices=self._choices)
 
 
@@ -273,5 +286,4 @@ class CheckBoxSubElement(SelectorSubElement[bool]):
         self.selected_setter(value)
 
     def construct_selector_data(self) -> Dict[str, Any]:
-        self._updated = False
         return {}
