@@ -1,5 +1,5 @@
 <template>
-    <div :class="{ wrapElement: true, focused: isFocused }">
+    <div :class="{ wrapElement: true, focused: isFocused, 'checkbox-wrapper': true }">
         <span class="checkbox-text">{{ text }}</span>
         <input type="checkbox" v-model="selected" @focus="isFocused = true" @blur="isFocused = false" />
     </div>
@@ -63,5 +63,10 @@ export function processSubElementConfiguration(this_name: string, subElementConf
 <style scoped>
 .checkbox-text {
     margin-right: 5px;
+    padding-top: 8px;
+}
+
+.checkbox-wrapper {
+    display: flex;
 }
 </style>

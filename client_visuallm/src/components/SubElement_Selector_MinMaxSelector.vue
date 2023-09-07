@@ -1,7 +1,7 @@
 <template>
-  <div :class="{ 'sample-selector': true, wrapElement: true, focused: isFocused }">
-    <span class="descr"> {{ text }} </span>
-    <span class="selectorWrapper">
+  <div :class="{ 'sample-selector': true, wrapElement: true, focused: isFocused, 'selector-wrapper': true }">
+    <span class="selector-text"> {{ text }} </span>
+    <span class="selector">
       <input :style="{ width: inputWidth }" type="number" :min="min" :max="max" v-model="selected" :step="stepSize"
         @focus="isFocused = true" @blur="isFocused = false" />
     </span>
@@ -87,8 +87,17 @@ export function processSubElementConfiguration(this_name: string, subElementConf
 }
 </script>
 <style scoped>
-.selectorWrapper {
+.selector {
   width: fit-content;
   display: inline-block;
+  padding-top: 8px;
+}
+
+.selector-text {
+  padding-top: 8px;
+}
+
+.selector-wrapper {
+  display: flex;
 }
 </style>
