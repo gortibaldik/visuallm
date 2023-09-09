@@ -77,7 +77,7 @@ class NextTokenPredictionComponent(
             elements=[
                 self.main_heading_element,
                 *self.dataset_elements,
-                *self.model_elements,
+                *self.model_selection_elements,
                 *input_display_elements,
                 *token_probs_display_elements,
             ],

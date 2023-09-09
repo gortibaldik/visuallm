@@ -63,6 +63,10 @@ class ButtonElement(ElementWithEndpoint):
         for subelement in subelements:
             self.add_subelement(subelement)
 
+    @property
+    def subelements_iter(self):
+        return iter(self._subelements)
+
     def construct_element_configuration(self):
         subelement_configs = []
         for c in self._subelements:
@@ -73,6 +77,7 @@ class ButtonElement(ElementWithEndpoint):
             subelement_configs=subelement_configs,
         )
 
+    # TODO: docstring
     def get_response(self) -> Dict:
         if not request.is_json:
             raise RuntimeError("The data in request should be json!")

@@ -1,11 +1,13 @@
 from typing import Callable, Dict, Optional, Tuple, Union
 
-from transformers import PreTrainedModel, PreTrainedTokenizer
+from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
 
 from visuallm.elements.plain_text_element import PlainTextElement
 from visuallm.elements.selector_elements import ButtonElement, ChoicesSubElement
 
-TOKENIZER_MODEL_TUPLE = Tuple[PreTrainedTokenizer, PreTrainedModel]
+TOKENIZER_TYPE = Union[PreTrainedTokenizer, PreTrainedTokenizerFast]
+
+TOKENIZER_MODEL_TUPLE = Tuple[TOKENIZER_TYPE, PreTrainedModel]
 MODEL_TOKENIZER_CHOICES = Union[
     Dict[str, TOKENIZER_MODEL_TUPLE],
     Dict[
@@ -19,7 +21,7 @@ class ModelSelectionMixin:
     def __init__(
         self,
         model: Optional[PreTrainedModel] = None,
-        tokenizer: Optional[PreTrainedTokenizer] = None,
+        tokenizer: Optional[TOKENIZER_TYPE] = None,
         model_tokenizer_choices: Optional[MODEL_TOKENIZER_CHOICES] = None,
         keep_models_in_memory: bool = True,
     ):
@@ -151,8 +153,8 @@ class ModelSelectionMixin:
         )
 
     @property
-    def model_elements(self):
-        """All the elements that should be displayed on the frontend."""
+    def model_selection_elements(self):
+        """All the model selection elements that should be displayed on the frontend."""
         if self._model_choices is None:
             return []
         return [self.model_selector_heading, self.button_element]

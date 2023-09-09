@@ -9,7 +9,7 @@ from visuallm.components.mixins.data_preparation_mixin import (
 from visuallm.elements.plain_text_element import PlainTextElement
 
 
-class DatasetVisualization(ComponentBase, DataPreparationMixin):
+class DatasetVisualizationComponent(ComponentBase, DataPreparationMixin):
     def __init__(
         self,
         title: str = "Dataset Visualization",

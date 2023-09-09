@@ -3,12 +3,12 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from visuallm.component_base import ComponentBase
 from visuallm.named import Named, NamedWrapper
 
 from .utils import register_named, sanitize_url
 
 if TYPE_CHECKING:
+    from visuallm.component_base import ComponentBase
     from visuallm.server import Server
 
 

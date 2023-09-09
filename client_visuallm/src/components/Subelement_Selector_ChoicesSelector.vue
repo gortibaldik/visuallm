@@ -234,6 +234,7 @@ export function processSubElementConfiguration(this_name: string, subElementConf
 
 .multi-select-text {
   padding-top: 8px;
+  margin-right: 4px;
 }
 
 .multi-select-wrapper {

@@ -11,15 +11,13 @@ class PersonaChatVisualization:
         self.loaded_sample: Any = 1
 
     def init_model_input_display(self) -> List[ElementBase]:
-        self.table_element = TableElement()
-        self.initial_context_raw_heading = PlainTextElement(
-            is_heading=True, content="Model Inputs"
-        )
-        self.intial_context_raw_element = PlainTextElement()
+        self.input_table_vis = TableElement()
+        self.input_heading = PlainTextElement(is_heading=True, content="Model Inputs")
+        self.input_content = PlainTextElement()
         return [
-            self.table_element,
-            self.initial_context_raw_heading,
-            self.intial_context_raw_element,
+            self.input_table_vis,
+            self.input_heading,
+            self.input_content,
         ]
 
     def update_model_input_display(self, add_target: bool = True):
@@ -31,15 +29,15 @@ class PersonaChatVisualization:
 
         sentences = [s for part in [persona, context] for s in part]
 
-        self.intial_context_raw_element.content = " ".join(sentences)
+        self.input_content.content = " ".join(sentences)
         self.set_sample_tables_element(persona, context)
 
     def set_sample_tables_element(
         self, persona: List[str], context: List[str], other_last: bool = False
     ):
-        self.table_element.clear()
+        self.input_table_vis.clear()
 
-        self.table_element.add_table(
+        self.input_table_vis.add_table(
             title="BOT Persona",
             headers=["Trait"],
             rows=[[t] for t in persona],
@@ -50,6 +48,6 @@ class PersonaChatVisualization:
         whos = ["BOT" if i % 2 == bot_on_odd else "OTHER" for i in range(d_len)]
 
         if len(context) > 0:
-            self.table_element.add_table(
+            self.input_table_vis.add_table(
                 "Turns", ["Who", "Turn"], [[w, u] for w, u in zip(whos, context)]
             )

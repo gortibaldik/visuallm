@@ -36,6 +36,7 @@ class ComponentBase(Named):
         if default_callback is None:
             default_callback = self.fetch_info
         self.default_callback = default_callback
+        self.after_init_callback()
 
     def register_to_server(self, server: Server):
         for element in self.registered_elements:
@@ -63,3 +64,6 @@ class ComponentBase(Named):
         if debug_print:
             pprint(res)
         return res
+
+    def after_init_callback(self):
+        pass

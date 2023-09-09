@@ -21,13 +21,14 @@ from visuallm.components.mixins.metrics_mixin import (
 )
 from visuallm.components.mixins.model_selection_mixin import (
     MODEL_TOKENIZER_CHOICES,
+    TOKENIZER_TYPE,
     ModelSelectionMixin,
 )
 from visuallm.elements.element_base import ElementBase
 from visuallm.elements.plain_text_element import PlainTextElement
 
 
-class InteractiveGenerationComponent(
+class GenerationComponent(
     ComponentBase,
     DataPreparationMixin,
     ModelSelectionMixin,
@@ -94,7 +95,7 @@ class InteractiveGenerationComponent(
             elements=[
                 self.main_heading_element,
                 *self.dataset_elements,
-                *self.model_elements,
+                *self.model_selection_elements,
                 *self.generation_elements,
                 *self.metrics_selection_elements,
                 *input_display_elements,
@@ -196,8 +197,9 @@ class InteractiveGenerationComponent(
 def generate_output(
     model_inputs,
     *,
-    tokenizer: PreTrainedTokenizer,
+    tokenizer: TOKENIZER_TYPE,
     model: PreTrainedModel,
+    max_new_tokens: int = 40,
     **kwargs,
 ):
     """Returns generated indices and log probabilities of generated indices."""
@@ -208,6 +210,7 @@ def generate_output(
         pad_token_id=tokenizer.eos_token_id,
         output_scores=True,
         return_dict_in_generate=True,
+        max_new_tokens=max_new_tokens,
         **kwargs,
     )
     output = cast(GenerateOutput, output)
@@ -216,14 +219,14 @@ def generate_output(
 
 
 def decode_output(
-    tokenizer: PreTrainedTokenizer,
+    tokenizer: TOKENIZER_TYPE,
     input_length: int,
     output: GenerateOutput,
 ):
     """Decode generated output and remove the input part from it.
 
     Args:
-        tokenizer (PreTrainedTokenizer): tokenizer to use for decoding output
+        tokenizer (TOKENIZER_TYPE): tokenizer to use for decoding output
         input_length (int): length of input (we would remove the first part
             of the generated sequences, so that only the part that the model
             generated is returned)

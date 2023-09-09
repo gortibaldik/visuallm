@@ -1,9 +1,9 @@
-from visuallm.components.DatasetVisualizationComponent import DatasetVisualization
+from visuallm import DatasetVisualizationComponent
 
 from .input_display import PersonaChatVisualization
 
 
-class Visualization(DatasetVisualization, PersonaChatVisualization):
+class Visualization(DatasetVisualizationComponent, PersonaChatVisualization):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.on_sample_change_callback()

@@ -6,9 +6,8 @@ from visuallm.elements.plain_text_element import PlainTextElement
 from .input_display import PersonaChatVisualization
 
 
-class NTP(NextTokenPredictionComponent, PersonaChatVisualization):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class NextTokenPrediction(NextTokenPredictionComponent, PersonaChatVisualization):
+    def after_init_callback(self):
         self.on_model_change_callback()
 
     def init_model_input_display_elements(self):
@@ -18,18 +17,16 @@ class NTP(NextTokenPredictionComponent, PersonaChatVisualization):
         self.expected_outputs_raw_element = PlainTextElement()
         return [
             *PersonaChatVisualization.init_model_input_display(self),
-            self.expected_outputs_raw_heading,
-            self.expected_outputs_raw_element,
+            # self.expected_outputs_raw_heading,
+            # self.expected_outputs_raw_element,
         ]
 
     def update_model_input_display_on_selected_token(self, detokenized_token: str):
-        self.intial_context_raw_element.content += detokenized_token
+        self.input_content.content += detokenized_token
 
     def update_model_input_display_on_sample_change(self):
         PersonaChatVisualization.update_model_input_display(self, add_target=False)
         self.expected_outputs_raw_element.content = self.loaded_sample["candidates"][-1]
 
     def create_model_inputs(self):
-        return self._tokenizer(
-            self.intial_context_raw_element.content, return_tensors="pt"
-        )
+        return self._tokenizer(self.input_content.content, return_tensors="pt")
