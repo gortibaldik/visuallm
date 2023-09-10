@@ -2,7 +2,7 @@
  */
 export function numberWidth(n: number): number {
   // TODO: find some better method of measuring number width
-  let w = n.toString().length * 7 + 35
+  const w = n.toString().length * 7 + 35
   return w
 }
 

@@ -9,7 +9,7 @@
 import { valuesRequiredInConfiguration, ElementDescription } from '@/assets/elementRegistry';
 import type ElementRegistry from '@/assets/elementRegistry';
 import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib';
-import { componentSharedData, getSharedDataUniqueName } from '@/assets/reactiveData';
+import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiveData';
 import { defineComponent, shallowRef } from 'vue'
 
 let component = defineComponent({
@@ -28,13 +28,13 @@ let component = defineComponent({
     inject: ['backendAddress'],
     computed: {
         buttonText(): string {
-            return componentSharedData[getSharedDataUniqueName(this.name, 'buttonText')]
+            return dataSharedInComponent[getSharedDataUniqueName(this.name, 'buttonText')]
         },
         defaultText(): string {
-            return componentSharedData[getSharedDataUniqueName(this.name, 'defaultText')]
+            return dataSharedInComponent[getSharedDataUniqueName(this.name, 'defaultText')]
         },
         address(): string {
-            return componentSharedData[getSharedDataUniqueName(this.name, 'address')]
+            return dataSharedInComponent[getSharedDataUniqueName(this.name, 'address')]
         }
     },
     methods: {
@@ -48,7 +48,7 @@ let component = defineComponent({
             )
         },
         processResponse(response: any) {
-            this.$elementRegistry.retrieveElementsFromResponse(response, componentSharedData)
+            this.$elementRegistry.retrieveElementsFromResponse(response, dataSharedInComponent)
             this.textInput = ""
         }
     }

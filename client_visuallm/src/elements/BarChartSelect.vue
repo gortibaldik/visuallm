@@ -16,13 +16,13 @@
 <script lang="ts" scoped>
 import { shallowRef } from 'vue'
 import { defineComponent } from 'vue'
-import { componentSharedData, getSharedDataUniqueName } from '@/assets/reactiveData'
+import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiveData'
 import type Formatter from '@/assets/elementRegistry'
 import { ElementDescription } from '@/assets/elementRegistry'
 import { valuesRequiredInConfiguration } from '@/assets/elementRegistry'
 import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib'
-import DisplayPercentageComponent from './SubElement_BarCharSelect_Bar.vue'
-import type { PieceInfo } from './SubElement_BarCharSelect_Bar.vue'
+import DisplayPercentageComponent from './subelements_barchart/Bar.vue'
+import type { PieceInfo } from './subelements_barchart/Bar.vue'
 import { stringWidth } from '@/assets/utils'
 
 let component = defineComponent({
@@ -37,15 +37,15 @@ let component = defineComponent({
     /** Title and bar heights of each row to be displayed
      */
     barInfos(): PieceInfo[] {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'barInfos')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'barInfos')]
     },
     /** Path to endpoint which is called when select button is pressed
      */
     address(): string {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'address')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'address')]
     },
     longContexts(): boolean {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'longContexts')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'longContexts')]
     },
     /** Bar chart could be either treated as a selection advice, e.g. add
      * input radio before each bar and select button at the end to help user
@@ -53,7 +53,7 @@ let component = defineComponent({
      * panel and then no select button or input radio should be added.
      */
     selectable(): boolean {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'selectable')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'selectable')]
     },
 
     percentageElementWidth(): string {
@@ -95,7 +95,7 @@ let component = defineComponent({
   data() {
     return {
       selected: '',
-      reactiveStore: componentSharedData,
+      reactiveStore: dataSharedInComponent,
       selectPossibilityPoll: undefined as undefined | PollUntilSuccessPOST,
       focusedBarInfos: [] as boolean[]
     }

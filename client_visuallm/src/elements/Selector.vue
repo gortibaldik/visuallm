@@ -14,26 +14,26 @@
 <script lang="ts">
 import DesignLoading from './Design_Loading.vue'
 import { defineComponent, shallowRef } from 'vue'
-import { componentSharedData, getSharedDataUniqueName, getSharedDataElementName } from '@/assets/reactiveData'
+import { dataSharedInComponent, getSharedDataUniqueName, getSharedDataElementName } from '@/assets/reactiveData'
 import type Formatter from '@/assets/elementRegistry'
 import { ElementDescription, valuesRequiredInConfiguration, entries } from '@/assets/elementRegistry'
 import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib'
 import {
   subtype as minMaxSubtype,
   processSubElementConfiguration as minMaxProcessSubElementConfig
-} from './SubElement_Selector_MinMaxSelector.vue'
-import MinMaxSubElement from './SubElement_Selector_MinMaxSelector.vue'
+} from './subelements_selector/MinMaxSelector.vue'
+import MinMaxSubElement from './subelements_selector/MinMaxSelector.vue'
 import {
   subtype as choicesSubtype,
   processSubElementConfiguration as choicesProcessSubElementConfig
-} from './Subelement_Selector_ChoicesSelector.vue'
-import ChoicesSubElement from './Subelement_Selector_ChoicesSelector.vue'
+} from './subelements_selector/ChoicesSelector.vue'
+import ChoicesSubElement from './subelements_selector/ChoicesSelector.vue'
 
 import {
   subtype as checkboxSubtype,
   processSubElementConfiguration as checkboxProcessSubElementConfig
-} from './SubElement_Selector_CheckBox.vue'
-import CheckBoxSubElement from './SubElement_Selector_CheckBox.vue'
+} from './subelements_selector/CheckBox.vue'
+import CheckBoxSubElement from './subelements_selector/CheckBox.vue'
 
 let component = defineComponent({
   props: {
@@ -44,19 +44,19 @@ let component = defineComponent({
   },
   computed: {
     subElementConfigurationsFE(): SubElementConfigurationFE[] {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'subElementConfigs')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'subElementConfigs')]
     },
     callbackAddress(): string {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'address')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'address')]
     },
     buttonText(): string {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'buttonText')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'buttonText')]
     }
   },
   inject: ['backendAddress'],
   data() {
     return {
-      reactiveStore: componentSharedData,
+      reactiveStore: dataSharedInComponent,
       selectSamplePoll: undefined as undefined | PollUntilSuccessPOST,
       loadingInProgress: false as boolean
     }
@@ -78,7 +78,7 @@ let component = defineComponent({
         let config = this.subElementConfigurationsFE[key]
         let subElementValueName = getSharedDataUniqueName(config.name, "selected")
         let elementName = getSharedDataElementName(config.name)
-        let elementValue = componentSharedData[subElementValueName]
+        let elementValue = dataSharedInComponent[subElementValueName]
 
         dataToSend[elementName] = elementValue
       }
@@ -98,7 +98,6 @@ let component = defineComponent({
     },
     getComponent(subtype: string) {
       let component = subElementProcessors[subtype].component
-      console.log(subtype, component)
       return component
     }
   }

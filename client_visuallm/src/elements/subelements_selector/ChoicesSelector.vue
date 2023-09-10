@@ -15,7 +15,7 @@
 import VueMultiselect from 'vue-multiselect'
 import { stringWidth } from '@/assets/utils'
 import { valuesRequiredInConfiguration } from '@/assets/elementRegistry'
-import { componentSharedData, getSharedDataUniqueName, assignRequiredValuesToSharedData } from '@/assets/reactiveData'
+import { dataSharedInComponent, getSharedDataUniqueName, assignRequiredValuesToSharedData } from '@/assets/reactiveData'
 import { defineComponent } from 'vue'
 
 interface multiselectMixin {
@@ -43,13 +43,13 @@ let component = defineComponent({
   emits: ['submit'],
   computed: {
     choices(): string[] {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'choices')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'choices')]
     },
     defaultSelected(): string {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'defaultSelected')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'defaultSelected')]
     },
     text(): string {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'text')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'text')]
     },
     inputWidth(): string {
       return stringWidth(this.selected).toString() + "px"
@@ -70,14 +70,14 @@ let component = defineComponent({
         // save the newly selected value into the shared data
         this.selected = new_value
         let nameSelected = getSharedDataUniqueName(this.name, "selected")
-        componentSharedData[nameSelected] = this.selected
+        dataSharedInComponent[nameSelected] = this.selected
       },
       immediate: true
     }
   },
   data() {
     return {
-      reactiveStore: componentSharedData,
+      reactiveStore: dataSharedInComponent,
       selected: '' as string,
       outerDivFocused: false as boolean,
       innerSelectFocused: false as boolean,

@@ -24,7 +24,7 @@
 import { defineComponent } from 'vue'
 import LeaderLine from 'leader-line-new'
 import { shallowRef } from 'vue'
-import { componentSharedData, getSharedDataUniqueName } from '@/assets/reactiveData'
+import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiveData'
 import type ElementRegistry from '@/assets/elementRegistry'
 import { ElementDescription, configurationRequired, valuesRequiredInConfiguration } from '@/assets/elementRegistry'
 
@@ -66,10 +66,10 @@ let component = defineComponent({
   },
   computed: {
     links(): LinkBetweenRows[] {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'links')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'links')]
     },
     tables(): LoadedTable[] {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'loadedTables')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'loadedTables')]
     }
   },
   watch: {
