@@ -1,5 +1,5 @@
 <template>
-    <form @submit="submit" class="wrapElement text-input-wrapper">
+    <form @submit.prevent="submit" class="wrapElement text-input-wrapper">
         <textarea :placeholder="defaultText" v-model="textInput" @keydown.enter.prevent="" @keyup.enter="submit" />
         <button class="button-override button" type="submit">{{ buttonText }}</button>
     </form>

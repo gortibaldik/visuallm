@@ -10,7 +10,6 @@
   </div>
 </template>
 
-// TODO: arrows change selected in outerDivFocused regime
 <script lang="ts">
 import VueMultiselect from 'vue-multiselect'
 import { stringWidth } from '@/assets/utils'
@@ -210,7 +209,8 @@ export default component
 let subtype = 'choices'
 export { subtype }
 
-// TODO documentation
+// TODO documentation: there should be some format that allows hassle free configuration
+// of new frontend elements without knowing much about the library
 export function processSubElementConfiguration(this_name: string, subElementConfiguration: any) {
   let requiredValues = { choices: "choices", selected: "defaultSelected", text: "text" } as { [key: string]: string }
   valuesRequiredInConfiguration(subElementConfiguration, Object.keys(requiredValues))

@@ -1,5 +1,5 @@
 <template>
-  <form class="wrapElement" @submit="submit" @keypress.enter="submit">
+  <form class="wrapElement" @submit.prevent="submit" @keypress.enter="submit">
     <div class="subSelectorsWrapper">
       <component v-for="subElementConfigFE in subElementConfigurationsFE" :is="getComponent(subElementConfigFE.subtype)"
         :name="subElementConfigFE.name"></component>

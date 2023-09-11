@@ -1,5 +1,5 @@
 <template>
-  <form class="wrapElement" @submit="submit">
+  <form class="wrapElement" @submit.prevent="submit">
     <div v-for="(barInfo, i) in barInfos" :class="{ 'progress-bar': true, focused: focusedBarInfos[i] }">
       <input v-if="selectable" class="input-radio" type="radio" v-model="selected" :value="barInfo.pieceTitle"
         @focus="focusedBarInfos[i] = true" @blur="focusedBarInfos[i] = false" />
