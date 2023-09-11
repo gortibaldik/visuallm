@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Set
+from typing import Callable, Dict, List, Sequence, Set
 
 from visuallm.component_base import ComponentBase
 from visuallm.elements.element_base import ElementBase
@@ -36,12 +36,13 @@ class ButtonElementStub(ButtonElement):
 class ParentComponentStub(ComponentBase):
     """Stub that has the same `fetch_info` method but nothing else."""
 
-    def __init__(self, elements: List[ElementBase]):
+    def __init__(self, elements: Sequence[ElementBase]):
         self.elements = elements
         self.registered_element_names: Set[str] = set()
         self.registered_elements: List[ElementBase] = []
         self.registered_url_endpoints: Set[str] = set()
         for element in self.elements:
+            element.order = 1
             element.register_to_component(self)
 
     def register_to_server(self, server: Server):
