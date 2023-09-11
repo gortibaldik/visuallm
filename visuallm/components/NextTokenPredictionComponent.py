@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import torch
 from numpy.typing import NDArray
-from transformers import PreTrainedModel, PreTrainedTokenizer
+from transformers import PreTrainedModel
 from transformers.tokenization_utils import BatchEncoding
 
 from visuallm.component_base import ComponentBase
@@ -14,6 +14,7 @@ from visuallm.components.mixins.data_preparation_mixin import (
 )
 from visuallm.components.mixins.model_selection_mixin import (
     MODEL_TOKENIZER_CHOICES,
+    TOKENIZER_TYPE,
     ModelSelectionMixin,
 )
 from visuallm.elements.barchart_element import BarChartElement, PieceInfo
@@ -28,7 +29,7 @@ class NextTokenPredictionComponent(
         self,
         title: str = "Next Token Prediction",
         model: Optional[PreTrainedModel] = None,
-        tokenizer: Optional[PreTrainedTokenizer] = None,
+        tokenizer: Optional[TOKENIZER_TYPE] = None,
         model_tokenizer_choices: Optional[MODEL_TOKENIZER_CHOICES] = None,
         dataset: Optional[DATASET_TYPE] = None,
         dataset_choices: Optional[DATASETS_TYPE] = None,
@@ -40,15 +41,15 @@ class NextTokenPredictionComponent(
         Args:
             title (str, optional): The title of the component, displayed at the top of the page,
                 and in the tabs. Defaults to "Next Token Prediction".
-            model (Optional[PreTrainedModel], optional): Huggingface model. Defaults to None.
-            tokenizer (Optional[PreTrainedTokenizer], optional): Huggingface tokenizer. Defaults to None.
-            model_tokenizer_choices (Optional[MODEL_TOKENIZER_CHOICES], optional): dictionary where key
+            model (Optional[PreTrainedModel]): Huggingface model. Defaults to None.
+            tokenizer (Optional[TOKENIZER_TYPE]): Huggingface tokenizer. Defaults to None.
+            model_tokenizer_choices (Optional[MODEL_TOKENIZER_CHOICES]): dictionary where key
                 is the name of the tuple and value is tuple of tokenizer and model. Defaults to None.
-            dataset (Optional[DATASET_TYPE], optional): Dataset or a function that loads
+            dataset (Optional[DATASET_TYPE]): Dataset or a function that loads
                 the dataset. Defaults to None.
-            dataset_choices (Optional[DATASETS_TYPE], optional): Dictionary of datasets, or
+            dataset_choices (Optional[DATASETS_TYPE]): Dictionary of datasets, or
                 dictionary of functions that load the dataset. Defaults to None.
-            n_largest_tokens_to_return (int, optional): The vocabulary is large and it is not feasible to
+            n_largest_tokens_to_return (Optional[int]): The vocabulary is large and it is not feasible to
                 display all the possibilities, hence this allows you to choose only the tokens that have
                 the largest probability assigned by the language model. Defaults to 10.
         """

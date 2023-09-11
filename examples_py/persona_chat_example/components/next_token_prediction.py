@@ -17,16 +17,18 @@ class NextTokenPrediction(NextTokenPredictionComponent, PersonaChatVisualization
         self.expected_outputs_raw_element = PlainTextElement()
         return [
             *PersonaChatVisualization.init_model_input_display(self),
-            # self.expected_outputs_raw_heading,
-            # self.expected_outputs_raw_element,
+            self.expected_outputs_raw_heading,
+            self.expected_outputs_raw_element,
         ]
 
     def update_model_input_display_on_selected_token(self, detokenized_token: str):
-        self.input_content.content += detokenized_token
+        self.text_to_tokenizer_element.content += detokenized_token
 
     def update_model_input_display_on_sample_change(self):
         PersonaChatVisualization.update_model_input_display(self, add_target=False)
         self.expected_outputs_raw_element.content = self.loaded_sample["candidates"][-1]
 
     def create_model_inputs(self):
-        return self._tokenizer(self.input_content.content, return_tensors="pt")
+        return self._tokenizer(
+            self.text_to_tokenizer_element.content, return_tensors="pt"
+        )
