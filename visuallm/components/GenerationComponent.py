@@ -4,7 +4,7 @@ import torch
 from transformers import PreTrainedModel
 from transformers.generation.utils import GenerateOutput
 
-from visuallm.component_base import ComponentBase
+from visuallm.component_base import ComponentBase, ComponentMetaclass
 from visuallm.components.mixins.data_preparation_mixin import (
     DATASET_TYPE,
     DATASETS_TYPE,
@@ -34,6 +34,7 @@ class GenerationComponent(
     ModelSelectionMixin,
     GenerationSelectorsMixin,
     MetricsMixin,
+    metaclass=ComponentMetaclass,
 ):
     def __init__(
         self,
@@ -69,6 +70,7 @@ class GenerationComponent(
             selectors (SELECTORS_TYPE): dictionary of all the selectors which should
                 be displayed on the frontend.
         """
+        super().__init__(name="interactive_generation", title=title)
         self.main_heading_element = PlainTextElement(
             is_heading=True, heading_level=2, content=title
         )
@@ -88,20 +90,13 @@ class GenerationComponent(
             metrics_on_probs=metrics_on_probs,
         )
         input_display_elements = self.init_model_input_display()
-
-        super().__init__(
-            name="interactive_generation",
-            title=title,
-            elements=[
-                self.main_heading_element,
-                *self.dataset_elements,
-                *self.model_selection_elements,
-                *self.generation_elements,
-                *self.metrics_selection_elements,
-                *input_display_elements,
-                *self.metrics_display_elements,
-            ],
-        )
+        self.add_element(self.main_heading_element)
+        self.add_elements(self.dataset_elements)
+        self.add_elements(self.model_selection_elements)
+        self.add_elements(self.generation_elements)
+        self.add_elements(self.metrics_selection_elements)
+        self.add_elements(input_display_elements)
+        self.add_elements(self.metrics_display_elements)
 
     def init_model_input_display(self) -> List[ElementBase]:
         """Init elements that should display the dataset sample.

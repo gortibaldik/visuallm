@@ -7,7 +7,7 @@ from .input_display import PersonaChatVisualization
 
 
 class NextTokenPrediction(NextTokenPredictionComponent, PersonaChatVisualization):
-    def after_init_callback(self):
+    def __post_init__(self):
         self.on_model_change_callback()
 
     def init_model_input_display_elements(self):

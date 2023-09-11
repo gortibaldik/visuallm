@@ -7,22 +7,44 @@ if TYPE_CHECKING:
     from visuallm.elements.element_base import ElementBase
     from visuallm.server import Server
 
+from abc import ABCMeta
+
 from visuallm.elements.utils import register_named, sanitize_url
 from visuallm.named import Named, NamedWrapper
 
 
-class ComponentBase(Named):
+class _ComponentBaseMetaclass(type):
+    def __call__(cls, *args, **kwargs):
+        """This is called when a constructor of the class is called."""
+        obj = type.__call__(cls, *args, **kwargs)
+        if hasattr(obj, "__post_init__"):
+            obj.__post_init__()
+        return obj
+
+
+class ComponentMetaclass(_ComponentBaseMetaclass, ABCMeta):
+    """This metaclass is an inheritor of ComponentBaseMetaclass which adds call to
+    __post_init__ after all the inits were executed and an inheritor of
+    ABCMeta.
+    """
+
+    pass
+
+
+class ComponentBase(Named, metaclass=_ComponentBaseMetaclass):
     def __init__(
         self,
         name: str,
         title: str,
-        elements: List[ElementBase],
         default_url: Optional[str] = None,
         default_callback: Optional[Callable] = None,
     ):
         super().__init__(name)
         if default_url is None:
             default_url = sanitize_url(name)
+        if default_callback is None:
+            default_callback = self.fetch_info
+
         self.default_url = default_url
         self.title = title
 
@@ -30,13 +52,32 @@ class ComponentBase(Named):
         self.registered_element_names = set()
         self.registered_elements: List[ElementBase] = []
         self.registered_url_endpoints: MutableSet[str] = set()
-        for element in elements:
-            element.register_to_component(self)
 
-        if default_callback is None:
-            default_callback = self.fetch_info
         self.default_callback = default_callback
-        self.after_init_callback()
+
+    def __post_init__(self):
+        pass
+
+    def _get_order(self, order: Optional[float]):
+        if order is None:
+            if len(self.registered_elements) == 0:
+                currently_biggest_priority = 0
+            else:
+                currently_biggest_priority = max(
+                    e.order for e in self.registered_elements
+                )
+            order = currently_biggest_priority + 1
+        return order
+
+    def add_element(self, element: ElementBase, order: Optional[float] = None):
+        order = self._get_order(order)
+        element.register_to_component(self)
+        element.order = order
+
+    def add_elements(self, elements: List[ElementBase], order: Optional[float] = None):
+        order = self._get_order(order)
+        for element in elements:
+            self.add_element(element, order)
 
     def register_to_server(self, server: Server):
         for element in self.registered_elements:
@@ -57,13 +98,10 @@ class ComponentBase(Named):
             result="success",
             elementDescriptions=[
                 element.construct_element_description()
-                for element in self.registered_elements
+                for element in sorted(self.registered_elements, key=lambda e: e.order)
                 if element.changed or fetch_all
             ],
         )
         if debug_print:
             pprint(res)
         return res
-
-    def after_init_callback(self):
-        pass

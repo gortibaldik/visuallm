@@ -1,9 +1,14 @@
-from typing import Callable, Dict, Optional, Tuple, Union
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple, Union
 
 from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
 
 from visuallm.elements.plain_text_element import PlainTextElement
 from visuallm.elements.selector_elements import ButtonElement, ChoicesSubElement
+
+if TYPE_CHECKING:
+    from visuallm.elements import ElementBase
 
 TOKENIZER_TYPE = Union[PreTrainedTokenizer, PreTrainedTokenizerFast]
 
@@ -153,7 +158,7 @@ class ModelSelectionMixin:
         )
 
     @property
-    def model_selection_elements(self):
+    def model_selection_elements(self) -> List[ElementBase]:
         """All the model selection elements that should be displayed on the frontend."""
         if self._model_choices is None:
             return []

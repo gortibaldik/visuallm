@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 from transformers import PreTrainedModel
 from transformers.tokenization_utils import BatchEncoding
 
-from visuallm.component_base import ComponentBase
+from visuallm.component_base import ComponentBase, ComponentMetaclass
 from visuallm.components.mixins.data_preparation_mixin import (
     DATASET_TYPE,
     DATASETS_TYPE,
@@ -23,7 +23,10 @@ from visuallm.elements.plain_text_element import PlainTextElement
 
 
 class NextTokenPredictionComponent(
-    ComponentBase, ModelSelectionMixin, DataPreparationMixin
+    ComponentBase,
+    ModelSelectionMixin,
+    DataPreparationMixin,
+    metaclass=ComponentMetaclass,
 ):
     def __init__(
         self,
@@ -53,6 +56,7 @@ class NextTokenPredictionComponent(
                 display all the possibilities, hence this allows you to choose only the tokens that have
                 the largest probability assigned by the language model. Defaults to 10.
         """
+        super().__init__(name="next_token_prediction", title=title)
         self.main_heading_element = PlainTextElement(
             is_heading=True, heading_level=2, content=title
         )
@@ -72,17 +76,11 @@ class NextTokenPredictionComponent(
         self._n_largest_tokens_to_return = n_largest_tokens_to_return
         self._init_word_vocab()
 
-        super().__init__(
-            name="next_token_prediction",
-            title=title,
-            elements=[
-                self.main_heading_element,
-                *self.dataset_elements,
-                *self.model_selection_elements,
-                *input_display_elements,
-                *token_probs_display_elements,
-            ],
-        )
+        self.add_element(self.main_heading_element)
+        self.add_elements(self.dataset_elements)
+        self.add_elements(self.model_selection_elements)
+        self.add_elements(input_display_elements)
+        self.add_elements(token_probs_display_elements)
 
     def init_token_probs_display_elements(self) -> List[ElementBase]:
         """Init all the elements that display the next token predictions.

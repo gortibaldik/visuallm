@@ -7,7 +7,7 @@ from .input_display import PersonaChatVisualization
 
 
 class Generation(GenerationComponent, PersonaChatVisualization):
-    def after_init_callback(self):
+    def __post_init__(self):
         self.on_model_change_callback()
 
     def init_model_input_display(self) -> List[ElementBase]:
@@ -17,12 +17,14 @@ class Generation(GenerationComponent, PersonaChatVisualization):
         PersonaChatVisualization.update_model_input_display(self, add_target=False)
 
     def create_model_inputs(self):
-        return self._tokenizer(self.input_content.content, return_tensors="pt")
+        return self._tokenizer(
+            self.text_to_tokenizer_element.content, return_tensors="pt"
+        )
 
     def create_target_encoding(self):
         target = self.get_target_str()
         return self._tokenizer(
-            self.input_content.content + " " + target, return_tensors="pt"
+            self.text_to_tokenizer_element.content + " " + target, return_tensors="pt"
         ).input_ids
 
     def get_target_str(self):

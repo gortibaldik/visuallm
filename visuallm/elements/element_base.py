@@ -30,7 +30,22 @@ class ElementBase(Named, ABC):
         """
         super().__init__(name)
         self._type = type
+        self._order: Optional[float] = None
         self.changed = True
+
+    @property
+    def order(self) -> float:
+        """This value affects in what order the elements would be displayed on the frontend.
+        The lowest order is on the top of the page, the highest on the bottom."""
+        if self._order is None:
+            raise RuntimeError("Order wasn't assigned yet!")
+        return self._order
+
+    @order.setter
+    def order(self, value: float):
+        if value <= 0:
+            raise ValueError("The priority can be only positive float")
+        self._order = value
 
     @property
     def type(self):
@@ -58,7 +73,7 @@ class ElementBase(Named, ABC):
 
     def register_to_server(self, server: Server):
         """
-        Register the element's endpoint to the application
+        Register the element's endpoint to the server
 
         Args:
             server (Server): the server to which the element is registered.
