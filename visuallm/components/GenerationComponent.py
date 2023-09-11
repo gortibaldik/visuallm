@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional, cast
 
 import torch
-from transformers import PreTrainedModel, PreTrainedTokenizer
+from transformers import PreTrainedModel
 from transformers.generation.utils import GenerateOutput
 
 from visuallm.component_base import ComponentBase
@@ -39,7 +39,7 @@ class GenerationComponent(
         self,
         title: str = "Interactive Generation",
         model: Optional[PreTrainedModel] = None,
-        tokenizer: Optional[PreTrainedTokenizer] = None,
+        tokenizer: Optional[TOKENIZER_TYPE] = None,
         model_tokenizer_choices: Optional[MODEL_TOKENIZER_CHOICES] = None,
         metrics_on_generated_text: Dict[str, GeneratedTextMetric] = {},
         metrics_on_probs: Dict[str, ProbsMetric] = {},

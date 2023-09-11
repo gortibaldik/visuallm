@@ -7,6 +7,7 @@ from typing import (  # noqa
     List,
     Optional,
     Protocol,
+    Sequence,
     Union,
 )
 
@@ -20,7 +21,7 @@ from visuallm.elements.selector_elements import (
 
 
 class DatasetProtocol(Protocol):
-    def __getitem__(self, __key: str) -> List[Any]:
+    def __getitem__(self, __key) -> Any:
         ...
 
     def keys(self) -> KeysView[str]:
@@ -235,7 +236,7 @@ class DataPreparationMixin(ABC):
             subelements=subelements,
         )
 
-    def get_split(self) -> List[Any]:
+    def get_split(self) -> Sequence[Any]:
         """Get all the samples in the currently selected split of the dataset.
 
         Returns:
