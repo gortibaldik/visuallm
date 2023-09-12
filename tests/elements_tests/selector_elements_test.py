@@ -1,52 +1,17 @@
-from typing import Callable, Dict, List, Sequence, Set
-
+from tests.elements_tests.custom_request_mixin import CustomRequestMixin
 from visuallm.component_base import ComponentBase
-from visuallm.elements.element_base import ElementBase
 from visuallm.elements.selector_elements import (
     ButtonElement,
     CheckBoxSubElement,
     ChoicesSubElement,
     MinMaxSubElement,
-    SelectorSubElement,
 )
-from visuallm.server import Server
 
 
-class ButtonElementStub(ButtonElement):
+class ButtonElementStub(CustomRequestMixin, ButtonElement):
     """
     Stub that instead of real request json returns something that test user specifies.
     """
-
-    def __init__(
-        self,
-        returned_response: Dict,
-        processing_callback: Callable[[], None],
-        name: str = "selector",
-        subelements: List[SelectorSubElement] = ...,
-        button_text="Select",
-        **kwargs,
-    ):
-        super().__init__(processing_callback, name, subelements, button_text, **kwargs)
-        self.returned_response = returned_response
-
-    def get_response(self):
-        return self.returned_response
-
-
-class ParentComponentStub(ComponentBase):
-    """Stub that has the same `fetch_info` method but nothing else."""
-
-    def __init__(self, elements: Sequence[ElementBase]):
-        self.elements = elements
-        self.registered_element_names: Set[str] = set()
-        self.registered_elements: List[ElementBase] = []
-        self.registered_url_endpoints: Set[str] = set()
-        for element in self.elements:
-            element.order = 1
-            element.register_to_component(self)
-
-    def register_to_server(self, server: Server):
-        return None
 
 
 def test_checkbox_selected_changed_set():
@@ -70,7 +35,8 @@ def test_checkbox_selected_changed_set():
         processing_callback=processing_callback,
         subelements=[checkbox_subelement],
     )
-    parent_component = ParentComponentStub([button_element])
+    parent_component = ComponentBase(name="base", title="base")
+    parent_component.add_element(button_element)
 
     # assert
     # when only fetching, it shouldn't be updated
@@ -108,7 +74,8 @@ def test_checkbox_selected_changed_not_set():
         processing_callback=assert_not_updated,
         subelements=[checkbox_subelement],
     )
-    parent_component = ParentComponentStub([button_element])
+    parent_component = ComponentBase(name="base", title="base")
+    parent_component.add_element(button_element)
 
     # assert
     # when only fetching, it shouldn't be updated
@@ -144,7 +111,8 @@ def test_multiple_subelements_nothing_changed():
         processing_callback=assert_not_updated,
         subelements=[checkbox_subelement, minmax_subelement],
     )
-    parent_component = ParentComponentStub([button_element])
+    parent_component = ComponentBase(name="base", title="base")
+    parent_component.add_element(button_element)
 
     # assert
     returned_value = parent_component.fetch_info()
@@ -194,7 +162,8 @@ def test_multiple_subelements_one_changed():
         processing_callback=processing_callback,
         subelements=[checkbox_subelement, minmax_subelement],
     )
-    parent_component = ParentComponentStub([button_element])
+    parent_component = ComponentBase(name="base", title="base")
+    parent_component.add_element(button_element)
 
     # assert
     assertion = assert_not_updated
@@ -262,7 +231,8 @@ def test_multiple_subelements_both_changed():
         processing_callback=processing_callback,
         subelements=[checkbox_subelement, minmax_subelement],
     )
-    parent_component = ParentComponentStub([button_element])
+    parent_component = ComponentBase(name="base", title="base")
+    parent_component.add_element(button_element)
 
     # assert
     assertion = assert_not_updated
@@ -328,7 +298,8 @@ def test_multiple_subelements_other_one_changed():
         processing_callback=processing_callback,
         subelements=[checkbox_subelement, choices_subelement],
     )
-    parent_component = ParentComponentStub([button_element])
+    parent_component = ComponentBase(name="base", title="base")
+    parent_component.add_element(button_element)
 
     # assert
     assertion = assert_not_updated
@@ -365,3 +336,62 @@ def test_multiple_subelements_other_one_changed():
         ]
         == "two"
     )
+
+
+def test_on_button_name_change():
+    # arrange
+    button_element = ButtonElementStub(
+        returned_response={},
+        processing_callback=lambda: None,
+        subelements=[],
+        button_text="Select",
+    )
+    parent_component = ComponentBase(name="base", title="base")
+    parent_component.add_element(button_element)
+
+    # assert
+    returned_value = parent_component.fetch_info(fetch_all=False)
+    assert len(returned_value["elementDescriptions"]) == 1
+    assert len(returned_value["elementDescriptions"][0]["subelement_configs"]) == 0
+    assert returned_value["elementDescriptions"][0]["button_text"] == "Select"
+
+    returned_value = parent_component.fetch_info(fetch_all=False)
+    assert len(returned_value["elementDescriptions"]) == 0
+
+    button_element.button_text = "Regenerate"
+    assert button_element.changed is True
+
+    returned_value = parent_component.fetch_info(fetch_all=False)
+    assert len(returned_value["elementDescriptions"]) == 1
+    assert len(returned_value["elementDescriptions"][0]["subelement_configs"]) == 0
+    assert returned_value["elementDescriptions"][0]["button_text"] == "Regenerate"
+
+
+def test_on_button_disabled_change():
+    # arrange
+    button_element = ButtonElementStub(
+        returned_response={},
+        processing_callback=lambda: None,
+        subelements=[],
+        button_text="Select",
+        disabled=False,
+    )
+    parent_component = ComponentBase(name="base", title="base")
+    parent_component.add_element(button_element)
+
+    # assert
+    returned_value = parent_component.fetch_info(fetch_all=False)
+    assert len(returned_value["elementDescriptions"]) == 1
+    assert len(returned_value["elementDescriptions"][0]["subelement_configs"]) == 0
+    assert returned_value["elementDescriptions"][0]["disabled"] is False
+
+    returned_value = parent_component.fetch_info(fetch_all=False)
+    assert len(returned_value["elementDescriptions"]) == 0
+
+    button_element.disabled = True
+    assert button_element.changed is True
+
+    returned_value = parent_component.fetch_info(fetch_all=False)
+    assert len(returned_value["elementDescriptions"]) == 1
+    assert len(returned_value["elementDescriptions"][0]["subelement_configs"]) == 0
+    assert returned_value["elementDescriptions"][0]["disabled"] is True

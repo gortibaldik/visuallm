@@ -80,7 +80,7 @@ class TableElement(ElementBase):
         self.clear()
 
     def clear(self):
-        self.changed = True
+        self._changed = True
         self._tables: Dict[str, Any] = {}
         self.tables = []
         self.links = []
@@ -98,7 +98,7 @@ class TableElement(ElementBase):
             )
         if title in self._tables:
             raise ValueError("Cannot add two tables with the same name!")
-        self.changed = True
+        self._changed = True
         self._tables[title] = dict(headers=headers, rows=rows, title=title)
         self.tables.append(self._tables[title])
 
@@ -115,7 +115,7 @@ class TableElement(ElementBase):
                 f"{len(self._tables[link.StartTable]['rows']), link.StartRow}"
                 + f"{len(self._tables[link.EndTable]['rows']), link.EndRow}"
             )
-        self.changed = True
+        self._changed = True
         self.links.append(link)
 
     def construct_element_configuration(self):

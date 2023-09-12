@@ -22,7 +22,7 @@ class PlainTextElement(ElementBase):
 
     @content.setter
     def content(self, value: str):
-        self.changed = True
+        self._changed = True
         self._content = value
 
     def construct_element_configuration(self) -> Dict[str, Any]:
@@ -38,3 +38,8 @@ class HeadingElement(PlainTextElement):
         super().__init__(
             content, is_heading=True, heading_level=heading_level, name=name
         )
+
+
+class MainHeadingElement(HeadingElement):
+    def __init__(self, content: str = "", name="heading"):
+        super().__init__(content, heading_level=2, name=name)
