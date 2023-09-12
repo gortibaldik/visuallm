@@ -5,7 +5,7 @@
         :name="subElementConfigFE.name"></component>
     </div>
     <div class="buttonWrapper">
-      <button class="button" :disabled="loadingInProgress" type="submit">{{ buttonText }}</button>
+      <button class="button" :disabled="buttonDisabled || loadingInProgress" type="submit">{{ buttonText }}</button>
       <DesignLoading v-if="loadingInProgress" class="loading-indicator" />
     </div>
   </form>
@@ -51,6 +51,9 @@ let component = defineComponent({
     },
     buttonText(): string {
       return dataSharedInComponent[getSharedDataUniqueName(this.name, 'buttonText')]
+    },
+    buttonDisabled(): boolean {
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'disabled')]
     }
   },
   inject: ['backendAddress'],
@@ -140,6 +143,7 @@ class ElementConfiguration extends ElementDescription {
   subelement_configs!: SubElementConfigurationFromBE[]
   address!: string
   button_text!: string
+  disabled!: boolean
 }
 
 export function registerElement(formatter: Formatter) {
@@ -150,11 +154,12 @@ export function registerElement(formatter: Formatter) {
 }
 
 function processElementDescr(configuration: ElementConfiguration) {
-  valuesRequiredInConfiguration(configuration, ['subelement_configs', 'address', 'button_text'])
+  valuesRequiredInConfiguration(configuration, ['subelement_configs', 'address', 'button_text', 'disabled'])
 
   let data = {
     address: configuration.address,
     buttonText: configuration.button_text,
+    disabled: configuration.disabled,
     subElementConfigs: [] as SubElementConfigurationFE[]
   } as { [key: string]: any }
 

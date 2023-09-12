@@ -3,6 +3,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
+from flask import request
+
 from visuallm.named import Named, NamedWrapper
 
 from .utils import register_named, sanitize_url
@@ -31,7 +33,11 @@ class ElementBase(Named, ABC):
         super().__init__(name)
         self._type = type
         self._order: Optional[float] = None
-        self.changed = True
+        self._changed = True
+
+    @property
+    def changed(self):
+        return self._changed
 
     @property
     def order(self) -> float:
@@ -57,7 +63,7 @@ class ElementBase(Named, ABC):
 
         Sets changed to false!
         """
-        self.changed = False
+        self._changed = False
         return dict(
             name=self.name,
             type=self.type,
@@ -118,11 +124,32 @@ class ElementWithEndpoint(ElementBase):
         if endpoint_url is None:
             endpoint_url = sanitize_url(self.name)
         self.endpoint_url = endpoint_url
-        self.parent_component: Optional[ComponentBase] = None
+        self._parent_component: Optional[ComponentBase] = None
         self._type = type
         """The component that holds all the other elements. This is set
         in `ComponentBase.register_elements`
         """
+
+    @property
+    def parent_component(self) -> ComponentBase:
+        if self._parent_component is None:
+            raise RuntimeError(
+                "Parent Component accessed, but it was never assigned any value !"
+            )
+        return self._parent_component
+
+    def get_request_dict(self) -> Dict:
+        """Get the request dict from the api call.
+
+        Written in this way for better testability (changing the api call flask
+        logic with custom request dict for test cases)
+
+        Raises:
+            RuntimeError: if the api call dict doesn't contain a json object
+        """
+        if not request.is_json:
+            raise RuntimeError("The data in request should be json!")
+        return request.get_json()
 
     @abstractmethod
     def endpoint_callback(self):
@@ -130,13 +157,9 @@ class ElementWithEndpoint(ElementBase):
         pass
 
     def construct_element_description(self) -> Dict[str, Any]:
-        self.changed = False
-        return dict(
-            name=self.name,
-            type=self.type,
-            address=self.endpoint_url.removeprefix("/"),
-            **self.construct_element_configuration(),
-        )
+        return_dict = super().construct_element_description()
+        return_dict["address"] = self.endpoint_url.removeprefix("/")
+        return return_dict
 
     def register_to_server(self, server: Server):
         """Register the element's endpoint to the server.
@@ -152,4 +175,4 @@ class ElementWithEndpoint(ElementBase):
         register_named(
             NamedWrapper(self, "endpoint_url"), component.registered_url_endpoints
         )
-        self.parent_component = component
+        self._parent_component = component

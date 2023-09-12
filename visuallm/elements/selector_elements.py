@@ -4,8 +4,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Generic, List, MutableSet, Optional, TypeVar
 
-from flask import request
-
 from visuallm.named import Named
 
 from .element_base import ElementWithEndpoint
@@ -36,7 +34,8 @@ class ButtonElement(ElementWithEndpoint):
         processing_callback: Callable[[], None],
         name: str = "button",
         subelements: List[SelectorSubElement] = [],
-        button_text="Select",
+        button_text: str = "Select",
+        disabled: bool = False,
         **kwargs,
     ):
         """
@@ -52,6 +51,7 @@ class ButtonElement(ElementWithEndpoint):
                 Defaults to [].
             button_text (str, optional): Text displayed in a button input
                 element. Defaults to "Select".
+            disabled (bool): whether the button should be clickable
         """
         super().__init__(name=name, type="button", **kwargs)
         self.processing_callback = processing_callback
@@ -59,6 +59,7 @@ class ButtonElement(ElementWithEndpoint):
         self._subelements_dict: Dict[str, SelectorSubElement] = {}
         self._subelements: List[SelectorSubElement] = []
         self._subelement_names: MutableSet[str] = set()
+        self._disabled = disabled
 
         for subelement in subelements:
             self.add_subelement(subelement)
@@ -67,21 +68,37 @@ class ButtonElement(ElementWithEndpoint):
     def subelements_iter(self):
         return iter(self._subelements)
 
+    @property
+    def disabled(self):
+        """Property controlling whether the button is clickable."""
+        return self._disabled
+
+    @disabled.setter
+    def disabled(self, value: bool):
+        if value != self._disabled:
+            self._changed = True
+        self._disabled = value
+
+    @property
+    def button_text(self):
+        return self._button_text
+
+    @button_text.setter
+    def button_text(self, value: str):
+        if value != self._button_text:
+            self._changed = True
+        self._button_text = value
+
     def construct_element_configuration(self):
         subelement_configs = []
         for c in self._subelements:
             subelement_configs.append(c.subelement_configuration)
             c.unset_updated()
         return dict(
-            button_text=self._button_text,
+            button_text=self.button_text,
+            disabled=self.disabled,
             subelement_configs=subelement_configs,
         )
-
-    # TODO: docstring
-    def get_response(self) -> Dict:
-        if not request.is_json:
-            raise RuntimeError("The data in request should be json!")
-        return request.get_json()
 
     def endpoint_callback(self):
         """Goes over the standard format of response from FE and sets all
@@ -89,15 +106,11 @@ class ButtonElement(ElementWithEndpoint):
         the control to the programmer for handling of the updated data and
         then returns everything updated to the frontend.
         """
-        response_json = self.get_response()
+        response_json = self.get_request_dict()
         for key, value in response_json.items():
             self._subelements_dict[key].selected = value
 
         self.processing_callback()
-        if self.parent_component is None:
-            raise RuntimeError(
-                "Endpoint Callback shouldn't be called without parent element being assigned!"
-            )
         return self.parent_component.fetch_info(fetch_all=False)
 
     def add_subelement(self, subelement: SelectorSubElement):
@@ -174,7 +187,7 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
                 "Cannot set the element to the updated state without "
                 + "atributing the element to the parent component"
             )
-        self.parent_element.changed = True
+        self.parent_element._changed = True
         self._updated = True
 
     def unset_updated(self):
