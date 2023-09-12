@@ -37,20 +37,20 @@ The library is composed of three parts:
 ```py
 # ./examples_py/simple_component.py lines 1-15
 from visuallm.component_base import ComponentBase
-from visuallm.elements.plain_text_element import PlainTextElement
+from visuallm.elements import MainHeadingElement, PlainTextElement
 
 
 class SimpleComponent(ComponentBase):
     def __init__(self):
-        self.main_heading_element = PlainTextElement(
-            is_heading=True, heading_level=2, content="Really Easy Component"
-        )
+        super().__init__(name="simple_component", title="Simple Component")
+        main_heading_element = MainHeadingElement(content="Really Easy Component")
         self.text_element = PlainTextElement(
             content="""
                 Some really interesting text that isn't formatted in any way, it is
                 just a plain simple text
             """
         )
+        self.add_elements([main_heading_element, self.text_element])
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -60,11 +60,7 @@ class SimpleComponent(ComponentBase):
 <!-- The below code snippet is automatically added from ./examples_py/simple_component.py -->
 ```py
 # ./examples_py/simple_component.py lines 16-21
-        super().__init__(
-            name="simple_component",
-            title="Simple Component",
-            elements=[self.main_heading_element, self.text_element],
-        )
+
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -144,7 +140,7 @@ import time
 from typing import Optional
 
 from visuallm.component_base import ComponentBase
-from visuallm.elements.plain_text_element import PlainTextElement
+from visuallm.elements import MainHeadingElement, PlainTextElement
 from visuallm.elements.selector_elements import (
     ButtonElement,
     CheckBoxSubElement,
@@ -163,9 +159,9 @@ Input element for setting integer in a range.
 # ./examples_py/selector_component.py lines 13-18
 class SelectorComponent(ComponentBase):
     def __init__(self):
+        super().__init__(name="selector_component", title="Selector Component")
         self.text_element = PlainTextElement()
         self.number_selector_element = MinMaxSubElement(
-            sample_min=0, sample_max=10, text="Select Number:"
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -177,9 +173,9 @@ Input element for choosing between several choices.
 <!-- The below code snippet is automatically added from ./examples_py/selector_component.py -->
 ```py
 # ./examples_py/selector_component.py lines 19-21
+            sample_min=0, sample_max=10, text="Select Number:"
         )
         self.choices_element = ChoicesSubElement(
-            choices=["super", "magnificent", "incredible"], text="This library is:"
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -191,7 +187,7 @@ Simple checkbox input element.
 <!-- The below code snippet is automatically added from ./examples_py/selector_component.py -->
 ```py
 # ./examples_py/selector_component.py lines 22
-        )
+            choices=["super", "magnificent", "incredible"], text="This library is:"
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -203,6 +199,7 @@ This is an element that should encapsulate all the other configuration selection
 <!-- The below code snippet is automatically added from ./examples_py/selector_component.py -->
 ```py
 # ./examples_py/selector_component.py lines 23-61
+        )
         self.checkbox_element = CheckBoxSubElement(text="Have you slept?:")
         self.set_text_element(
             self.choices_element.selected,
@@ -217,17 +214,8 @@ This is an element that should encapsulate all the other configuration selection
                 self.checkbox_element,
             ],
         )
-        super().__init__(
-            name="selector_component",
-            title="Selector Component",
-            elements=[
-                PlainTextElement(
-                    is_heading=True, heading_level=2, content="Selector Component"
-                ),
-                self.button_element,
-                self.text_element,
-            ],
-        )
+        self.add_element(MainHeadingElement(content="Selector Component"))
+        self.add_elements([self.button_element, self.text_element])
 
     def button_clicked(self):
         n = self.number_selector_element.selected
@@ -242,6 +230,14 @@ This is an element that should encapsulate all the other configuration selection
             or self.choices_element.updated
             or self.checkbox_element.updated
         )
+        self.set_text_element(c, n, message, any_updated)
+        time.sleep(n)
+
+    def set_text_element(
+        self,
+        choice: str,
+        number: float,
+        message: str,
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -257,23 +253,16 @@ The below example displays, how to generate one table on the frontend with the l
 ```py
 # ./examples_py/table_component.py
 from visuallm.component_base import ComponentBase
-from visuallm.elements.plain_text_element import PlainTextElement
+from visuallm.elements.plain_text_element import MainHeadingElement
 from visuallm.elements.table_element import LinkBetweenRows, TableElement
 
 
 class TableComponent(ComponentBase):
     def __init__(self):
+        super().__init__(name="table_component", title="Table Component")
         self._initialize_table_element()
-        super().__init__(
-            name="table_component",
-            title="Table Component",
-            elements=[
-                PlainTextElement(
-                    is_heading=True, heading_level=2, content="Table Component"
-                ),
-                self.table_element,
-            ],
-        )
+        self.add_element(MainHeadingElement(content="Table Component"))
+        self.add_element(self.table_element)
 
     def _initialize_table_element(self):
         """Create a simple table with links pointing to all the rows upwards"""
@@ -319,7 +308,7 @@ Firstly, we will import `Colors` enumeration to color links to different tables 
 ```py
 # ./examples_py/two_tables_component.py lines 1-7
 from visuallm.component_base import ComponentBase
-from visuallm.elements.plain_text_element import PlainTextElement
+from visuallm.elements.plain_text_element import MainHeadingElement
 from visuallm.elements.table_element import Colors, LinkBetweenRows, TableElement
 
 
@@ -334,11 +323,11 @@ Secondly, we will create the links in such a way, that links going within the sa
 <!-- The below code snippet is automatically added from ./examples_py/two_tables_component.py -->
 ```py
 # ./examples_py/two_tables_component.py lines 65-69
-        # add links pointing from each row of the second table to all the rows
-        # of the first table and also to all the rows of the second table
-        # upwards
-        for j in range(len(rows[1]) - 1, 0, -1):
-            # links going from the row j of the second table to all the upper
+                self.table_element.add_link_between_rows(
+                    LinkBetweenRows(
+                        TABLE_NAMES[1],
+                        j,
+                        TABLE_NAMES[1],
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -367,18 +356,14 @@ from visuallm.elements.plain_text_element import PlainTextElement
 
 class BarChartComponentSimple(ComponentBase):
     def __init__(self, long_contexts: bool = False, title="BarChart Component"):
+        super().__init__(name="barchart_component", title=title)
         self.word_vocab, self.word_ids = download_word_vocabulary()
         self.barchart_element = BarChartElement(
             processing_callback=self.barchart_callback, long_contexts=long_contexts
         )
         self.text_element = PlainTextElement()
+        self.add_elements([self.barchart_element, self.text_element])
         self.update_barchart_component()
-
-        super().__init__(
-            name="barchart_component",
-            title=title,
-            elements=[self.barchart_element, self.text_element],
-        )
 
     def update_barchart_component(self):
         probs = sample_ten_words(self.word_ids)
@@ -401,6 +386,10 @@ class BarChartComponentSimple(ComponentBase):
     def barchart_callback(self):
         s = self.barchart_element.selected
         self.text_element.content = f"Last selected: {s}"
+        self.update_barchart_component()
+
+
+def download_word_vocabulary():
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -430,14 +419,11 @@ from visuallm.elements.barchart_element import BarChartElement, PieceInfo
 
 class BarChartComponentAdvanced(ComponentBase):
     def __init__(self):
+        super().__init__(name="advanced_barchart", title="Advanced BarChart")
         self._names_of_bars = ["Quality", "Perplexity", "Consistency", "Fluency"]
         self.barchart_element = BarChartElement(long_contexts=True)
+        self.add_element(self.barchart_element)
         self.init_barchart_element()
-        super().__init__(
-            name="advanced_barchart",
-            title="Advanced BarChart",
-            elements=[self.barchart_element],
-        )
 
     def init_barchart_element(self):
         distributions: List[List[float]] = []
@@ -466,6 +452,9 @@ class BarChartComponentAdvanced(ComponentBase):
             piece_infos.append(
                 PieceInfo(
                     pieceTitle=piece_names[i],
+                    barHeights=bar_heights,
+                    barAnnotations=bar_annotations,
+                    barNames=self._names_of_bars,
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -480,25 +469,48 @@ Allows chat-like interfaces with the models.
 ```py
 # ./examples_py/text_input_component.py
 from visuallm.component_base import ComponentBase
-from visuallm.elements.plain_text_element import PlainTextElement
-from visuallm.elements.text_input_element import TextInputElement
+from visuallm.elements import (
+    ButtonElement,
+    MainHeadingElement,
+    PlainTextElement,
+    TextInputElement,
+)
 
 
 class TextInputComponent(ComponentBase):
     def __init__(self):
+        super().__init__(name="text_input_component", title="Text Input Component")
+        main_heading = MainHeadingElement(content="Text Input Component")
+        description_element = PlainTextElement(
+            content="""This component implements the following things: you can type something into the text
+            input element and click on `Send Text` button and it will display in the text box below and the
+            text in the text input area will disappear.
+
+            If you click on `Fill in default text` button, the text input area will contain the text
+            reading `This is the default text`.
+            """
+        )
+        self.add_elements([main_heading, description_element])
         self.text_display_element = PlainTextElement(
             content="Nothing has been typed in yet"
         )
-        self.text_input_element = TextInputElement(processing_callback=self.text_sent)
-
-        super().__init__(
-            name="text_input_component",
-            title="Text Input Component",
-            elements=[self.text_display_element, self.text_input_element],
+        self.text_input_element = TextInputElement(
+            processing_callback=self.on_text_sent, button_text="Send Text"
         )
+        self.add_element(self.text_display_element)
+        self.add_element(self.text_input_element)
+        button_element = ButtonElement(
+            processing_callback=self.on_button_pressed,
+            button_text="Fill in default text",
+        )
+        self.add_element(button_element)
 
-    def text_sent(self):
+    def on_text_sent(self):
         self.text_display_element.content = self.text_input_element.text_input
+        self.text_input_element.text_input = ""
+
+    def on_button_pressed(self):
+        self.text_input_element.text_input = "This is the default text!"
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
