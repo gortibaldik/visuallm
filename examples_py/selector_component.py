@@ -2,7 +2,7 @@ import time
 from typing import Optional
 
 from visuallm.component_base import ComponentBase
-from visuallm.elements.plain_text_element import PlainTextElement
+from visuallm.elements import MainHeadingElement, PlainTextElement
 from visuallm.elements.selector_elements import (
     ButtonElement,
     CheckBoxSubElement,
@@ -13,6 +13,7 @@ from visuallm.elements.selector_elements import (
 
 class SelectorComponent(ComponentBase):
     def __init__(self):
+        super().__init__(name="selector_component", title="Selector Component")
         self.text_element = PlainTextElement()
         self.number_selector_element = MinMaxSubElement(
             sample_min=0, sample_max=10, text="Select Number:"
@@ -34,17 +35,8 @@ class SelectorComponent(ComponentBase):
                 self.checkbox_element,
             ],
         )
-        super().__init__(
-            name="selector_component",
-            title="Selector Component",
-            elements=[
-                PlainTextElement(
-                    is_heading=True, heading_level=2, content="Selector Component"
-                ),
-                self.button_element,
-                self.text_element,
-            ],
-        )
+        self.add_element(MainHeadingElement(content="Selector Component"))
+        self.add_elements([self.button_element, self.text_element])
 
     def button_clicked(self):
         n = self.number_selector_element.selected

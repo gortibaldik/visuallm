@@ -11,18 +11,14 @@ from visuallm.elements.plain_text_element import PlainTextElement
 
 class BarChartComponentSimple(ComponentBase):
     def __init__(self, long_contexts: bool = False, title="BarChart Component"):
+        super().__init__(name="barchart_component", title=title)
         self.word_vocab, self.word_ids = download_word_vocabulary()
         self.barchart_element = BarChartElement(
             processing_callback=self.barchart_callback, long_contexts=long_contexts
         )
         self.text_element = PlainTextElement()
+        self.add_elements([self.barchart_element, self.text_element])
         self.update_barchart_component()
-
-        super().__init__(
-            name="barchart_component",
-            title=title,
-            elements=[self.barchart_element, self.text_element],
-        )
 
     def update_barchart_component(self):
         probs = sample_ten_words(self.word_ids)

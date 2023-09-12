@@ -8,14 +8,11 @@ from visuallm.elements.barchart_element import BarChartElement, PieceInfo
 
 class BarChartComponentAdvanced(ComponentBase):
     def __init__(self):
+        super().__init__(name="advanced_barchart", title="Advanced BarChart")
         self._names_of_bars = ["Quality", "Perplexity", "Consistency", "Fluency"]
         self.barchart_element = BarChartElement(long_contexts=True)
+        self.add_element(self.barchart_element)
         self.init_barchart_element()
-        super().__init__(
-            name="advanced_barchart",
-            title="Advanced BarChart",
-            elements=[self.barchart_element],
-        )
 
     def init_barchart_element(self):
         distributions: List[List[float]] = []
