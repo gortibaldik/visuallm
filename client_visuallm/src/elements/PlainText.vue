@@ -17,6 +17,8 @@ import type ElementRegistry from '@/assets/elementRegistry'
 import { ElementDescription } from '@/assets/elementRegistry'
 import { valuesRequiredInConfiguration } from '@/assets/elementRegistry'
 
+// TODO: allow custom html in the plain text element
+
 let component = defineComponent({
   props: {
     name: {

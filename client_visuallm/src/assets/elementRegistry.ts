@@ -61,7 +61,7 @@ export default class ElementRegistry {
    *
    * @param response response from the backend
    * @param reactiveStore store where the data that needs to be shared between the elements will be stored
-   * @param elements the mapping of elements to which to push the newlz created elements
+   * @param elements the mapping of elements to which to push the newly created elements
    */
   retrieveElementsFromResponse(
     response: { elementDescriptions: ElementDescription[] },
