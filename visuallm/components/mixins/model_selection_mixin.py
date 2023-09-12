@@ -151,7 +151,7 @@ class ModelSelectionMixin:
         self.model_selector_element = ChoicesSubElement(
             list(self._model_choices), text="Select Model"
         )
-        self.button_element = ButtonElement(
+        self.button_select_model = ButtonElement(
             processing_callback=self.model_callback,
             button_text="Send Model Configuration",
             subelements=[self.model_selector_element],
@@ -162,7 +162,7 @@ class ModelSelectionMixin:
         """All the model selection elements that should be displayed on the frontend."""
         if self._model_choices is None:
             return []
-        return [self.model_selector_heading, self.button_element]
+        return [self.model_selector_heading, self.button_select_model]
 
     def on_model_change_callback(self):
         """What to do after the new model and tokenizer is loaded."""

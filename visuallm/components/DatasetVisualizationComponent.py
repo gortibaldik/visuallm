@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from visuallm.component_base import ComponentBase, ComponentMetaclass
+from visuallm.component_base import ComponentBase
 from visuallm.components.mixins.data_preparation_mixin import (
     DATASET_TYPE,
     DATASETS_TYPE,
@@ -10,9 +10,7 @@ from visuallm.elements import ElementBase
 from visuallm.elements.plain_text_element import PlainTextElement
 
 
-class DatasetVisualizationComponent(
-    ComponentBase, DataPreparationMixin, metaclass=ComponentMetaclass
-):
+class DatasetVisualizationComponent(ComponentBase, DataPreparationMixin):
     def __init__(
         self,
         title: str = "Dataset Visualization",

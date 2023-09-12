@@ -4,7 +4,7 @@ import torch
 from transformers import PreTrainedModel
 from transformers.generation.utils import GenerateOutput
 
-from visuallm.component_base import ComponentBase, ComponentMetaclass
+from visuallm.component_base import ComponentBase
 from visuallm.components.mixins.data_preparation_mixin import (
     DATASET_TYPE,
     DATASETS_TYPE,
@@ -34,7 +34,6 @@ class GenerationComponent(
     ModelSelectionMixin,
     GenerationSelectorsMixin,
     MetricsMixin,
-    metaclass=ComponentMetaclass,
 ):
     def __init__(
         self,

@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 from transformers import PreTrainedModel
 from transformers.tokenization_utils import BatchEncoding
 
-from visuallm.component_base import ComponentBase, ComponentMetaclass
+from visuallm.component_base import ComponentBase
 from visuallm.components.mixins.data_preparation_mixin import (
     DATASET_TYPE,
     DATASETS_TYPE,
@@ -23,10 +23,7 @@ from visuallm.elements.plain_text_element import PlainTextElement
 
 
 class NextTokenPredictionComponent(
-    ComponentBase,
-    ModelSelectionMixin,
-    DataPreparationMixin,
-    metaclass=ComponentMetaclass,
+    ComponentBase, ModelSelectionMixin, DataPreparationMixin
 ):
     def __init__(
         self,

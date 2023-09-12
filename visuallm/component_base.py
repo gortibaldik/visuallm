@@ -13,25 +13,21 @@ from visuallm.elements.utils import register_named, sanitize_url
 from visuallm.named import Named, NamedWrapper
 
 
-class _ComponentBaseMetaclass(type):
-    def __call__(cls, *args, **kwargs):
-        """This is called when a constructor of the class is called."""
-        obj = type.__call__(cls, *args, **kwargs)
-        if hasattr(obj, "__post_init__"):
-            obj.__post_init__()
-        return obj
-
-
-class ComponentMetaclass(_ComponentBaseMetaclass, ABCMeta):
+class ComponentMetaclass(ABCMeta):
     """This metaclass is an inheritor of ComponentBaseMetaclass which adds call to
     __post_init__ after all the inits were executed and an inheritor of
     ABCMeta.
     """
 
-    pass
+    def __call__(cls, *args, **kwargs):
+        """This is called when a constructor of the class is called."""
+        obj = ABCMeta.__call__(cls, *args, **kwargs)
+        if hasattr(obj, "__post_init__"):
+            obj.__post_init__()
+        return obj
 
 
-class ComponentBase(Named, metaclass=_ComponentBaseMetaclass):
+class ComponentBase(Named, metaclass=ComponentMetaclass):
     def __init__(
         self,
         name: str,
