@@ -35,6 +35,14 @@ let component = defineComponent({
         },
         address(): string {
             return dataSharedInComponent[getSharedDataUniqueName(this.name, 'address')]
+        },
+        textInputFromBackend(): string {
+            return dataSharedInComponent[getSharedDataUniqueName(this.name, 'textInputFromBackend')]
+        }
+    },
+    watch: {
+        textInputFromBackend() {
+            this.textInput = this.textInputFromBackend
         }
     },
     methods: {
@@ -49,7 +57,6 @@ let component = defineComponent({
         },
         processResponse(response: any) {
             this.$elementRegistry.retrieveElementsFromResponse(response, dataSharedInComponent)
-            this.textInput = ""
         }
     }
 })
@@ -70,16 +77,18 @@ export function registerElement(elementRegistry: ElementRegistry) {
 class ElementConfiguration extends ElementDescription {
     button_text!: string
     default_text!: string
+    text_input!: string
     address!: string
 }
 
 function processElementDescr(elementDescr: ElementConfiguration) {
-    valuesRequiredInConfiguration(elementDescr, ["button_text", "default_text", "address"])
+    valuesRequiredInConfiguration(elementDescr, ["button_text", "default_text", "address", "text_input"])
 
     return {
         buttonText: elementDescr.button_text,
         defaultText: elementDescr.default_text,
-        address: elementDescr.address
+        address: elementDescr.address,
+        textInputFromBackend: elementDescr.text_input
     }
 }
 
