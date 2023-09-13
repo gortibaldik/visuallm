@@ -7,7 +7,7 @@
 
 ![example workflow](https://github.com/gortibaldik/visuallm/actions/workflows/python-test.yaml/badge.svg)
 
-## VERSION: `0.2.1` changelog
+## VERSION: `0.3.0` changelog
 
 - added `visuallm.components.ChatComponent`, so you can now chat with the models!
 - added support for OpenAI API, so providing the token, you can chat with the OpenAI models!
