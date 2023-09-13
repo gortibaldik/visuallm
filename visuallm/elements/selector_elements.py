@@ -4,8 +4,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Generic, List, MutableSet, Optional, TypeVar
 
-from flask import request
-
 from visuallm.named import Named
 
 from .element_base import ElementWithEndpoint
@@ -34,9 +32,10 @@ class ButtonElement(ElementWithEndpoint):
     def __init__(
         self,
         processing_callback: Callable[[], None],
-        name: str = "selector",
+        name: str = "button",
         subelements: List[SelectorSubElement] = [],
-        button_text="Select",
+        button_text: str = "Select",
+        disabled: bool = False,
         **kwargs,
     ):
         """
@@ -52,21 +51,53 @@ class ButtonElement(ElementWithEndpoint):
                 Defaults to [].
             button_text (str, optional): Text displayed in a button input
                 element. Defaults to "Select".
+            disabled (bool): whether the button should be clickable
         """
-        super().__init__(name=name, type="sample_selector", **kwargs)
+        super().__init__(name=name, type="button", **kwargs)
         self.processing_callback = processing_callback
         self._button_text = button_text
         self._subelements_dict: Dict[str, SelectorSubElement] = {}
         self._subelements: List[SelectorSubElement] = []
         self._subelement_names: MutableSet[str] = set()
+        self._disabled = disabled
 
         for subelement in subelements:
             self.add_subelement(subelement)
 
+    @property
+    def subelements_iter(self):
+        return iter(self._subelements)
+
+    @property
+    def disabled(self):
+        """Property controlling whether the button is clickable."""
+        return self._disabled
+
+    @disabled.setter
+    def disabled(self, value: bool):
+        if value != self._disabled:
+            self._changed = True
+        self._disabled = value
+
+    @property
+    def button_text(self):
+        return self._button_text
+
+    @button_text.setter
+    def button_text(self, value: str):
+        if value != self._button_text:
+            self._changed = True
+        self._button_text = value
+
     def construct_element_configuration(self):
+        subelement_configs = []
+        for c in self._subelements:
+            subelement_configs.append(c.subelement_configuration)
+            c.unset_updated()
         return dict(
-            button_text=self._button_text,
-            subelement_configs=[c.subelement_configuration for c in self._subelements],
+            button_text=self.button_text,
+            disabled=self.disabled,
+            subelement_configs=subelement_configs,
         )
 
     def endpoint_callback(self):
@@ -75,10 +106,7 @@ class ButtonElement(ElementWithEndpoint):
         the control to the programmer for handling of the updated data and
         then returns everything updated to the frontend.
         """
-        if not request.is_json:
-            raise RuntimeError()
-        assert self.parent_component is not None
-        response_json = request.get_json()
+        response_json = self.get_request_dict()
         for key, value in response_json.items():
             self._subelements_dict[key].selected = value
 
@@ -147,14 +175,24 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
                 "Cannot change the value of the element without atributing "
                 + "the element to the parent component"
             )
-        self._updated = value != self._selected
-        self.parent_element.changed |= self._updated
+        if value != self._selected:
+            self.force_set_updated()
         self._selected = value
 
     def force_set_updated(self):
         """Set updated to true, so that any changes associated with the update
         are triggered"""
+        if self.parent_element is None:
+            raise ValueError(
+                "Cannot set the element to the updated state without "
+                + "atributing the element to the parent component"
+            )
+        self.parent_element._changed = True
         self._updated = True
+
+    def unset_updated(self):
+        """Set updated to False."""
+        self._updated = False
 
     @property
     def updated(self):
@@ -200,7 +238,7 @@ class MinMaxSubElement(SelectorSubElement[float]):
         self._step_size = step_size
 
     @property
-    def selected(self):
+    def selected(self) -> float:
         return self.selected_getter()
 
     @selected.setter
@@ -213,7 +251,6 @@ class MinMaxSubElement(SelectorSubElement[float]):
         self.selected_setter(value)
 
     def construct_selector_data(self) -> Dict[str, Any]:
-        self._updated = False
         return dict(min=self._min, max=self._max, step_size=self._step_size)
 
 
@@ -248,7 +285,6 @@ class ChoicesSubElement(SelectorSubElement[str]):
         self.force_set_updated()
 
     def construct_selector_data(self) -> Dict[str, Any]:
-        self._updated = False
         return dict(choices=self._choices)
 
 
@@ -268,5 +304,4 @@ class CheckBoxSubElement(SelectorSubElement[bool]):
         self.selected_setter(value)
 
     def construct_selector_data(self) -> Dict[str, Any]:
-        self._updated = False
         return {}

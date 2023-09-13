@@ -1,21 +1,14 @@
 from visuallm.component_base import ComponentBase
-from visuallm.elements.plain_text_element import PlainTextElement
+from visuallm.elements.plain_text_element import MainHeadingElement
 from visuallm.elements.table_element import LinkBetweenRows, TableElement
 
 
 class TableComponent(ComponentBase):
     def __init__(self):
+        super().__init__(name="table_component", title="Table Component")
         self._initialize_table_element()
-        super().__init__(
-            name="table_component",
-            title="Table Component",
-            elements=[
-                PlainTextElement(
-                    is_heading=True, heading_level=2, content="Table Component"
-                ),
-                self.table_element,
-            ],
-        )
+        self.add_element(MainHeadingElement(content="Table Component"))
+        self.add_element(self.table_element)
 
     def _initialize_table_element(self):
         """Create a simple table with links pointing to all the rows upwards"""

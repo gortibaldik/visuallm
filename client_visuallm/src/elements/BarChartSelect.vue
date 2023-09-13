@@ -1,10 +1,10 @@
 <template>
-  <form class="wrapElement" @submit="submit">
+  <form class="wrapElement" @submit.prevent="submit">
     <div v-for="(barInfo, i) in barInfos" :class="{ 'progress-bar': true, focused: focusedBarInfos[i] }">
-      <input v-if="selectable" class="input-radio" type="radio" v-model="selected" :value="barInfo.barTitle"
+      <input v-if="selectable" class="input-radio" type="radio" v-model="selected" :value="barInfo.pieceTitle"
         @focus="focusedBarInfos[i] = true" @blur="focusedBarInfos[i] = false" />
       <DisplayPercentageComponent :style="{ display: 'inline-block', width: percentageElementWidth }" :item="barInfo"
-        :longContexts="longContexts" :names="names" :maxTextWidth="maxTextWidth">
+        :longContexts="longContexts" :maxTextWidth="maxTextWidth">
       </DisplayPercentageComponent>
     </div>
     <div v-if="selectable" style="text-align: center; margin-top: 10px">
@@ -16,13 +16,13 @@
 <script lang="ts" scoped>
 import { shallowRef } from 'vue'
 import { defineComponent } from 'vue'
-import { componentSharedData, getSharedDataUniqueName } from '@/assets/reactiveData'
+import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiveData'
 import type Formatter from '@/assets/elementRegistry'
 import { ElementDescription } from '@/assets/elementRegistry'
 import { valuesRequiredInConfiguration } from '@/assets/elementRegistry'
 import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib'
-import DisplayPercentageComponent from './SubElement_BarCharSelect_Bar.vue'
-import type { BarInfo } from './SubElement_BarCharSelect_Bar.vue'
+import DisplayPercentageComponent from './subelements_barchart/Bar.vue'
+import type { PieceInfo } from './subelements_barchart/Bar.vue'
 import { stringWidth } from '@/assets/utils'
 
 let component = defineComponent({
@@ -36,23 +36,16 @@ let component = defineComponent({
   computed: {
     /** Title and bar heights of each row to be displayed
      */
-    barInfos(): BarInfo[] {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'barInfos')]
+    barInfos(): PieceInfo[] {
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'barInfos')]
     },
     /** Path to endpoint which is called when select button is pressed
      */
     address(): string {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'address')]
-    },
-    /** Names of individual bar-charts to be displayed (e.g. each row can have
-     * multiple bar-charts and each of them has a name)
-     *
-     */
-    names(): string[] {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'names')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'address')]
     },
     longContexts(): boolean {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'longContexts')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'longContexts')]
     },
     /** Bar chart could be either treated as a selection advice, e.g. add
      * input radio before each bar and select button at the end to help user
@@ -60,7 +53,7 @@ let component = defineComponent({
      * panel and then no select button or input radio should be added.
      */
     selectable(): boolean {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'selectable')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'selectable')]
     },
 
     percentageElementWidth(): string {
@@ -73,7 +66,7 @@ let component = defineComponent({
     maxTextWidth(): string {
       let maxWidth = 0
       for (let barInfo of this.barInfos) {
-        let width = stringWidth(barInfo.barTitle)
+        let width = stringWidth(barInfo.pieceTitle)
         if (width > maxWidth) {
           maxWidth = width
         }
@@ -87,9 +80,9 @@ let component = defineComponent({
   watch: {
     barInfos: {
       immediate: true,
-      handler(newValue: BarInfo[]) {
+      handler(newValue: PieceInfo[]) {
         if (newValue !== undefined && newValue.length != 0) {
-          this.selected = newValue[0].barTitle
+          this.selected = newValue[0].pieceTitle
           let focusedBarInfos = [] as boolean[]
           for (let i = 0; i < newValue.length; i++) {
             focusedBarInfos.push(false)
@@ -102,7 +95,7 @@ let component = defineComponent({
   data() {
     return {
       selected: '',
-      reactiveStore: componentSharedData,
+      reactiveStore: dataSharedInComponent,
       selectPossibilityPoll: undefined as undefined | PollUntilSuccessPOST,
       focusedBarInfos: [] as boolean[]
     }
@@ -137,20 +130,18 @@ export function registerElement(formatter: Formatter) {
 
 class ElementConfiguration extends ElementDescription {
   address!: string
-  bar_infos!: any
+  piece_infos!: any
   long_contexts!: any
-  names!: any
   selectable!: boolean
 }
 
 function processElementDescr(elementDescr: ElementConfiguration) {
-  valuesRequiredInConfiguration(elementDescr, ['address', 'bar_infos', 'long_contexts', 'names', 'selectable'])
+  valuesRequiredInConfiguration(elementDescr, ['address', 'piece_infos', 'long_contexts', 'selectable'])
 
   return {
     address: elementDescr.address,
-    barInfos: elementDescr.bar_infos,
+    barInfos: elementDescr.piece_infos,
     longContexts: elementDescr.long_contexts,
-    names: elementDescr.names,
     selectable: elementDescr.selectable,
   }
 }

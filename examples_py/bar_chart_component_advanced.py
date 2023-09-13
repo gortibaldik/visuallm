@@ -3,36 +3,25 @@ import random
 from typing import List
 
 from visuallm.component_base import ComponentBase
-from visuallm.elements.barchart_element import BarChartElement
+from visuallm.elements.barchart_element import BarChartElement, PieceInfo
 
 
 class BarChartComponentAdvanced(ComponentBase):
     def __init__(self):
-        self.barchart_element = BarChartElement(
-            long_contexts=True,
-            names=["Quality", "Perplexity", "Consistency", "Fluency"],
-        )
+        super().__init__(name="advanced_barchart", title="Advanced BarChart")
+        self._names_of_bars = ["Quality", "Perplexity", "Consistency", "Fluency"]
+        self.barchart_element = BarChartElement(long_contexts=True)
+        self.add_element(self.barchart_element)
         self.init_barchart_element()
-        super().__init__(
-            name="advanced_barchart",
-            title="Advanced BarChart",
-            elements=[self.barchart_element],
-        )
 
     def init_barchart_element(self):
-        ds = []
+        distributions: List[List[float]] = []
         size_of_distro = 5
-        for i in range(len(self.barchart_element.names)):
-            ds.append(make_some_distribution(size_of_distro))
+        for i in range(len(self._names_of_bars)):
+            distributions.append(make_some_distribution(size_of_distro))
 
-        # bar height is the height of the bar, should be between 0 and 100
-        bar_heights = list(zip(*ds))
-
-        # bar annotation is the text displayed within the bar
-        bar_annotations = [[f"{h:.2f}" for h in hs] for hs in bar_heights]
-
-        # annotation is the name of whole bar sub element
-        annotations = [
+        # names of the whole piece with multiple bars
+        piece_names = [
             "Use the portable output format.",
             "Give very verbose output about all the program knows about.",
             "Terminate option list.",
@@ -41,9 +30,24 @@ class BarChartComponentAdvanced(ComponentBase):
             "This will indicate the state of the repository that should be "
             + "evaluated.",
         ]
-        self.barchart_element.set_possibilities(
-            bar_heights, bar_annotations, annotations
-        )
+
+        piece_infos: List[PieceInfo] = []
+        for i in range(size_of_distro):
+            # heights of individual bars in the piece
+            bar_heights = [distro[i] for distro in distributions]
+
+            # annotations inside individual bars in the piece
+            bar_annotations = [f"{h:.2f}" for h in bar_heights]
+            piece_infos.append(
+                PieceInfo(
+                    pieceTitle=piece_names[i],
+                    barHeights=bar_heights,
+                    barAnnotations=bar_annotations,
+                    barNames=self._names_of_bars,
+                )
+            )
+
+        self.barchart_element.set_piece_infos(piece_infos)
 
 
 def make_some_distribution(size: int):

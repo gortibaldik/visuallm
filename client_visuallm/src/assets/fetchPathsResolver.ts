@@ -1,18 +1,30 @@
 import type { App } from 'vue'
 import { PollUntilSuccessGET } from './pollUntilSuccessLib'
 
+interface Instance {
+  $router: any
+  $default_fetch_paths: { [name: string]: string },
+  [pollName: string]: any,
+}
+
+/** Fetch the information about all the elements at the start of the component lifecycle.
+ *
+ * @param instance the component that holds '$router', 'backendAddress' and '$default_fetch_paths'
+ * @param pollName the name that the poll should get
+ * @param callback function that should be called after the poll succeeds and the function gets repsponse from the backend
+ */
 export async function fetchDefault(
-  instance: any,
+  instance: Instance,
   backendAddress: string,
   pollName: string,
-  callback: any
+  callback: (response: any) => void
 ) {
-  let route_name = instance['$router'].currentRoute.value.name
+  const route_name = instance['$router'].currentRoute.value.name
   if (route_name === undefined || route_name === null) {
     throw TypeError()
   }
-  let name = route_name.toString()
-  let default_fetch_path = instance['$default_fetch_paths'][name]
+  const name = route_name.toString() as string
+  const default_fetch_path = instance['$default_fetch_paths'][name] as string
   instance[pollName]?.clear()
   instance[pollName] = new PollUntilSuccessGET(
     `${backendAddress}/${default_fetch_path}`,

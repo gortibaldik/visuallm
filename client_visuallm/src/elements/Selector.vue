@@ -1,11 +1,11 @@
 <template>
-  <form class="wrapElement" @submit="submit" @keypress.enter="submit">
+  <form class="wrapElement" @submit.prevent="submit" @keypress.enter="submit">
     <div class="subSelectorsWrapper">
       <component v-for="subElementConfigFE in subElementConfigurationsFE" :is="getComponent(subElementConfigFE.subtype)"
         :name="subElementConfigFE.name"></component>
     </div>
     <div class="buttonWrapper">
-      <button class="button" :disabled="loadingInProgress" type="submit">{{ buttonText }}</button>
+      <button class="button" :disabled="buttonDisabled || loadingInProgress" type="submit">{{ buttonText }}</button>
       <DesignLoading v-if="loadingInProgress" class="loading-indicator" />
     </div>
   </form>
@@ -14,26 +14,26 @@
 <script lang="ts">
 import DesignLoading from './Design_Loading.vue'
 import { defineComponent, shallowRef } from 'vue'
-import { componentSharedData, getSharedDataUniqueName, getSharedDataElementName } from '@/assets/reactiveData'
+import { dataSharedInComponent, getSharedDataUniqueName, getSharedDataElementName } from '@/assets/reactiveData'
 import type Formatter from '@/assets/elementRegistry'
 import { ElementDescription, valuesRequiredInConfiguration, entries } from '@/assets/elementRegistry'
 import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib'
 import {
   subtype as minMaxSubtype,
   processSubElementConfiguration as minMaxProcessSubElementConfig
-} from './SubElement_Selector_MinMaxSelector.vue'
-import MinMaxSubElement from './SubElement_Selector_MinMaxSelector.vue'
+} from './subelements_selector/MinMaxSelector.vue'
+import MinMaxSubElement from './subelements_selector/MinMaxSelector.vue'
 import {
   subtype as choicesSubtype,
   processSubElementConfiguration as choicesProcessSubElementConfig
-} from './Subelement_Selector_ChoicesSelector.vue'
-import ChoicesSubElement from './Subelement_Selector_ChoicesSelector.vue'
+} from './subelements_selector/ChoicesSelector.vue'
+import ChoicesSubElement from './subelements_selector/ChoicesSelector.vue'
 
 import {
   subtype as checkboxSubtype,
   processSubElementConfiguration as checkboxProcessSubElementConfig
-} from './SubElement_Selector_CheckBox.vue'
-import CheckBoxSubElement from './SubElement_Selector_CheckBox.vue'
+} from './subelements_selector/CheckBox.vue'
+import CheckBoxSubElement from './subelements_selector/CheckBox.vue'
 
 let component = defineComponent({
   props: {
@@ -44,19 +44,22 @@ let component = defineComponent({
   },
   computed: {
     subElementConfigurationsFE(): SubElementConfigurationFE[] {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'subElementConfigs')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'subElementConfigs')]
     },
     callbackAddress(): string {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'address')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'address')]
     },
     buttonText(): string {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'buttonText')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'buttonText')]
+    },
+    buttonDisabled(): boolean {
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'disabled')]
     }
   },
   inject: ['backendAddress'],
   data() {
     return {
-      reactiveStore: componentSharedData,
+      reactiveStore: dataSharedInComponent,
       selectSamplePoll: undefined as undefined | PollUntilSuccessPOST,
       loadingInProgress: false as boolean
     }
@@ -78,7 +81,7 @@ let component = defineComponent({
         let config = this.subElementConfigurationsFE[key]
         let subElementValueName = getSharedDataUniqueName(config.name, "selected")
         let elementName = getSharedDataElementName(config.name)
-        let elementValue = componentSharedData[subElementValueName]
+        let elementValue = dataSharedInComponent[subElementValueName]
 
         dataToSend[elementName] = elementValue
       }
@@ -98,7 +101,6 @@ let component = defineComponent({
     },
     getComponent(subtype: string) {
       let component = subElementProcessors[subtype].component
-      console.log(subtype, component)
       return component
     }
   }
@@ -141,21 +143,23 @@ class ElementConfiguration extends ElementDescription {
   subelement_configs!: SubElementConfigurationFromBE[]
   address!: string
   button_text!: string
+  disabled!: boolean
 }
 
 export function registerElement(formatter: Formatter) {
-  formatter.registeredElements['sample_selector'] = {
+  formatter.registeredElements['button'] = {
     component: shallowRef(component),
     process: processElementDescr
   }
 }
 
 function processElementDescr(configuration: ElementConfiguration) {
-  valuesRequiredInConfiguration(configuration, ['subelement_configs', 'address', 'button_text'])
+  valuesRequiredInConfiguration(configuration, ['subelement_configs', 'address', 'button_text', 'disabled'])
 
   let data = {
     address: configuration.address,
     buttonText: configuration.button_text,
+    disabled: configuration.disabled,
     subElementConfigs: [] as SubElementConfigurationFE[]
   } as { [key: string]: any }
 

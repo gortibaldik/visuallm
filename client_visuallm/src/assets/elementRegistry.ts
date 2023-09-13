@@ -21,7 +21,7 @@ export class ElementDescription {
 }
 
 export function* entries(obj: any) {
-  for (let key of Object.keys(obj)) {
+  for (const key of Object.keys(obj)) {
     yield [key, obj[key]]
   }
 }
@@ -48,8 +48,8 @@ export default class ElementRegistry {
     if (!(elementDescr.type in this.registeredElements)) {
       throw RangeError(`context.type: "${elementDescr.type}" isn't registered in formatter!`)
     }
-    let componentDict = this.registeredElements[elementDescr.type]
-    let resultDict = {
+    const componentDict = this.registeredElements[elementDescr.type]
+    const resultDict = {
       component: componentDict.component,
       data: componentDict.process(elementDescr)
     }
@@ -57,28 +57,28 @@ export default class ElementRegistry {
   }
 
   /** Go over response and create elements from which the component will be
-   * made.
+   * made and push them to the elements mapping
    *
    * @param response response from the backend
-   * @param reactiveStore
-   * @param elements
+   * @param reactiveStore store where the data that needs to be shared between the elements will be stored
+   * @param elements the mapping of elements to which to push the newly created elements
    */
   retrieveElementsFromResponse(
     response: { elementDescriptions: ElementDescription[] },
     reactiveStore: { [name: string]: any },
     elements: { [name: string]: any } | undefined = undefined
   ) {
-    let elementDescriptions = response.elementDescriptions
+    const elementDescriptions = response.elementDescriptions
     for (let i = 0; i < elementDescriptions.length; i++) {
-      let elementDescr = elementDescriptions[i]
-      let elementData = this.createElementDataFromDescription(elementDescr)
+      const elementDescr = elementDescriptions[i]
+      const elementData = this.createElementDataFromDescription(elementDescr)
       if (elements !== undefined) {
         elements[elementDescr.name] = {
           component: elementData.component,
           name: elementDescr.name
         }
       }
-      for (let [key, data] of entries(elementData.data)) {
+      for (const [key, data] of entries(elementData.data)) {
         reactiveStore[getSharedDataUniqueName(elementDescr.name, key)] = data
       }
     }
@@ -101,7 +101,7 @@ export function configurationRequired(elementDescr: {[name: string]: any}) {
 }
 
 export function valuesRequiredInConfiguration(configuration: any, vals: string[]) {
-  for (let val of vals) {
+  for (const val of vals) {
     if (!(val in configuration)) {
       throw RangeError(`Invalid configuration! ('${val}' not in configuration)`)
     }

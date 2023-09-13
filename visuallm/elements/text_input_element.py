@@ -1,7 +1,5 @@
 from typing import Callable
 
-from flask import request
-
 from .element_base import ElementWithEndpoint
 
 
@@ -15,21 +13,39 @@ class TextInputElement(ElementWithEndpoint):
     ):
         super().__init__(name=name, type="text_input")
         self.processing_callback = processing_callback
-        self.text_input = ""
+        self._text_input = ""
         self._button_text = button_text
         self._default_text = default_text
 
     def endpoint_callback(self):
-        if not request.is_json:
-            raise RuntimeError()
-        assert self.parent_component is not None
-        response_json = request.get_json()
-
+        response_json = self.get_request_dict()
         self.text_input = response_json["text_input"]
         self.processing_callback()
-
-        assert self.parent_component is not None
         return self.parent_component.fetch_info(fetch_all=False)
 
+    @property
+    def text_input(self) -> str:
+        return self._text_input
+
+    @text_input.setter
+    def text_input(self, value: str) -> None:
+        if value != self._text_input:
+            self._changed = True
+        self._text_input = value
+
+    @property
+    def button_text(self) -> str:
+        """Text that is displayed in the button on the side of the text box."""
+        return self._button_text
+
+    @button_text.setter
+    def button_text(self, value: str) -> None:
+        self._changed = True
+        self._button_text = value
+
     def construct_element_configuration(self):
-        return dict(button_text=self._button_text, default_text=self._default_text)
+        return dict(
+            button_text=self.button_text,
+            default_text=self._default_text,
+            text_input=self.text_input,
+        )

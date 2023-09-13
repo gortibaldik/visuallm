@@ -3,12 +3,14 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from visuallm.component_base import ComponentBase
+from flask import request
+
 from visuallm.named import Named, NamedWrapper
 
 from .utils import register_named, sanitize_url
 
 if TYPE_CHECKING:
+    from visuallm.component_base import ComponentBase
     from visuallm.server import Server
 
 
@@ -30,7 +32,26 @@ class ElementBase(Named, ABC):
         """
         super().__init__(name)
         self._type = type
-        self.changed = True
+        self._order: Optional[float] = None
+        self._changed = True
+
+    @property
+    def changed(self):
+        return self._changed
+
+    @property
+    def order(self) -> float:
+        """This value affects in what order the elements would be displayed on the frontend.
+        The lowest order is on the top of the page, the highest on the bottom."""
+        if self._order is None:
+            raise RuntimeError("Order wasn't assigned yet!")
+        return self._order
+
+    @order.setter
+    def order(self, value: float):
+        if value <= 0:
+            raise ValueError("The priority can be only positive float")
+        self._order = value
 
     @property
     def type(self):
@@ -42,7 +63,7 @@ class ElementBase(Named, ABC):
 
         Sets changed to false!
         """
-        self.changed = False
+        self._changed = False
         return dict(
             name=self.name,
             type=self.type,
@@ -51,11 +72,14 @@ class ElementBase(Named, ABC):
 
     @abstractmethod
     def construct_element_configuration(self) -> Dict[str, Any]:
+        """Construct the message with all the parts needed to recreate the
+        same state of the element on the frontend
+        """
         pass
 
     def register_to_server(self, server: Server):
         """
-        Register the element's endpoint to the application
+        Register the element's endpoint to the server
 
         Args:
             server (Server): the server to which the element is registered.
@@ -100,11 +124,32 @@ class ElementWithEndpoint(ElementBase):
         if endpoint_url is None:
             endpoint_url = sanitize_url(self.name)
         self.endpoint_url = endpoint_url
-        self.parent_component: Optional[ComponentBase] = None
+        self._parent_component: Optional[ComponentBase] = None
         self._type = type
         """The component that holds all the other elements. This is set
         in `ComponentBase.register_elements`
         """
+
+    @property
+    def parent_component(self) -> ComponentBase:
+        if self._parent_component is None:
+            raise RuntimeError(
+                "Parent Component accessed, but it was never assigned any value !"
+            )
+        return self._parent_component
+
+    def get_request_dict(self) -> Dict:
+        """Get the request dict from the api call.
+
+        Written in this way for better testability (changing the api call flask
+        logic with custom request dict for test cases)
+
+        Raises:
+            RuntimeError: if the api call dict doesn't contain a json object
+        """
+        if not request.is_json:
+            raise RuntimeError("The data in request should be json!")
+        return request.get_json()
 
     @abstractmethod
     def endpoint_callback(self):
@@ -112,12 +157,9 @@ class ElementWithEndpoint(ElementBase):
         pass
 
     def construct_element_description(self) -> Dict[str, Any]:
-        return dict(
-            name=self.name,
-            type=self.type,
-            address=self.endpoint_url.removeprefix("/"),
-            **self.construct_element_configuration(),
-        )
+        return_dict = super().construct_element_description()
+        return_dict["address"] = self.endpoint_url.removeprefix("/")
+        return return_dict
 
     def register_to_server(self, server: Server):
         """Register the element's endpoint to the server.
@@ -133,4 +175,4 @@ class ElementWithEndpoint(ElementBase):
         register_named(
             NamedWrapper(self, "endpoint_url"), component.registered_url_endpoints
         )
-        self.parent_component = component
+        self._parent_component = component

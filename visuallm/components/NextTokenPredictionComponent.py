@@ -1,9 +1,4 @@
-from heapq import nlargest
-from typing import Optional
-
-import torch
-from numpy.typing import NDArray
-from transformers import PreTrainedModel, PreTrainedTokenizer
+from typing import List, Optional
 
 from visuallm.component_base import ComponentBase
 from visuallm.components.mixins.data_preparation_mixin import (
@@ -11,11 +6,13 @@ from visuallm.components.mixins.data_preparation_mixin import (
     DATASETS_TYPE,
     DataPreparationMixin,
 )
+from visuallm.components.mixins.Generator import Generator, NextTokenPredictionInterface
 from visuallm.components.mixins.model_selection_mixin import (
-    MODEL_TOKENIZER_CHOICES,
+    GENERATOR_CHOICES,
     ModelSelectionMixin,
 )
-from visuallm.elements.barchart_element import BarChartElement
+from visuallm.elements.barchart_element import BarChartElement, PieceInfo
+from visuallm.elements.element_base import ElementBase
 from visuallm.elements.plain_text_element import PlainTextElement
 
 
@@ -25,114 +22,147 @@ class NextTokenPredictionComponent(
     def __init__(
         self,
         title: str = "Next Token Prediction",
-        model: Optional[PreTrainedModel] = None,
-        tokenizer: Optional[PreTrainedTokenizer] = None,
-        model_tokenizer_choices: Optional[MODEL_TOKENIZER_CHOICES] = None,
+        generator: Optional[Generator] = None,
+        generator_choices: Optional[GENERATOR_CHOICES] = None,
         dataset: Optional[DATASET_TYPE] = None,
         dataset_choices: Optional[DATASETS_TYPE] = None,
-        n_largest_tokens_to_return: int = 10,
     ):
+        """This component enables you to step by step visualize what is the distribution of the
+        next token during the generation of the sequence, and select the next token in the process.
+
+        Args:
+            title (str, optional): The title of the component, displayed at the top of the page,
+                and in the tabs. Defaults to "Next Token Prediction".
+            generator (Optional[Generator]): Generator used for predictions. Defaults to None.
+            generator_choices (Optional[GENERATOR_CHOICES]): dictionary where key
+                is the name of the generator and value is the generator. Defaults to None.
+            dataset (Optional[DATASET_TYPE]): Dataset or a function that loads
+                the dataset. Defaults to None.
+            dataset_choices (Optional[DATASETS_TYPE]): Dictionary of datasets, or
+                dictionary of functions that load the dataset. Defaults to None.
+        """
+        super().__init__(name="next_token_prediction", title=title)
         self.main_heading_element = PlainTextElement(
-            is_heading=True,
-            heading_level=2,
-            content=title,
+            is_heading=True, heading_level=2, content=title
         )
         ModelSelectionMixin.__init__(
             self,
-            model_tokenizer_choices=model_tokenizer_choices,
-            model=model,
-            tokenizer=tokenizer,
-            on_model_change_callback=self.on_model_change_callback,
+            generator_choices=generator_choices,
+            generator=generator,
         )
         DataPreparationMixin.__init__(
             self,
-            on_sample_change_callback=self.on_sample_change_callback,
             dataset=dataset,
             dataset_choices=dataset_choices,
         )
-        softmax_elements = self.init_softmax_heading_elements()
-        input_display_elements = self.init_model_input_display()
-        self._n_largest_tokens_to_return = n_largest_tokens_to_return
-        self.init_word_vocab()
+        token_probs_display_elements = self.init_token_probs_display_elements()
+        input_display_elements = self.init_model_input_display_elements()
+        self._received_tokens: List[str] = []
 
-        super().__init__(
-            name="next_token_prediction",
-            title=title,
-            elements=[
-                self.main_heading_element,
-                *self.dataset_elements,
-                *self.model_elements,
-                *input_display_elements,
-                *softmax_elements,
-            ],
-        )
+        self.add_element(self.main_heading_element)
+        self.add_elements(self.dataset_elements)
+        self.add_elements(self.generator_selection_elements)
+        self.add_elements(input_display_elements)
+        self.add_elements(token_probs_display_elements)
 
-    def init_word_vocab(self):
-        vocab_size = len(self._tokenizer.get_vocab())
-        self.word_vocab = [""] * vocab_size
-        for str_val, int_val in self._tokenizer.get_vocab().items():
-            self.word_vocab[int_val] = str_val
+    def __post_init__(self):
+        pass
 
-    def init_softmax_heading_elements(self):
-        self.softmax_heading_element = PlainTextElement(
+    def init_token_probs_display_elements(self) -> List[ElementBase]:
+        """Init all the elements that display the next token predictions.
+
+        Returns:
+            List[ElementBase]: list of elements that display the model's next token predictions.
+        """
+        self.token_probs_heading_element = PlainTextElement(
             content="Next Token Probabilities:", is_heading=True
         )
-        self.softmax_element = BarChartElement(
-            processing_callback=self.select_next_token,
+        self.token_probs_element = BarChartElement(
+            processing_callback=self.on_next_token_selected,
         )
-        return [self.softmax_heading_element, self.softmax_element]
+        return [self.token_probs_heading_element, self.token_probs_element]
 
-    def init_model_input_display(self):
-        self.input_display = PlainTextElement()
-        return [self.input_display]
+    def init_model_input_display_elements(self) -> List[ElementBase]:
+        """
+        Init all the elements that display the model input, and the dataset sample.
+
+        THIS METHOD SHOULD BE SET UP BY THE USER.
+
+        Returns:
+            List[ElementBase]: list of elements that display the model's input.
+        """
+        self.text_to_tokenizer_element = PlainTextElement()
+        return [self.text_to_tokenizer_element]
 
     def update_model_input_display_on_sample_change(self):
-        self.input_display.content = self._loaded_sample
-
-    def update_model_input_display_on_selected_token(self, detokenized_token: str):
-        self.input_display.content += detokenized_token
-
-    def create_model_inputs(self):
-        model_inputs = self._tokenizer(self.input_display.content, return_tensors="pt")
-        return model_inputs
-
-    def on_model_change_callback(self):
-        self.init_word_vocab()
-        self.data_force_update()
-        self.dataset_callback()
-
-    def _one_token_prediction(self):
-        model_inputs = self.create_model_inputs()
-        with torch.no_grad():
-            probs: torch.Tensor = self._model(**model_inputs).logits
-            probs = torch.softmax(probs, dim=-1)
-        np_probs: NDArray = probs[0, -1, :].numpy()
-        return np_probs
-
-    def _get_n_largest_tokens_and_probs(self, probs: NDArray):
-        return nlargest(
-            self._n_largest_tokens_to_return,
-            zip(map(lambda x: float(x) * 100, probs), self.word_vocab),
-            key=lambda x: x[0],
+        """
+        After the sample change, self.loaded_sample holds the selected dataset sample.
+        In this method the elements that display the model's input elements should be updated
+        according to the self.loaded_sample.
+        """
+        self.text_to_tokenizer_element.content = (
+            self.generator.create_text_to_tokenizer(self.loaded_sample)
         )
+        self._received_tokens = []
 
-    def update_softmax_element(self):
-        probs = self._one_token_prediction()
-        n_largest_probs = self._get_n_largest_tokens_and_probs(probs)
+    def update_model_input_display_on_selected_token(self):
+        """
+        After the next token to generate is selected, the model's input elements should be updated
+        to reflect this change.
 
-        bar_heights = [[x[0]] for x in n_largest_probs]
-        bar_annotations = [[f"{x[0]: .3f}%"] for x in n_largest_probs]
-        annotations = [x[1] for x in n_largest_probs]
-        self.softmax_element.set_possibilities(
-            bar_heights, bar_annotations, annotations
+        You should base call this method with super() if you override it.
+
+        Args:
+            detokenized_token (str): the latest selected token
+        """
+        if not isinstance(self.generator, NextTokenPredictionInterface):
+            raise ValueError()
+        text_to_tokenizer = self.generator.create_text_to_tokenizer_one_step(
+            self.loaded_sample, self._received_tokens
         )
+        self.text_to_tokenizer_element.content = text_to_tokenizer
 
-    def select_next_token(self):
-        token = self.softmax_element.selected
-        detokenized_token = self._tokenizer.convert_tokens_to_string([token])
-        self.update_model_input_display_on_selected_token(detokenized_token)
-        self.update_softmax_element()
+    def run_generation_one_step(self):
+        """
+        This method runs one step of the generation and populates the token probabilities component
+        with the next token probabilities.
+        """
+        text_to_tokenizer = self.text_to_tokenizer_element.content
+        if not isinstance(self.generator, NextTokenPredictionInterface):
+            raise ValueError()
+        n_largest_probs_tokens = self.generator.one_step_prediction(text_to_tokenizer)
 
-    def on_sample_change_callback(self):
+        piece_infos: List[PieceInfo] = []
+        for prob, token in n_largest_probs_tokens:
+            piece_infos.append(
+                PieceInfo(
+                    pieceTitle=token,
+                    barHeights=[prob],
+                    barAnnotations=["{:.3f}%".format(prob)],
+                    barNames=[""],
+                )
+            )
+        self.token_probs_element.set_piece_infos(piece_infos)
+
+    def on_next_token_selected(self):
+        """
+        Callback that is called when the user selects next token in the frontend. Basically
+        this callback changes the model's input according to the selected token, runs one step
+        of the generation process, and populates the next token probabilities.
+        """
+        token = self.token_probs_element.selected
+        if not isinstance(self.generator, NextTokenPredictionInterface):
+            raise ValueError()
+        detokenized_token = self.generator.convert_token_to_string(token)
+        self._received_tokens.append(detokenized_token)
+        self.update_model_input_display_on_selected_token()
+        self.run_generation_one_step()
+
+    def after_on_dataset_change_callback(self):
         self.update_model_input_display_on_sample_change()
-        self.update_softmax_element()
+        self.run_generation_one_step()
+
+    def after_on_generator_change_callback(self):
+        # a new dataset sample is loaded which forces the prediction of the next step
+        self.force_set_dataset_selector_updated()
+        self.on_dataset_change_callback()

@@ -6,7 +6,7 @@ abstract class PollingBase {
 
   constructor(
     backendAddress: string,
-    responseCallback: (el: any) => void,
+    responseCallback: (response: any) => void,
     howOftenToPoll: number = 500
   ) {
     this.backendAddress = backendAddress
@@ -28,7 +28,7 @@ abstract class PollingBase {
 
   async _fetchFromBackend() {
     try {
-      let response = await this._fetchMethod()
+      const response = await this._fetchMethod()
       if (response.result == 'success') {
         this.responseCallback(response)
         this.clear()

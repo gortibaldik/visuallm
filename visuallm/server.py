@@ -28,7 +28,7 @@ class Server:
         )
 
         self.components: List[ComponentBase] = components
-        self.registered_urls: Set[str] = set(["/", "/fetch_components"])
+        self.registered_urls: Set[str] = set(["/", "/fetch_component_infos"])
         self.registered_component_names: Set[str] = set()
         for component in self.components:
             component.register_to_server(self)
@@ -36,22 +36,27 @@ class Server:
         self.add_endpoint(
             "/", lambda: redirect("/index.html", code=302), methods=["GET"]
         )
-        self.add_endpoint("/fetch_components", self.fetch_components, methods=["GET"])
+        self.add_endpoint(
+            "/fetch_component_infos", self.on_fetch_component_infos, methods=["GET"]
+        )
         CORS(self.app, resources={r"/*": {"origins": "*"}})
 
         print(f"Server initialized with following endpoints: {self.registered_urls}")
 
-    def fetch_components(self):
-        paths = []
+    def on_fetch_component_infos(self):
+        """
+        Callback that enables the frontend to create components (i.e. tabs in your application)
+        """
+        component_infos = []
         for component in self.components:
-            paths.append(
+            component_infos.append(
                 ComponentInfo(
                     name=component.name,
                     title=component.title,
                     default_fetch_path=component.default_url.removeprefix("/"),
                 )
             )
-        return jsonify(dict(result="success", context=paths))
+        return jsonify(dict(result="success", component_infos=component_infos))
 
     def run(self, **kwargs):
         self.app.run(**kwargs)

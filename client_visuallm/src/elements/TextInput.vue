@@ -1,6 +1,6 @@
 <template>
-    <form @submit="submit" class="wrapElement text-input-wrapper">
-        <textarea :placeholder="defaultText" v-model="textInput" @keyup.enter="submit" />
+    <form @submit.prevent="submit" class="wrapElement text-input-wrapper">
+        <textarea :placeholder="defaultText" v-model="textInput" @keydown.enter.prevent="" @keyup.enter="submit" />
         <button class="button-override button" type="submit">{{ buttonText }}</button>
     </form>
 </template>
@@ -9,7 +9,7 @@
 import { valuesRequiredInConfiguration, ElementDescription } from '@/assets/elementRegistry';
 import type ElementRegistry from '@/assets/elementRegistry';
 import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib';
-import { componentSharedData, getSharedDataUniqueName } from '@/assets/reactiveData';
+import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiveData';
 import { defineComponent, shallowRef } from 'vue'
 
 let component = defineComponent({
@@ -28,13 +28,21 @@ let component = defineComponent({
     inject: ['backendAddress'],
     computed: {
         buttonText(): string {
-            return componentSharedData[getSharedDataUniqueName(this.name, 'buttonText')]
+            return dataSharedInComponent[getSharedDataUniqueName(this.name, 'buttonText')]
         },
         defaultText(): string {
-            return componentSharedData[getSharedDataUniqueName(this.name, 'defaultText')]
+            return dataSharedInComponent[getSharedDataUniqueName(this.name, 'defaultText')]
         },
         address(): string {
-            return componentSharedData[getSharedDataUniqueName(this.name, 'address')]
+            return dataSharedInComponent[getSharedDataUniqueName(this.name, 'address')]
+        },
+        textInputFromBackend(): string {
+            return dataSharedInComponent[getSharedDataUniqueName(this.name, 'textInputFromBackend')]
+        }
+    },
+    watch: {
+        textInputFromBackend() {
+            this.textInput = this.textInputFromBackend
         }
     },
     methods: {
@@ -48,8 +56,7 @@ let component = defineComponent({
             )
         },
         processResponse(response: any) {
-            this.$elementRegistry.retrieveElementsFromResponse(response, componentSharedData)
-            this.textInput = ""
+            this.$elementRegistry.retrieveElementsFromResponse(response, dataSharedInComponent)
         }
     }
 })
@@ -70,16 +77,18 @@ export function registerElement(elementRegistry: ElementRegistry) {
 class ElementConfiguration extends ElementDescription {
     button_text!: string
     default_text!: string
+    text_input!: string
     address!: string
 }
 
 function processElementDescr(elementDescr: ElementConfiguration) {
-    valuesRequiredInConfiguration(elementDescr, ["button_text", "default_text", "address"])
+    valuesRequiredInConfiguration(elementDescr, ["button_text", "default_text", "address", "text_input"])
 
     return {
         buttonText: elementDescr.button_text,
         defaultText: elementDescr.default_text,
-        address: elementDescr.address
+        address: elementDescr.address,
+        textInputFromBackend: elementDescr.text_input
     }
 }
 

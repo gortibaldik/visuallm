@@ -1,5 +1,5 @@
 <template>
-    <div :class="{ wrapElement: true, focused: isFocused }">
+    <div :class="{ wrapElement: true, focused: isFocused, 'checkbox-wrapper': true }">
         <span class="checkbox-text">{{ text }}</span>
         <input type="checkbox" v-model="selected" @focus="isFocused = true" @blur="isFocused = false" />
     </div>
@@ -7,7 +7,7 @@
 
 <script lang="ts">
 import { valuesRequiredInConfiguration } from '@/assets/elementRegistry';
-import { componentSharedData, getSharedDataUniqueName, assignRequiredValuesToSharedData } from '@/assets/reactiveData';
+import { dataSharedInComponent, getSharedDataUniqueName, assignRequiredValuesToSharedData } from '@/assets/reactiveData';
 import { defineComponent } from 'vue'
 
 let component = defineComponent({
@@ -19,10 +19,10 @@ let component = defineComponent({
     },
     computed: {
         text(): string {
-            return componentSharedData[getSharedDataUniqueName(this.name, 'text')]
+            return dataSharedInComponent[getSharedDataUniqueName(this.name, 'text')]
         },
         defaultSelected(): boolean {
-            return componentSharedData[getSharedDataUniqueName(this.name, 'defaultSelected')]
+            return dataSharedInComponent[getSharedDataUniqueName(this.name, 'defaultSelected')]
         },
     },
     data() {
@@ -35,7 +35,7 @@ let component = defineComponent({
         selected: {
             handler(new_value: boolean) {
                 let nameSelected = getSharedDataUniqueName(this.name, "selected")
-                componentSharedData[nameSelected] = new_value
+                dataSharedInComponent[nameSelected] = new_value
             },
             immediate: true
         },
@@ -63,5 +63,10 @@ export function processSubElementConfiguration(this_name: string, subElementConf
 <style scoped>
 .checkbox-text {
     margin-right: 5px;
+    padding-top: 8px;
+}
+
+.checkbox-wrapper {
+    display: flex;
 }
 </style>

@@ -12,10 +12,12 @@
 
 <script lang="ts">
 import { defineComponent, shallowRef } from 'vue'
-import { componentSharedData, getSharedDataUniqueName } from '@/assets/reactiveData'
+import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiveData'
 import type ElementRegistry from '@/assets/elementRegistry'
 import { ElementDescription } from '@/assets/elementRegistry'
 import { valuesRequiredInConfiguration } from '@/assets/elementRegistry'
+
+// TODO: allow custom html in the plain text element
 
 let component = defineComponent({
   props: {
@@ -26,13 +28,13 @@ let component = defineComponent({
   },
   computed: {
     headingLevel(): number {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'headingLevel')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'headingLevel')]
     },
     heading(): boolean {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'heading')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'heading')]
     },
     value(): string {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'value')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'value')]
     }
   },
 })

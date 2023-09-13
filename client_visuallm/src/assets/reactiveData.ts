@@ -8,7 +8,7 @@ import { reactive } from 'vue'
  * It is designed in this way so that e.g. a button element could send
  * a request to BE and based on the response update other sibling elements.
  */
-export const componentSharedData = reactive({} as { [name: string]: any })
+export const dataSharedInComponent = reactive({} as { [name: string]: any })
 
 /** Create a key string for a config value for a specific element
  *
@@ -31,9 +31,9 @@ export function assignRequiredValuesToSharedData(
   subElementConfiguration: { [key: string]: any },
   requiredValues: { [key: string]: string }
 ) {
-  let data = {} as { [key: string]: any }
-  for (let key of Object.keys(requiredValues)) {
-    let subElementKey = requiredValues[key]
+  const data = {} as { [key: string]: any }
+  for (const key of Object.keys(requiredValues)) {
+    const subElementKey = requiredValues[key]
     data[getSharedDataUniqueName(this_name, subElementKey)] = subElementConfiguration[key]
   }
 

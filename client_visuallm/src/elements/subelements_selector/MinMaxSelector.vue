@@ -1,7 +1,7 @@
 <template>
-  <div :class="{ 'sample-selector': true, wrapElement: true, focused: isFocused }">
-    <span class="descr"> {{ text }} </span>
-    <span class="selectorWrapper">
+  <div :class="{ 'sample-selector': true, wrapElement: true, focused: isFocused, 'selector-wrapper': true }">
+    <span class="selector-text"> {{ text }} </span>
+    <span class="selector">
       <input :style="{ width: inputWidth }" type="number" :min="min" :max="max" v-model="selected" :step="stepSize"
         @focus="isFocused = true" @blur="isFocused = false" />
     </span>
@@ -11,7 +11,7 @@
 <script lang="ts">
 import { valuesRequiredInConfiguration } from '@/assets/elementRegistry'
 import { numberWidth } from '@/assets/utils'
-import { componentSharedData, getSharedDataUniqueName, assignRequiredValuesToSharedData } from '@/assets/reactiveData'
+import { dataSharedInComponent, getSharedDataUniqueName, assignRequiredValuesToSharedData } from '@/assets/reactiveData'
 import { defineComponent } from 'vue'
 
 let component = defineComponent({
@@ -23,19 +23,19 @@ let component = defineComponent({
   },
   computed: {
     max(): number {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'max')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'max')]
     },
     min(): number {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'min')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'min')]
     },
     stepSize(): number {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'stepSize')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'stepSize')]
     },
     defaultSelected(): number {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'defaultSelected')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'defaultSelected')]
     },
     text(): string {
-      return componentSharedData[getSharedDataUniqueName(this.name, 'text')]
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'text')]
     },
     inputWidth(): string {
       return numberWidth(this.selected).toString() + "px"
@@ -43,7 +43,7 @@ let component = defineComponent({
   },
   data() {
     return {
-      reactiveStore: componentSharedData,
+      reactiveStore: dataSharedInComponent,
       selected: 0 as number,
       isFocused: false as boolean,
     }
@@ -53,7 +53,7 @@ let component = defineComponent({
       handler(new_value: number) {
         this.selected = Math.max(Math.min(new_value, this.max), this.min)
         let nameSelected = getSharedDataUniqueName(this.name, "selected")
-        componentSharedData[nameSelected] = this.selected
+        dataSharedInComponent[nameSelected] = this.selected
       },
       immediate: true
     },
@@ -82,13 +82,21 @@ export function processSubElementConfiguration(this_name: string, subElementConf
   valuesRequiredInConfiguration(subElementConfiguration, Object.keys(requiredValues))
 
   let data = assignRequiredValuesToSharedData(this_name, subElementConfiguration, requiredValues)
-  console.log(data)
   return data
 }
 </script>
 <style scoped>
-.selectorWrapper {
+.selector {
   width: fit-content;
   display: inline-block;
+  padding-top: 8px;
+}
+
+.selector-text {
+  padding-top: 8px;
+}
+
+.selector-wrapper {
+  display: flex;
 }
 </style>

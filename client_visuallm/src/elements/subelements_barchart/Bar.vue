@@ -3,7 +3,7 @@
     <span v-if="useInlineLayout" class="inline-bar-block">
       <span class="word-text" :style="{ width: maxTextWidth }">{{ content }}</span>
       <span class="track rounded">
-        <span :style="{ width: barWidth(probabilities[0]) }" class="track-fill rounded">
+        <span :style="{ width: barWidth(barHeights[0]) }" class="track-fill rounded">
           <span class="prob-text">{{ annotations[0] }}</span>
         </span>
       </span>
@@ -13,10 +13,10 @@
         content }}"</div>
 
       <div class="multiline-bar-block" :style="{ width: trackWidth }">
-        <span v-for="(probability, i) in probabilities" class="single-bar-wrapper">
+        <span v-for="(barHeight, i) in barHeights" class="single-bar-wrapper">
           <div class="inline-bar-block-text"> {{ names[i] }}</div>
           <div class="track rounded">
-            <div :style="{ width: barWidth(probability) }" class="track-fill rounded">
+            <div :style="{ width: barWidth(barHeight) }" class="track-fill rounded">
               <span class="prob-text">{{ annotations[i] }}</span>
             </div>
           </div>
@@ -30,24 +30,21 @@
 import type { PropType } from 'vue'
 import { defineComponent } from 'vue'
 
-export interface BarInfo {
+export interface PieceInfo {
   barHeights: number[]
   barAnnotations: string[]
-  barTitle: string
+  barNames: string[]
+  pieceTitle: string
 }
 
 let component = defineComponent({
   props: {
     item: {
-      type: Object as PropType<BarInfo>,
+      type: Object as PropType<PieceInfo>,
       required: true
     },
     longContexts: {
       type: Boolean,
-      required: true
-    },
-    names: {
-      type: Object as PropType<string[]>,
       required: true
     },
     maxTextWidth: {
@@ -65,13 +62,16 @@ let component = defineComponent({
       return (!this.longContexts) && (this.item.barHeights.length == 1)
     },
     content() {
-      return this.item.barTitle
+      return this.item.pieceTitle
     },
-    probabilities() {
+    barHeights() {
       return this.item.barHeights
     },
     annotations() {
       return this.item.barAnnotations
+    },
+    names() {
+      return this.item.barNames
     },
     trackWidth(): string {
       let oneTrackWidth = 90
