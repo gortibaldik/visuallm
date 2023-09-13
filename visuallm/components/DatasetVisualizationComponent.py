@@ -41,6 +41,7 @@ class DatasetVisualizationComponent(
 
         self.add_element(self.main_heading_element)
         self.add_elements(self.dataset_elements)
+        self.add_elements(self.generator_selection_elements)
         self.add_elements(sample_vis_elements)
 
     def initialize_sample_visualization_elements(self) -> List[ElementBase]:

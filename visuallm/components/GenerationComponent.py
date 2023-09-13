@@ -14,7 +14,7 @@ from visuallm.components.mixins.generation_selectors_mixin import (
     SELECTORS_TYPE,
     GenerationSelectorsMixin,
 )
-from visuallm.components.mixins.Generator import Generator, OutputProbabilityMixin
+from visuallm.components.mixins.Generator import Generator, OutputProbabilityInterface
 from visuallm.components.mixins.metrics_mixin import (
     GeneratedTextMetric,
     MetricsMixin,
@@ -129,16 +129,18 @@ class GenerationComponent(
 
         # compute metrics on generated
         probs, output_sequences = None, None
-        if not isinstance(self.generator, OutputProbabilityMixin):
-            raise ValueError()
 
-        full_generated_texts = [
-            self.generator.create_text_to_tokenizer(self.loaded_sample, generated)
-            for generated in output["decoded_outputs"]
-        ]
-        probs, output_sequences = self.generator.measure_output_probability(
-            full_generated_texts, output["input_length"]
-        )
+        if isinstance(self.generator, OutputProbabilityInterface):
+            full_generated_texts = [
+                self.generator.create_text_to_tokenizer(self.loaded_sample, generated)
+                for generated in output["decoded_outputs"]
+            ]
+            probs, output_sequences = self.generator.measure_output_probability(
+                full_generated_texts, output["input_length"]
+            )
+        else:
+            probs = [None] * len(output["decoded_outputs"])
+            output_sequences = probs
 
         self.compute_n_display_metrics_on_predicted(
             output["decoded_outputs"],
@@ -148,16 +150,19 @@ class GenerationComponent(
         )
 
         # compute scores on target
-        probs, output_sequences = self.generator.measure_output_probability(
-            [
-                self.generator.create_text_to_tokenizer(
-                    self.loaded_sample, self.get_target_str()
-                )
-            ],
-            output["input_length"],
-        )
+        if isinstance(self.generator, OutputProbabilityInterface):
+            probs, output_sequences = self.generator.measure_output_probability(
+                [
+                    self.generator.create_text_to_tokenizer(
+                        self.loaded_sample, self.get_target_str()
+                    )
+                ],
+                output["input_length"],
+            )
+        else:
+            probs, output_sequences = [None], [None]
         self.compute_n_display_metrics_on_target(
-            self.get_target_str().removeprefix(text_to_tokenizer),
+            self.get_target_str(),
             probs,
             output_sequences,
         )

@@ -10,7 +10,11 @@ from visuallm.components.mixins.generation_selectors_mixin import (
     CheckBoxSelectorType,
     MinMaxSelectorType,
 )
-from visuallm.components.mixins.Generator import HuggingFaceGenerator
+from visuallm.components.mixins.Generator import (
+    HuggingFaceGenerator,
+    OpenAIGenerator,
+    switch_persona_from_first_to_second_sentence,
+)
 from visuallm.server import Server
 
 from .components.chat import ChatComponent
@@ -55,6 +59,29 @@ def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: List[str])
     return text_to_tokenizer
 
 
+def create_text_to_tokenizer_openai(loaded_sample, target: Optional[str] = None):
+    model = "gpt-3.5-turbo-0613"
+    system_traits = "You are a chatbot for the task where you try to impersonate a human who identifies himself with the following traits: "
+    system_traits += " ".join(
+        [
+            switch_persona_from_first_to_second_sentence(sentence)
+            for sentence in loaded_sample["personality"]
+        ]
+    )
+    system_traits += " Your answers should be about a sentence long."
+    history = copy.deepcopy(loaded_sample["history"])
+    if ("user_message" in loaded_sample) and (
+        len(loaded_sample["user_message"].strip()) != 0
+    ):
+        history.append(copy.deepcopy(loaded_sample["user_message"]))
+    messages = [{"role": "system", "content": system_traits}]
+    roles = ["user", "assistant"]
+    for i, message in enumerate(history):
+        messages.append({"role": roles[i % 2], "content": message})
+
+    return {"model": model, "messages": messages}
+
+
 generator = HuggingFaceGenerator(
     model=model,
     tokenizer=tokenizer,
@@ -62,14 +89,19 @@ generator = HuggingFaceGenerator(
     create_text_to_tokenizer_one_step=create_text_to_tokenizer_one_step,
 )
 
+open_ai_generator = OpenAIGenerator(create_text_to_tokenizer_openai)
+
 # create components
-visualize = Visualization(dataset=dataset, generator=generator)
+visualize = Visualization(
+    dataset=dataset,
+    generator_choices={"gpt-3.5-turbo-0613": open_ai_generator, "gpt2": generator},
+)
 generate = Generation(
     dataset=dataset,
-    generator=generator,
+    generator_choices={"gpt-3.5-turbo-0613": open_ai_generator, "gpt2": generator},
     selectors={
         "do_sample": CheckBoxSelectorType(False),
-        "top_k": MinMaxSelectorType(0, 1000),
+        "top_p": MinMaxSelectorType(0, 1, default_value=1.0, step_size=0.05),
         "max_new_tokens": MinMaxSelectorType(10, 100, default_value=30),
         "num_return_sequences": MinMaxSelectorType(1, 20),
     },
@@ -78,7 +110,11 @@ generate = Generation(
         "F1-Score": GeneratedTextMetric("{:.2%}", True, F1Score())
     },
 )
-chat = ChatComponent(title="chat", generator=generator)
+
+chat = ChatComponent(
+    title="chat",
+    generator_choices={"gpt-3.5-turbo-0613": open_ai_generator, "gpt2": generator},
+)
 next_token = NextTokenPrediction(generator=generator, dataset=dataset)
 server = Server(__name__, [generate, next_token, visualize, chat])
 app = server.app

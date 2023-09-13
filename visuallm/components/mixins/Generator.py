@@ -1,6 +1,11 @@
+import copy
+import os
+from abc import ABC, abstractmethod
 from heapq import nlargest
-from typing import Any, Callable, List, Optional, Protocol, Tuple, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Protocol, Tuple, Union, cast
 
+import nltk
+import openai
 import torch
 from numpy.typing import NDArray
 from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
@@ -8,54 +13,79 @@ from transformers.generation.utils import GenerateOutput
 
 
 class CreateTextToTokenizer(Protocol):
-    def __call__(self, loaded_sample: Any, target: Optional[Any] = None) -> str:
+    def __call__(self, loaded_sample: Any, target: Optional[Any] = None) -> Any:
         ...
 
 
-class Generator:
+class Generator(ABC):
     create_text_to_tokenizer: CreateTextToTokenizer
 
     @property
     def supports_next_token_prediction(self):
         return False
 
-    def generate_output(self, text_to_tokenizer: str, **kwargs) -> Any:
-        pass
-
-    def one_step_prediction(self, text_to_tokenizer: str, **kwargs) -> Any:
-        pass
+    @abstractmethod
+    def generate_output(self, text_to_tokenizer: str, **kwargs) -> Dict:
+        ...
 
 
 TOKENIZER_TYPE = Union[PreTrainedTokenizer, PreTrainedTokenizerFast]
 
-# API KEY FOR OPENAI: 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
 
+class NextTokenPredictionInterface(ABC):
+    """
+    A class implementing this interface provides the ability to go over the
+    generation in a token by token manner.
+    """
 
-class NextTokenPredictionMixin:
     create_text_to_tokenizer_one_step: Callable[[Any, List[str]], str]
 
-    def one_step_prediction(self, text_to_tokenizer: str):
-        pass
+    @abstractmethod
+    def one_step_prediction(self, text_to_tokenizer: str) -> List[Tuple[float, str]]:
+        ...
 
-    def convert_token_to_string(self, token: str):
-        return ""
+    @abstractmethod
+    def convert_token_to_string(self, token: str) -> str:
+        ...
 
+    @abstractmethod
     def init_word_vocab(self) -> List[str]:
-        return []
+        ...
 
     @property
     def supports_next_token_prediction(self):
         return True
 
 
-class OutputProbabilityMixin:
+class OutputProbabilityInterface(ABC):
+    """
+    A class implementing this interface provides `measure_output_probability` method
+    thanks to which one can measure the probability of generated tokens.
+    """
+
+    @abstractmethod
     def measure_output_probability(
         self, texts: List[str], input_length: int
     ) -> Tuple[Any, Any]:
+        """
+        Measure the probabilities of individual tokens.
+
+        Args:
+            texts (List[str]): the generated sequences
+            input_length (int): the length of tokenized input (only tokens after that are used for the
+                probability computation)
+
+        Returns:
+            List[torch.Tensor], List[torch.Tensor]: assigned probabilities, generated_ids tensor
+        """
         ...
 
 
-class HuggingFaceGenerator(OutputProbabilityMixin, NextTokenPredictionMixin, Generator):
+class HuggingFaceGenerator(
+    OutputProbabilityInterface, NextTokenPredictionInterface, Generator
+):
+    """Generator that generates using HuggingFace models and tokenizers."""
+
     def __init__(
         self,
         model: PreTrainedModel,
@@ -121,7 +151,7 @@ class HuggingFaceGenerator(OutputProbabilityMixin, NextTokenPredictionMixin, Gen
 
         return detokenized_outputs
 
-    def one_step_prediction(self, text_to_tokenizer: str):
+    def one_step_prediction(self, text_to_tokenizer: str) -> List[Tuple[float, str]]:
         """Pass the model inputs created by self.create_model_inputs through the data and
         return the numpy array with the probabilities of the next token.
 
@@ -162,12 +192,11 @@ class HuggingFaceGenerator(OutputProbabilityMixin, NextTokenPredictionMixin, Gen
         output_sequences_list: List[torch.Tensor] = []
         for text in texts:
             with torch.inference_mode():
-                # TODO: here I should somehow treat generations of different lengths
                 sequence = self._tokenizer(text, return_tensors="pt")
                 output = self._model(**sequence)
                 logits = cast(torch.Tensor, output.logits)
                 probs = torch.softmax(logits, dim=-1)
-                probs = probs[:, input_length - 1 :, :]
+                probs = probs[:, input_length - 1 : -1, :]
                 predicted_token_ids = sequence.input_ids[0, input_length:]
             probabilities.append(probs)
             output_sequences_list.append(predicted_token_ids)
@@ -193,3 +222,61 @@ class HuggingFaceGenerator(OutputProbabilityMixin, NextTokenPredictionMixin, Gen
             iterable=zip(map(lambda x: float(x) * 100, probs), self.word_vocab),
             key=lambda x: x[0],
         )
+
+
+class OpenAIGenerator(Generator):
+    def __init__(self, create_text_to_tokenizer: CreateTextToTokenizer):
+        self._api_key = os.getenv("OPENAI_API_KEY")
+        if self._api_key is None:
+            raise ValueError("OPENAI_API_KEY not set!")
+
+        self.create_text_to_tokenizer = create_text_to_tokenizer
+        openai.api_key = self._api_key
+
+    def generate_output(self, text_to_tokenizer: Dict, **kwargs) -> Dict:
+        params = copy.deepcopy(text_to_tokenizer)
+        if "top_p" in kwargs:
+            params["top_p"] = kwargs["top_p"]
+        if "num_return_sequences" in kwargs:
+            params["n"] = kwargs["num_return_sequences"]
+        if "max_new_tokens" in kwargs:
+            params["max_tokens"] = kwargs["max_new_tokens"]
+        response = openai.ChatCompletion.create(**params)
+        return dict(
+            decoded_outputs=[choice["message"]["content"] for choice in response["choices"]]  # type: ignore
+        )
+
+
+forms = {
+    "am": "are",
+    "Am": "Are",
+    "are": "am",
+    "Are": "Am",
+    "i": "you",
+    "I": "You",
+    "you": "i",
+    "You": "I",
+    "my": "your",
+    "My": "Your",
+    "your": "my",
+    "Your": "My",
+    "yours": "mine",
+    "Yours": "Mine",
+    "Mine": "Yours",
+    "mine": "yours",
+    "me": "you",
+    "Me": "You",
+}
+
+
+def switch_persona_from_first_to_second_word(word: str):
+    return forms.get(word, word)
+
+
+def switch_persona_from_first_to_second_sentence(sentence: str):
+    return " ".join(
+        [
+            switch_persona_from_first_to_second_word(word)
+            for word in nltk.wordpunct_tokenize(sentence)
+        ]
+    )

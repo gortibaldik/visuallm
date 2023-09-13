@@ -6,7 +6,7 @@ from visuallm.components.mixins.data_preparation_mixin import (
     DATASETS_TYPE,
     DataPreparationMixin,
 )
-from visuallm.components.mixins.Generator import Generator, NextTokenPredictionMixin
+from visuallm.components.mixins.Generator import Generator, NextTokenPredictionInterface
 from visuallm.components.mixins.model_selection_mixin import (
     GENERATOR_CHOICES,
     ModelSelectionMixin,
@@ -115,7 +115,7 @@ class NextTokenPredictionComponent(
         Args:
             detokenized_token (str): the latest selected token
         """
-        if not isinstance(self.generator, NextTokenPredictionMixin):
+        if not isinstance(self.generator, NextTokenPredictionInterface):
             raise ValueError()
         text_to_tokenizer = self.generator.create_text_to_tokenizer_one_step(
             self.loaded_sample, self._received_tokens
@@ -128,6 +128,8 @@ class NextTokenPredictionComponent(
         with the next token probabilities.
         """
         text_to_tokenizer = self.text_to_tokenizer_element.content
+        if not isinstance(self.generator, NextTokenPredictionInterface):
+            raise ValueError()
         n_largest_probs_tokens = self.generator.one_step_prediction(text_to_tokenizer)
 
         piece_infos: List[PieceInfo] = []
@@ -149,7 +151,7 @@ class NextTokenPredictionComponent(
         of the generation process, and populates the next token probabilities.
         """
         token = self.token_probs_element.selected
-        if not isinstance(self.generator, NextTokenPredictionMixin):
+        if not isinstance(self.generator, NextTokenPredictionInterface):
             raise ValueError()
         detokenized_token = self.generator.convert_token_to_string(token)
         self._received_tokens.append(detokenized_token)

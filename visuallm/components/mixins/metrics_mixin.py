@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Sequence
+from typing import Any, Callable, Dict, List, Sequence, Union
 
 import torch
 
@@ -137,8 +137,8 @@ class MetricsMixin(ABC):
         self,
         generated_text_list: Sequence[str],
         label_text: str,
-        probs_encoded_list: Sequence[torch.Tensor],
-        generated_encoded_list: Sequence[torch.Tensor],
+        probs_encoded_list: Union[Sequence[torch.Tensor], Sequence[None]],
+        generated_encoded_list: Union[Sequence[torch.Tensor], Sequence[None]],
         element: BarChartElement,
     ):
         """Calculate generation metrics for each element of `generated_text_list` and
@@ -147,17 +147,16 @@ class MetricsMixin(ABC):
         Args:
             generated_text_list (Sequence[str]): Sequence with generations of the model.
             label_text (str): Gold output.
-            probs_encoded_list (Sequence[torch.Tensor]): Sequence of sequences of probabilities of each
-                generated token.
-            generated_encoded_list (Sequence[torch.Tensor]): Sequence of sequences of ids of each
-                target token.
+            probs_encoded_list (Sequence[torch.Tensor]): Sequence of tensors of shape
+            generated_encoded_list (Sequence[torch.Tensor]): Sequence of generated indices of tokens (sequence
+                of generated sequences of indices of tokens)
             element (BarChartElement): Element where to display computed metrics.
         """
         piece_infos: List[PieceInfo] = []
         for (
             generated_text,
-            labels_encoded,
-            generated_encoded,
+            probs_encoded,
+            generated_ids_encoded,
         ) in zip(
             generated_text_list,
             probs_encoded_list,
@@ -178,9 +177,12 @@ class MetricsMixin(ABC):
                     )
                 else:
                     metric_description = self._metrics_on_probs[name]
-                    result = metric_description.metric_calculation(
-                        labels_encoded, generated_encoded
-                    )
+                    if probs_encoded is None:
+                        result = 0
+                    else:
+                        result = metric_description.metric_calculation(
+                            probs_encoded, generated_ids_encoded
+                        )
 
                 if metric_description.scalable:
                     bar_heights.append(min(result * 100, 100))
@@ -203,8 +205,8 @@ class MetricsMixin(ABC):
         self,
         generated_text_list: Sequence[str],
         label_text: str,
-        probs_encoded_list: Sequence[torch.Tensor],
-        generated_encoded_list: Sequence[torch.Tensor],
+        probs_encoded_list: Union[Sequence[torch.Tensor], Sequence[None]],
+        generated_encoded_list: Union[Sequence[None], Sequence[torch.Tensor]],
     ):
         """Compute metrics on the predictions of the model and
         display them with `self._display_metrics_on_predicted_element`.
@@ -212,10 +214,10 @@ class MetricsMixin(ABC):
         Args:
             generated_text_list (Sequence[str]): list of generations of the model.
             label_text (str): gold output.
-            probs_encoded_list (Sequence[torch.Tensor]): Sequence of sequences of probabilities of each
-                generated token.
-            generated_encoded_list (Sequence[torch.Tensor]): Sequence of sequences of ids of each
-                target token.
+            probs_encoded_list (Sequence[torch.Tensor]): Sequence of tensors with shape (1, sentence_length, vocab_size)
+                each depicting the probabilities
+            generated_encoded_list (Sequence[torch.Tensor]): Sequence of tensors with shape (sentence_length,) each
+                depicting the token ids that vere actually generated
         """
         self._compute_n_display_metrics_for_element(
             generated_text_list,
@@ -228,8 +230,8 @@ class MetricsMixin(ABC):
     def compute_n_display_metrics_on_target(
         self,
         target: str,
-        probs_target: Sequence[torch.Tensor],
-        target_encoded: Sequence[torch.Tensor],
+        probs_target: Union[Sequence[torch.Tensor], Sequence[None]],
+        target_encoded: Union[Sequence[torch.Tensor], Sequence[None]],
     ):
         """
         Compute metrics on the targets.
