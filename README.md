@@ -9,9 +9,10 @@
 
 ## VERSION: `0.2.1` changelog
 
-- added `visuallm.elements.text_input_element.TextInputElement`
+- added `visuallm.components.ChatComponent`, so you can now chat with the models!
+- added support for OpenAI API, so providing the token, you can chat with the OpenAI models!
 - refactoring and better code quality
-- resolved one dependabot alert
+- more documentation strings
 
 ## Installation
 
@@ -21,6 +22,12 @@
 ## Usage
 
 _The documentation is a WIP as of now, however here you can see several snippets of what the library can do._
+
+If you want to use the app with the personachat dataset, you can play with prepared example by running:
+
+```sh
+flask --app examples_py.persona_chat_example.app run
+```
 
 ### Generation Playground
 
