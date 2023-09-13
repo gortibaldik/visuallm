@@ -13,6 +13,7 @@ from visuallm.components.mixins.generation_selectors_mixin import (
 from visuallm.components.mixins.Generator import HuggingFaceGenerator
 from visuallm.server import Server
 
+from .components.chat import ChatComponent
 from .components.generation import Generation
 from .components.metrics import F1Score, Perplexity
 from .components.next_token_prediction import NextTokenPrediction
@@ -77,6 +78,7 @@ generate = Generation(
         "F1-Score": GeneratedTextMetric("{:.2%}", True, F1Score())
     },
 )
+chat = ChatComponent(title="chat", generator=generator)
 next_token = NextTokenPrediction(generator=generator, dataset=dataset)
-server = Server(__name__, [generate, next_token, visualize])
+server = Server(__name__, [generate, next_token, visualize, chat])
 app = server.app
