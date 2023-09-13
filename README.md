@@ -7,7 +7,7 @@
 
 ![example workflow](https://github.com/gortibaldik/visuallm/actions/workflows/python-test.yaml/badge.svg)
 
-## VERSION: `0.2.0` changelog
+## VERSION: `0.2.1` changelog
 
 - added `visuallm.elements.text_input_element.TextInputElement`
 - refactoring and better code quality
