@@ -1,23 +1,20 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Union
 
-from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
-
+from visuallm.components.mixins.Generator import Generator
 from visuallm.elements.plain_text_element import PlainTextElement
 from visuallm.elements.selector_elements import ButtonElement, ChoicesSubElement
 
 if TYPE_CHECKING:
     from visuallm.elements import ElementBase
 
-TOKENIZER_TYPE = Union[PreTrainedTokenizer, PreTrainedTokenizerFast]
 
-TOKENIZER_MODEL_TUPLE = Tuple[TOKENIZER_TYPE, PreTrainedModel]
-MODEL_TOKENIZER_CHOICES = Union[
-    Dict[str, TOKENIZER_MODEL_TUPLE],
+GENERATOR_CHOICES = Union[
+    Dict[str, Generator],
     Dict[
         str,
-        Callable[[], TOKENIZER_MODEL_TUPLE],
+        Callable[[], Generator],
     ],
 ]
 
@@ -25,159 +22,152 @@ MODEL_TOKENIZER_CHOICES = Union[
 class ModelSelectionMixin:
     def __init__(
         self,
-        model: Optional[PreTrainedModel] = None,
-        tokenizer: Optional[TOKENIZER_TYPE] = None,
-        model_tokenizer_choices: Optional[MODEL_TOKENIZER_CHOICES] = None,
-        keep_models_in_memory: bool = True,
+        generator: Optional[Generator] = None,
+        generator_choices: Optional[GENERATOR_CHOICES] = None,
+        keep_generators_in_memory: bool = True,
     ):
-        """This mixin implements model handling server methods. If only the
-        model and the tokenizer is provided, the mixin just makes `self.model` and
-        `self.tokenizer` properties available. If the `model_tokenizer_choices` is available
-        then the mixin creates frontend elements which let the user select the model and
-        the tokenizer.
+        """This mixin implements generator handling server methods. If only the
+        generator is provided, the mixin just makes `self.generator` property available.
+        If the `generator_choices` is available then the mixin creates frontend elements
+        which let the user select the generator.
 
         Warning:
-            You should either provide the model and the tokenizer or model_tokenizer_choices,
+            You should either provide the generator or generator_choices,
             not both at once.
 
         Args:
-            model (Optional[PreTrainedModel], optional): Huggingface model. Defaults to None.
-            tokenizer (Optional[PreTrainedTokenizer], optional): Huggingface tokenizer. Defaults to None.
-            model_tokenizer_choices (Optional[MODEL_TOKENIZER_CHOICES], optional): dictionary where key
-                is the name of the tuple and value is tuple of tokenizer and model. Defaults to None.
-            keep_models_in_memory (bool, optional): Whether to load the tokenizer and model to cache, so that
+            generator (Optional[Generator], optional): Implementation of the Generator class. Defaults to None.
+            generator_choices (Optional[Generator], optional): dictionary where key
+                is the name of the generator and value is the generator. Defaults to None.
+            keep_generators_in_memory (bool, optional): Whether to load the tokenizer and model to cache, so that
                 when a new tokenizer and model is loaded, the old one remains in memory. It makes switching
                 between different tokenizers and models faster. Defaults to True.
         """
-        if model is None and (
-            model_tokenizer_choices is None or len(model_tokenizer_choices) == 0
+        if generator is None and (
+            generator_choices is None or len(generator_choices) == 0
         ):
             raise ValueError(
-                "You have to provide either model and tokenizer or a not "
-                + "empty model_tokenizer_choices dictionary"
+                "You have to provide either generator or a not "
+                + "empty generator_choices dictionary"
             )
 
-        if model is None and tokenizer is None:
-            assert model_tokenizer_choices is not None
-            self._model_choices = model_tokenizer_choices
-        elif model is None or tokenizer is None:
+        if generator is None:
+            self._generator_choices = generator_choices
+        elif generator_choices is not None:
             raise ValueError(
-                "If you provide the model, you should also provide the tokenizer."
+                "If generator and generator_choices is all "
+                + "not None, the library cannot decide which should be "
+                + "selected."
             )
         else:
-            if model_tokenizer_choices is not None:
-                raise ValueError(
-                    "If model, tokenizer and model_tokenizer_choices is all "
-                    + "not None, the library cannot decide which should be "
-                    + "selected."
-                )
-            self._model_choices = None
-            self._model, self._tokenizer = model, tokenizer
+            self._generator_choices = None
+            self._generator = generator
 
-        self._cache: Optional[Dict[str, TOKENIZER_MODEL_TUPLE]] = None
-        if keep_models_in_memory:
+        self._cache: Optional[Dict[str, Generator]] = None
+        if keep_generators_in_memory:
             self._cache = {}
-        self.initialize_model_elements()
+        self.init_generator_selection_elements()
 
-        if model_tokenizer_choices is not None:
-            self._tokenizer, self._model = self.load_model(
-                model_tokenizer_choices[self.model_selector_element.selected]
+        if generator_choices is not None:
+            self._generator = self.load_generator(
+                generator_choices[self.generator_selector_element.selected]
             )
 
-    def load_model(
+    def load_generator(
         self,
-        model_constructor: Union[
-            TOKENIZER_MODEL_TUPLE,
-            Callable[[], TOKENIZER_MODEL_TUPLE],
+        generator_constructor: Union[
+            Generator,
+            Callable[[], Generator],
         ],
     ):
-        """Load the model and the tokenizer using the provided `model_constructor`
+        """Load the generator using the provided `generator_constructor`
 
         Args:
-            model_constructor (Union[ TOKENIZER_MODEL_TUPLE, Callable[[], TOKENIZER_MODEL_TUPLE], ]): either
-                the model and the tokenizer tuple or a function that loads the model and
-                the tokenizer tuple.
+            generator_constructor (Union[Generator, Callable[[], Generator], ]): either
+                the generator or a function that loads the generator.
 
         Returns:
-            TOKENIZER_MODEL_TUPLE: loaded tokenizer and model
+            Generator
         """
-        if isinstance(model_constructor, tuple):
-            return model_constructor
+        if isinstance(generator_constructor, Generator):
+            return generator_constructor
         else:
-            return model_constructor()
+            return generator_constructor()
 
-    def load_cached_model(
+    @property
+    def generator(self):
+        return self._generator
+
+    def load_cached_generator(
         self,
-        model_constructor: Callable[[], TOKENIZER_MODEL_TUPLE],
+        generator_constructor: Callable[[], Generator],
         name: Optional[str] = None,
     ) -> None:
         """The behavior of this function depends on whether the caching is set or unset.
 
-        If set, the function at first checks whether the tokenizer and the model with `name`
-        is already in the cache and skips the loading and returns the cached value, or if it
-        isn't then it loads the tokenizer and the model, and stores it into the cache and
+        If set, the function at first checks whether the generator with `name`
+        is already in the cache and skips the loading and returns the cached value,
+        or if it isn't then it loads the generator, and stores it into the cache and
         returns.
 
-        If unset, the function just loads the tokenizer and the model and returns it.
+        If unset, the function just loads the generator and returns it.
 
         Important:
-            The loaded tokenizer is stored in the property: `self.tokenizer` and the loaded
-            model is stored in the property: `self.model`
+            The loaded generator is stored in property `self.generator`
 
         Args:
             name (str): name of the tokenizer and the model, the tuple will be stored in the
                 cache under this name.
-            model_constructor (Callable[[], TOKENIZER_MODEL_TUPLE]): function that loads the
-                tokenizer and the model.
+            generator_constructor (Callable[[], Generator]): function that loads the generator.
         """
         if self._cache is not None and name in self._cache:
-            self._tokenizer, self._model = self._cache[name]
-        self._tokenizer, self._model = model_constructor()
+            self._generator = self._cache[name]
+            return
+        self._generator = generator_constructor()
         if self._cache is not None and name is not None:
-            self._cache[name] = (self._tokenizer, self._model)
+            self._cache[name] = self._generator
 
-    def initialize_model_elements(self):
-        """Initializes a heading with text "Model Settings" and a selector
+    def init_generator_selection_elements(self):
+        """Initializes a heading with text "Generator Settings" and a selector
         element, which contains:
-        - selector for specific tokenizer and model if multiple tokenizers and models
-            are provided
+        - selector for specific generator if multiple generators are provided
         """
-        if self._model_choices is None:
+        if self._generator_choices is None:
             return
 
-        self.model_selector_heading = PlainTextElement(
-            content="Model Settings", is_heading=True
+        self.generator_selector_heading = PlainTextElement(
+            content="Generator Settings", is_heading=True
         )
-        self.model_selector_element = ChoicesSubElement(
-            list(self._model_choices), text="Select Model"
+        self.generator_selector_element = ChoicesSubElement(
+            list(self._generator_choices), text="Select Generator"
         )
         self.button_select_model = ButtonElement(
-            processing_callback=self.model_callback,
-            button_text="Send Model Configuration",
-            subelements=[self.model_selector_element],
+            processing_callback=self.on_generator_change_callback,
+            button_text="Send Generator Configuration",
+            subelements=[self.generator_selector_element],
         )
 
     @property
-    def model_selection_elements(self) -> List[ElementBase]:
-        """All the model selection elements that should be displayed on the frontend."""
-        if self._model_choices is None:
+    def generator_selection_elements(self) -> List[ElementBase]:
+        """All the generator selection elements that should be displayed on the frontend."""
+        if self._generator_choices is None:
             return []
-        return [self.model_selector_heading, self.button_select_model]
+        return [self.generator_selector_heading, self.button_select_model]
 
-    def on_model_change_callback(self):
+    def after_on_generator_change_callback(self):
         """What to do after the new model and tokenizer is loaded."""
         pass
 
-    def model_callback(self):
+    def on_generator_change_callback(self):
         """
         This method is called each time when a request from frontend comes to load
-        a different tokenizer and model.
+        a different generator.
         """
-        assert self._model is not None
-        if self._model_choices is None:
+        assert self._generator is not None
+        if self._generator_choices is None:
             return
-        if self.model_selector_element.updated:
-            name = self.model_selector_element.selected
-            model_tokenizer = self._model_choices[name]
-            self.load_cached_model(lambda: self.load_model(model_tokenizer), name)
-            self.on_model_change_callback()
+        if self.generator_selector_element.updated:
+            name = self.generator_selector_element.selected
+            generator = self._generator_choices[name]
+            self.load_cached_generator(lambda: self.load_generator(generator), name)
+            self.after_on_generator_change_callback()

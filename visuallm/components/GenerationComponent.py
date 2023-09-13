@@ -14,18 +14,18 @@ from visuallm.components.mixins.generation_selectors_mixin import (
     SELECTORS_TYPE,
     GenerationSelectorsMixin,
 )
+from visuallm.components.mixins.Generator import Generator, OutputProbabilityMixin
 from visuallm.components.mixins.metrics_mixin import (
     GeneratedTextMetric,
     MetricsMixin,
     ProbsMetric,
 )
 from visuallm.components.mixins.model_selection_mixin import (
-    MODEL_TOKENIZER_CHOICES,
-    TOKENIZER_TYPE,
+    GENERATOR_CHOICES,
     ModelSelectionMixin,
 )
+from visuallm.elements import HeadingElement, PlainTextElement
 from visuallm.elements.element_base import ElementBase
-from visuallm.elements.plain_text_element import PlainTextElement
 
 
 class GenerationComponent(
@@ -38,9 +38,8 @@ class GenerationComponent(
     def __init__(
         self,
         title: str = "Interactive Generation",
-        model: Optional[PreTrainedModel] = None,
-        tokenizer: Optional[TOKENIZER_TYPE] = None,
-        model_tokenizer_choices: Optional[MODEL_TOKENIZER_CHOICES] = None,
+        generator: Optional[Generator] = None,
+        generator_choices: Optional[GENERATOR_CHOICES] = None,
         metrics_on_generated_text: Dict[str, GeneratedTextMetric] = {},
         metrics_on_probs: Dict[str, ProbsMetric] = {},
         dataset: Optional[DATASET_TYPE] = None,
@@ -54,9 +53,8 @@ class GenerationComponent(
 
         Args:
             title (str, optional): The title of the component. Defaults to "Interactive Generation".
-            model (Optional[PreTrainedModel], optional): Huggingface model. Defaults to None.
-            tokenizer (Optional[PreTrainedTokenizer], optional): Huggingface tokenizer. Defaults to None.
-            model_tokenizer_choices (Optional[MODEL_TOKENIZER_CHOICES], optional): dictionary where key
+            generator (Optional[Generator], optional): Generator. Defaults to None.
+            generator_choices (Optional[GENERATOR_CHOICES], optional): dictionary where key
                 is the name of the tuple and value is tuple of tokenizer and model. Defaults to None.
             metrics_on_generated_text (Dict[str, GeneratedTextMetric], optional):
                 Metrics which are computed on pairs of strings. Defaults to {}.
@@ -75,9 +73,8 @@ class GenerationComponent(
         )
         ModelSelectionMixin.__init__(
             self,
-            model_tokenizer_choices=model_tokenizer_choices,
-            model=model,
-            tokenizer=tokenizer,
+            generator_choices=generator_choices,
+            generator=generator,
         )
         DataPreparationMixin.__init__(
             self, dataset=dataset, dataset_choices=dataset_choices
@@ -91,7 +88,7 @@ class GenerationComponent(
         input_display_elements = self.init_model_input_display()
         self.add_element(self.main_heading_element)
         self.add_elements(self.dataset_elements)
-        self.add_elements(self.model_selection_elements)
+        self.add_elements(self.generator_selection_elements)
         self.add_elements(self.generation_elements)
         self.add_elements(self.metrics_selection_elements)
         self.add_elements(input_display_elements)
@@ -104,8 +101,9 @@ class GenerationComponent(
             List[ElementBase]: list of elements, it will be
                 registered in the same order on the page.
         """
-        self.input_display = PlainTextElement()
-        return [self.input_display]
+        text_to_tokenizer_heading = HeadingElement("Text to Tokenizer")
+        self.text_to_tokenizer_element = PlainTextElement()
+        return [text_to_tokenizer_heading, self.text_to_tokenizer_element]
 
     def update_model_input_display(self):
         """Update the elements that display the dataset sample.
@@ -113,29 +111,9 @@ class GenerationComponent(
         This method is called each time a new dataset sample is loaded,
         and the loaded dataset sample is stored in `self.loaded_sample`
         """
-        self.input_display.content = self.loaded_sample
-
-    def create_model_inputs(self):
-        """Create inputs for the model, which will be put in the huggingface
-        model generate.
-
-        Returns:
-            Mapping[str, Tensor]: inputs to the model.generate
-        """
-        context = self.input_display.content
-        model_inputs = self._tokenizer(context, return_tensors="pt")
-        return model_inputs
-
-    def create_target_encoding(self):
-        """Create encoding of the target by the tokenizer.
-
-        Returns:
-            torch.Tensor: encoding of the target
-        """
-        context = self.input_display.content
-        target = context + self.get_target_str()
-        model_inputs = self._tokenizer(target, return_tensors="pt")
-        return model_inputs.input_ids
+        self.text_to_tokenizer_element.content = (
+            self.generator.create_text_to_tokenizer(self.loaded_sample)
+        )
 
     def get_target_str(self) -> str:
         """Get string that would be used for the computation of generation metrics."""
@@ -144,54 +122,65 @@ class GenerationComponent(
     def update_generated_output_display(self):
         """Generate outputs with the model, measure probabilities, compute all the
         metrics and update metrics display elements."""
-        model_inputs = self.create_model_inputs()
-        output = generate_output(
-            model_inputs,
-            tokenizer=self._tokenizer,
-            model=self._model,
-            **self.selected_generation_parameters,
+        text_to_tokenizer = self.text_to_tokenizer_element.content
+        output = self.generator.generate_output(
+            text_to_tokenizer, **self.selected_generation_parameters
         )
-        input_length = model_inputs.input_ids.size(1)
-        decoded = decode_output(self._tokenizer, input_length, output)
 
-        # compute mterics on generated
-        probs, output_sequences = measure_output_probability(
-            self._model, output.sequences, input_length
+        # compute metrics on generated
+        probs, output_sequences = None, None
+        if not isinstance(self.generator, OutputProbabilityMixin):
+            raise ValueError()
+
+        full_generated_texts = [
+            self.generator.create_text_to_tokenizer(self.loaded_sample, generated)
+            for generated in output["decoded_outputs"]
+        ]
+        probs, output_sequences = self.generator.measure_output_probability(
+            full_generated_texts, output["input_length"]
         )
+
         self.compute_n_display_metrics_on_predicted(
-            decoded,
+            output["decoded_outputs"],
             self.get_target_str(),
             probs,
             output_sequences,
         )
 
         # compute scores on target
-        probs, output_sequences = measure_output_probability(
-            self._model, self.create_target_encoding(), input_length
+        probs, output_sequences = self.generator.measure_output_probability(
+            [
+                self.generator.create_text_to_tokenizer(
+                    self.loaded_sample, self.get_target_str()
+                )
+            ],
+            output["input_length"],
         )
         self.compute_n_display_metrics_on_target(
-            self.get_target_str(), probs, output_sequences
+            self.get_target_str().removeprefix(text_to_tokenizer),
+            probs,
+            output_sequences,
         )
 
-    def on_model_change_callback(self):
+    def after_on_generator_change_callback(self):
         self.force_set_dataset_selector_updated()
-        self.dataset_callback()
+        self.on_dataset_change_callback()
 
-    def on_sample_change_callback(self):
+    def after_on_dataset_change_callback(self):
         self.update_model_input_display()
         self.update_generated_output_display()
 
     def on_generation_changed_callback(self):
-        return self.on_sample_change_callback()
+        return self.after_on_dataset_change_callback()
 
     def metrics_processing_callback(self):
-        return self.on_sample_change_callback()
+        return self.after_on_dataset_change_callback()
 
 
 def generate_output(
     model_inputs,
     *,
-    tokenizer: TOKENIZER_TYPE,
+    tokenizer,
     model: PreTrainedModel,
     max_new_tokens: int = 40,
     **kwargs,
@@ -213,7 +202,7 @@ def generate_output(
 
 
 def decode_output(
-    tokenizer: TOKENIZER_TYPE,
+    tokenizer,
     input_length: int,
     output: GenerateOutput,
 ):
@@ -249,9 +238,7 @@ def measure_output_probability(
 
     Sequences is a tensor of shape (NUMBER_OF_GENERATIONS, LONGEST_GENERATION_LEN).
     Args:
-        model (PreTrainedModel): the model with which to compute probabilities of tokens
-        sequences (Tensor): sequences of ids to predict probabilities on
-        input_length (int): length of the
+        output: the result of self.generate_output
 
     Returns:
         List[torch.Tensor], List[torch.Tensor]: assigned probabilities, only generated ids tensor

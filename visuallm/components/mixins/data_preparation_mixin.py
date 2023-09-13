@@ -232,7 +232,7 @@ class DataPreparationMixin(ABC):
 
         self.dataset_button = ButtonElement(
             button_text="Send Dataset Configuration",
-            processing_callback=self.dataset_callback,
+            processing_callback=self.on_dataset_change_callback,
             subelements=subelements,
         )
 
@@ -246,7 +246,7 @@ class DataPreparationMixin(ABC):
             return ["dummy_sample", "dummy_sample_2"]
         return self.dataset[self.dataset_split_selector_element.selected]
 
-    def dataset_callback(self):
+    def on_dataset_change_callback(self):
         """
         This method is called each time when a request from frontend comes to
         load a new dataset sample.
@@ -267,12 +267,12 @@ class DataPreparationMixin(ABC):
             self._loaded_sample = self.get_split()[
                 int(self.sample_selector_element.selected)
             ]
-            self.on_sample_change_callback()
+            self.after_on_dataset_change_callback()
         elif self._update_on_data_config_sent:
-            self.on_sample_change_callback()
+            self.after_on_dataset_change_callback()
 
     @abstractmethod
-    def on_sample_change_callback(self) -> None:
+    def after_on_dataset_change_callback(self) -> None:
         """This callback is called right after the dataset sample selectors
         are updated and a new sample / dataset is loaded into the
         `self.dataset` and `self.loaded_sample` properties

@@ -1,3 +1,6 @@
+import copy
+from typing import List, Optional
+
 from datasets import DatasetDict, load_dataset
 from transformers.models.auto.modeling_auto import AutoModelForCausalLM
 from transformers.models.auto.tokenization_auto import AutoTokenizer
@@ -7,6 +10,7 @@ from visuallm.components.mixins.generation_selectors_mixin import (
     CheckBoxSelectorType,
     MinMaxSelectorType,
 )
+from visuallm.components.mixins.Generator import HuggingFaceGenerator
 from visuallm.server import Server
 
 from .components.generation import Generation
@@ -21,12 +25,47 @@ if not isinstance(dataset, DatasetDict):
 tokenizer = AutoTokenizer.from_pretrained("gpt2")
 model = AutoModelForCausalLM.from_pretrained("gpt2")
 
+
+def create_text_to_tokenizer(loaded_sample, target: Optional[str] = None) -> str:
+    text_to_tokenizer = " ".join(
+        [
+            s
+            for part in [
+                loaded_sample["personality"],
+                loaded_sample["history"],
+                [loaded_sample["user_message"]]
+                if ("user_message" in loaded_sample)
+                and (len(loaded_sample["user_message"].strip()) != 0)
+                else [],
+                [target] if target is not None else [],
+            ]
+            for s in part
+        ]
+    )
+    return text_to_tokenizer
+
+
+def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: List[str]):
+    sample = copy.deepcopy(loaded_sample)
+    if len(received_tokens) > 0:
+        received_tokens[0] = received_tokens[0].lstrip()
+    sample["user_message"] = "".join(received_tokens)
+    text_to_tokenizer = create_text_to_tokenizer(sample)
+    return text_to_tokenizer
+
+
+generator = HuggingFaceGenerator(
+    model=model,
+    tokenizer=tokenizer,
+    create_text_to_tokenizer=create_text_to_tokenizer,
+    create_text_to_tokenizer_one_step=create_text_to_tokenizer_one_step,
+)
+
 # create components
-visualize = Visualization(dataset=dataset)
+visualize = Visualization(dataset=dataset, generator=generator)
 generate = Generation(
     dataset=dataset,
-    model=model,
-    tokenizer=tokenizer,  # type: ignore
+    generator=generator,
     selectors={
         "do_sample": CheckBoxSelectorType(False),
         "top_k": MinMaxSelectorType(0, 1000),
@@ -38,8 +77,6 @@ generate = Generation(
         "F1-Score": GeneratedTextMetric("{:.2%}", True, F1Score())
     },
 )
-next_token = NextTokenPrediction(
-    model=model, tokenizer=tokenizer, dataset=dataset, n_largest_tokens_to_return=8
-)
-server = Server(__name__, [visualize, generate, next_token])
+next_token = NextTokenPrediction(generator=generator, dataset=dataset)
+server = Server(__name__, [generate, next_token, visualize])
 app = server.app

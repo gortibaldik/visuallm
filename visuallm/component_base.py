@@ -21,7 +21,7 @@ class ComponentMetaclass(ABCMeta):
 
     def __call__(cls, *args, **kwargs):
         """This is called when a constructor of the class is called."""
-        obj = ABCMeta.__call__(cls, *args, **kwargs)
+        obj = super().__call__(*args, **kwargs)
         if hasattr(obj, "__post_init__"):
             obj.__post_init__()
         return obj

@@ -8,24 +8,19 @@ from .input_display import PersonaChatVisualization
 
 class Generation(GenerationComponent, PersonaChatVisualization):
     def __post_init__(self):
-        self.on_model_change_callback()
+        self.after_on_generator_change_callback()
 
     def init_model_input_display(self) -> List[ElementBase]:
-        return PersonaChatVisualization.init_model_input_display(self)
+        return [
+            *PersonaChatVisualization.init_dialogue_vis_elements(self),
+            *super().init_model_input_display(),
+        ]
 
     def update_model_input_display(self):
-        PersonaChatVisualization.update_model_input_display(self, add_target=False)
-
-    def create_model_inputs(self):
-        return self._tokenizer(
-            self.text_to_tokenizer_element.content, return_tensors="pt"
+        super().update_model_input_display()
+        PersonaChatVisualization.update_dialogue_structure_display(
+            self, add_target=False
         )
-
-    def create_target_encoding(self):
-        target = self.get_target_str()
-        return self._tokenizer(
-            self.text_to_tokenizer_element.content + " " + target, return_tensors="pt"
-        ).input_ids
 
     def get_target_str(self):
         return self.loaded_sample["candidates"][-1]
