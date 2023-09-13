@@ -238,7 +238,7 @@ class MinMaxSubElement(SelectorSubElement[float]):
         self._step_size = step_size
 
     @property
-    def selected(self):
+    def selected(self) -> float:
         return self.selected_getter()
 
     @selected.setter
