@@ -114,6 +114,13 @@ generate = Generation(
 chat = ChatComponent(
     title="chat",
     generator_choices={"gpt-3.5-turbo-0613": open_ai_generator, "gpt2": generator},
+    selectors={
+        "do_sample": CheckBoxSelectorType(False),
+        "top_p": MinMaxSelectorType(0, 1, default_value=1.0, step_size=0.05),
+        "max_new_tokens": MinMaxSelectorType(10, 100, default_value=30),
+        "num_return_sequences": MinMaxSelectorType(1, 20),
+        "temperature": MinMaxSelectorType(0, 2, default_value=1.0, step_size=0.1),
+    },
 )
 next_token = NextTokenPrediction(generator=generator, dataset=dataset)
 server = Server(__name__, [generate, next_token, visualize, chat])

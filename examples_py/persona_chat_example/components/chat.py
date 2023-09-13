@@ -19,7 +19,7 @@ class ChatComponent(ChatComponentBase, PersonaChatVisualization):
     def __post_init__(self):
         select_traits_elements = self.init_select_persona_traits_elements()
         dialogue_vis_elements = self.init_dialogue_vis_elements()
-        self.add_elements(select_traits_elements + dialogue_vis_elements, order=1.5)
+        self.add_elements(select_traits_elements + dialogue_vis_elements, order=2.5)
         self.on_change_selected_traits()
 
     def on_change_selected_traits(self):

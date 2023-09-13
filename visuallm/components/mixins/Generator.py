@@ -241,6 +241,8 @@ class OpenAIGenerator(Generator):
             params["n"] = kwargs["num_return_sequences"]
         if "max_new_tokens" in kwargs:
             params["max_tokens"] = kwargs["max_new_tokens"]
+        if "temperature" in kwargs:
+            params["temperature"] = kwargs["temperature"]
         response = openai.ChatCompletion.create(**params)
         return dict(
             decoded_outputs=[choice["message"]["content"] for choice in response["choices"]]  # type: ignore

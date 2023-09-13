@@ -95,7 +95,7 @@ class GenerationSelectorsMixin(ABC):
 
     @property
     def generation_elements(self) -> List[ElementBase]:
-        """All the elements that should be displayed on the frontend."""
+        """Elements which change the generation hyperparameters."""
         return [self.generation_heading, self.generation_selector_button]
 
     @property
