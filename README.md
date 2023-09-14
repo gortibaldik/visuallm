@@ -15,11 +15,12 @@
 - more documentation strings
 
 ## Table of content
+
 - [Installation](#installation)
 - [Usage](#usage)
 - Examples
   - [Alpaca Example](#alpaca-example)
-  - [PersonaChat Example](#personachat-example)  
+  - [PersonaChat Example](#personachat-example)
 
 ## Installation
 
@@ -42,6 +43,7 @@ We'll use `alpaca` dataset and `gpt2` model as those are reasonably small to run
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/alpaca_example/app.py&lines=14-19&header=# ./examples_py/alpaca_example/app.py lines 14-19)-->
 <!-- The below code snippet is automatically added from ./examples_py/alpaca_example/app.py -->
+
 ```py
 # ./examples_py/alpaca_example/app.py lines 14-19
 dataset = load_dataset("yahma/alpaca-cleaned")
@@ -51,6 +53,7 @@ if not isinstance(dataset, DatasetDict):
 tokenizer = AutoTokenizer.from_pretrained("gpt2")
 model = AutoModelForCausalLM.from_pretrained("gpt2")
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 All the datasets are different, therefore we expect the user to provide 3 functions, which
@@ -59,6 +62,7 @@ is constructed, and how the target text is constructed.
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/alpaca_example/app.py&lines=22-41&header=# ./examples_py/alpaca_example/app.py lines 22-41)-->
 <!-- The below code snippet is automatically added from ./examples_py/alpaca_example/app.py -->
+
 ```py
 # ./examples_py/alpaca_example/app.py lines 22-41
 def create_text_to_tokenizer(loaded_sample, target: Optional[str] = None) -> str:
@@ -82,12 +86,14 @@ def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: List[str])
 def retrieve_target_str(loaded_sample):
     return loaded_sample["output"]
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 Instantiate all the components from the library and run the server
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/alpaca_example/app.py&lines=44-57&header=# ./examples_py/alpaca_example/app.py lines 44-57)-->
 <!-- The below code snippet is automatically added from ./examples_py/alpaca_example/app.py -->
+
 ```py
 # ./examples_py/alpaca_example/app.py lines 44-57
 generator = HuggingFaceGenerator(
@@ -105,17 +111,24 @@ next_token = NextTokenPredictionComponent(generator=generator, dataset=dataset)
 server = Server(__name__, [next_token, visualize, generate])
 app = server.app
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 #### Dataset Visualization (Screenshots)
+
+In the screenshot, you can see that the dataset browser is created, where you can select dataset sample and dataset split and the frontend will show the inputs to the model and also the expected output.
 
 ![dataset_visualization](./readme_images/alpaca_dataset_vis.png)
 
 #### Generation (Screenshots)
 
+In the screenshot, you can see the dataset browser and the model generations.
+
 ![generation](./readme_images/alpaca_generation.png)
 
 #### Next Token Prediction (Screenshots)
+
+In the screenshot, you can see that the library enables you to go through the generation step by step and explore why the generated sample (which can be seen e.g. on the Generation tab) looks the way it looks, how the distribution is skewed, etc.
 
 ![next_token_prediction](./readme_images/alpaca_next_token.png)
 
@@ -124,6 +137,23 @@ app = server.app
 The second workflow that we'll show is the workflow where you alter the implementation of the components, so that the dataset sample is shown in a different way.
 
 If you want to use the app with the personachat dataset, you can play with prepared example by running: `flask --app examples_py.persona_chat_example.app run`.
+
+#### Customization
+
+The personachat dataset contains two pieces of information for each dataset sample.
+
+1. The bot's persona
+2. The past dialogue history
+
+So we will add a `TableElement` which will display the two tables, one with bot's persona and one with past dialogue history. Since the visualization code is the same for all the components we will extract it into a separate class.
+
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/persona_chat_example/components/input_display.py&lines=9-55&header=# ./examples_py/persona_chat_example/components/input_display.py lines 9-55)-->
+<!-- MARKDOWN-AUTO-DOCS:END-->
+
+Afterwards we need to implement the inheritors of components that should make use of this specific visualization of the dataset sample. Here is an example of the `Generation` component.
+
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/persona_chat_example/components/generation.py&lines=1-23&header=# ./examples_py/persona_chat_example/components/generation.py lines 1-23)-->
+<!-- MARKDOWN-AUTO-DOCS:END-->
 
 #### Generation Playground
 
