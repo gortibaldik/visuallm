@@ -44,15 +44,32 @@ class DatasetVisualizationComponent(
         self.add_elements(self.generator_selection_elements)
         self.add_elements(sample_vis_elements)
 
+    def __post_init__(self):
+        self.update_sample_vis_elements()
+
     def initialize_sample_visualization_elements(self) -> List[ElementBase]:
         text_to_tokenizer_heading = HeadingElement(content="Text Model Inputs")
         self.text_to_tokenizer_element = PlainTextElement()
-        return [text_to_tokenizer_heading, self.text_to_tokenizer_element]
+
+        expected_output_heading = HeadingElement(content="Expected Output")
+        self.expected_output_element = PlainTextElement()
+        return [
+            text_to_tokenizer_heading,
+            self.text_to_tokenizer_element,
+            expected_output_heading,
+            self.expected_output_element,
+        ]
 
     def update_sample_vis_elements(self):
         self.text_to_tokenizer_element.content = (
             self.generator.create_text_to_tokenizer(self.loaded_sample)
         )
+        self.expected_output_element.content = self.generator.retrieve_target_str(
+            self.loaded_sample
+        )
 
     def after_on_dataset_change_callback(self):
+        self.update_sample_vis_elements()
+
+    def after_on_generator_change_callback(self):
         self.update_sample_vis_elements()
