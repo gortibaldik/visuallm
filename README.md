@@ -44,7 +44,6 @@ We'll use `alpaca` dataset and `gpt2` model as those are reasonably small to run
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/alpaca_example/app.py&lines=14-19&header=# ./examples_py/alpaca_example/app.py lines 14-19)-->
 <!-- The below code snippet is automatically added from ./examples_py/alpaca_example/app.py -->
-
 ```py
 # ./examples_py/alpaca_example/app.py lines 14-19
 dataset = load_dataset("yahma/alpaca-cleaned")
@@ -54,7 +53,6 @@ if not isinstance(dataset, DatasetDict):
 tokenizer = AutoTokenizer.from_pretrained("gpt2")
 model = AutoModelForCausalLM.from_pretrained("gpt2")
 ```
-
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 All the datasets are different, therefore we expect the user to provide 3 functions, which
@@ -63,7 +61,6 @@ is constructed, and how the target text is constructed.
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/alpaca_example/app.py&lines=22-41&header=# ./examples_py/alpaca_example/app.py lines 22-41)-->
 <!-- The below code snippet is automatically added from ./examples_py/alpaca_example/app.py -->
-
 ```py
 # ./examples_py/alpaca_example/app.py lines 22-41
 def create_text_to_tokenizer(loaded_sample, target: Optional[str] = None) -> str:
@@ -87,14 +84,12 @@ def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: List[str])
 def retrieve_target_str(loaded_sample):
     return loaded_sample["output"]
 ```
-
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 Instantiate all the components from the library and run the server
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/alpaca_example/app.py&lines=44-57&header=# ./examples_py/alpaca_example/app.py lines 44-57)-->
 <!-- The below code snippet is automatically added from ./examples_py/alpaca_example/app.py -->
-
 ```py
 # ./examples_py/alpaca_example/app.py lines 44-57
 generator = HuggingFaceGenerator(
@@ -112,7 +107,6 @@ next_token = NextTokenPredictionComponent(generator=generator, dataset=dataset)
 server = Server(__name__, [next_token, visualize, generate])
 app = server.app
 ```
-
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 #### Dataset Visualization (Screenshots)
@@ -152,7 +146,6 @@ So we will add a `TableElement` which will display the two tables, one with bot'
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/persona_chat_example/components/input_display.py&lines=9-55&header=# ./examples_py/persona_chat_example/components/input_display.py lines 9-55)-->
 <!-- The below code snippet is automatically added from ./examples_py/persona_chat_example/components/input_display.py -->
-
 ```py
 # ./examples_py/persona_chat_example/components/input_display.py lines 9-55
 class PersonaChatVisualization:
@@ -203,14 +196,12 @@ class PersonaChatVisualization:
                 "Turns", ["Who", "Turn"], [[w, u] for w, u in zip(whos, context)]
             )
 ```
-
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 Afterwards we need to implement the inheritors of components that should make use of this specific visualization of the dataset sample. Here is an example of the `Generation` component.
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/persona_chat_example/components/generation.py&lines=1-23&header=# ./examples_py/persona_chat_example/components/generation.py lines 1-23)-->
 <!-- The below code snippet is automatically added from ./examples_py/persona_chat_example/components/generation.py -->
-
 ```py
 # ./examples_py/persona_chat_example/components/generation.py lines 1-23
 from typing import List
@@ -237,7 +228,6 @@ class Generation(GenerationComponent, PersonaChatVisualization):
             self, add_target=False
         )
 ```
-
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 #### Generation Playground
