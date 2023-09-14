@@ -115,7 +115,10 @@ class MetricsMixin(ABC):
         """Elements which allow the user to select which metrics should be
         displayed.
         """
-        return [self._select_metrics_heading, self.metric_button_element]
+        if len(self._metrics_on_generated_text) + len(self._metrics_on_probs) > 0:
+            return [self._select_metrics_heading, self.metric_button_element]
+        else:
+            return []
 
     @property
     def metrics_display_elements(self):
