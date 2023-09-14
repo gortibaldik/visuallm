@@ -12,7 +12,17 @@ flask --app examples_py.example_modules.app run
 
 I wrote this library to help me visualize the output distributions of various models I implemented during my master's thesis. Therefore I implemented only few basic elements for ML purposes.
 
-In the following paragraphs I'll explain how to create configuration selectors, tables and bar-charts, and I'll use the following server: (You'll see the implementation of each of yet unknown components)
+In the following paragraphs I'll explain how to create configuration selectors, tables, bar-charts and other elements.
+- [Selectors](#configuration-selection)
+    - [Min-max](#minmax-subelement)
+    - [Choices](#choices-subelement)
+    - [Checkbox](#checkbox-subelement)
+    - [Button](#button-element) 
+- [Table](#table-element)
+- [BarChart](#barchart-element)   
+- [Text Input](#text-input-element)
+  
+I'll use the following server: (You'll see the implementation of each of yet unknown components)
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./app.py&header=# ./app.py)-->
 <!-- The below code snippet is automatically added from ./app.py -->
