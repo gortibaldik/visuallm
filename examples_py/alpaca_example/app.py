@@ -27,6 +27,9 @@ def create_text_to_tokenizer(loaded_sample, target: Optional[str] = None) -> str
 
 
 def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: List[str]):
+    # one step prediction means that the model is used to predict tokens one per one
+    # received_tokens list contains already selected tokens
+
     text_to_tokenizer = (
         f"Instruction: {loaded_sample['instruction']} Answer:"
         + "".join(received_tokens)
