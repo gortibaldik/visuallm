@@ -28,9 +28,7 @@
 - install from pypi:
   - `pip install visuallm`
 
-## Usage
-
-_The documentation is a WIP as of now, however here you can see several snippets of what the library can do._
+## Example Usage
 
 ### Alpaca Example
 
