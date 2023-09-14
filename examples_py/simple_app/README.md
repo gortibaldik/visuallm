@@ -22,11 +22,11 @@ The library is composed of three parts:
 
 - create all the elements from which the page should be composed and add them to the component
 
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/simple_app/simple_component.py&lines=1-15&header=# ./examples_py/simple_app/simple_component.py lines 1-15)-->
-<!-- The below code snippet is automatically added from ./examples_py/simple_app/simple_component.py -->
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./simple_component.py&lines=1-15&header=# ./simple_component.py lines 1-15)-->
+<!-- The below code snippet is automatically added from ./simple_component.py -->
 
 ```py
-# ./examples_py/simple_app/simple_component.py lines 1-15
+# ./simple_component.py lines 1-15
 from visuallm.component_base import ComponentBase
 from visuallm.elements import MainHeadingElement, PlainTextElement
 

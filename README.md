@@ -255,3 +255,4 @@ There is some other documentation:
 
 1. How does the communication and bootstrapping of the components work ? ([link](./docs/Communication.md))
 2. What is a minimal app that can be constructed ? ([link](./examples_py/simple_app/README.md))
+3. How do the elements work, how can I create custom components ? ([link](./examples_py/example_modules/README.md))

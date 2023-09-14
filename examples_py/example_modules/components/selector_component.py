@@ -28,7 +28,7 @@ class SelectorComponent(ComponentBase):
             "First Message",
         )
         self.button_element = ButtonElement(
-            processing_callback=self.button_clicked,
+            processing_callback=self.on_button_clicked,
             subelements=[
                 self.number_selector_element,
                 self.choices_element,
@@ -38,7 +38,7 @@ class SelectorComponent(ComponentBase):
         self.add_element(MainHeadingElement(content="Selector Component"))
         self.add_elements([self.button_element, self.text_element])
 
-    def button_clicked(self):
+    def on_button_clicked(self):
         n = self.number_selector_element.selected
         c = self.choices_element.selected
         message = (

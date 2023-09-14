@@ -1,5 +1,5 @@
 from visuallm.component_base import ComponentBase
-from visuallm.elements.plain_text_element import MainHeadingElement
+from visuallm.elements import MainHeadingElement
 from visuallm.elements.table_element import Colors, LinkBetweenRows, TableElement
 
 
