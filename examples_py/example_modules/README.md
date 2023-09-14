@@ -1,97 +1,41 @@
-# Module System
+# Modules Example
 
-The library is composed of three parts:
+In this example you can learn about how do individual elements look and how they can be composed to form a more complex components.
 
-1. Server - `visuallm.server.Server`
-2. Component - `visuallm.component_base.ComponentBase`
-3. Elements - `visuallm.elements.*`
-
-## Expected Workflow
-
-1. Create a class inheriting from `visuallm.component_base.ComponentBase`. In `__init__` you should:
-
-- create all the elements from which the page should be composed
-
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/simple_component.py&lines=1-15&header=# ./examples_py/simple_component.py lines 1-15)-->
-<!-- The below code snippet is automatically added from ./examples_py/simple_component.py -->
-
-```py
-# ./examples_py/simple_component.py lines 1-15
-from visuallm.component_base import ComponentBase
-from visuallm.elements import MainHeadingElement, PlainTextElement
-
-
-class SimpleComponent(ComponentBase):
-    def __init__(self):
-        super().__init__(name="simple_component", title="Simple Component")
-        main_heading_element = MainHeadingElement(content="Really Easy Component")
-        self.text_element = PlainTextElement(
-            content="""
-                Some really interesting text that isn't formatted in any way, it is
-                just a plain simple text
-            """
-        )
-        self.add_elements([main_heading_element, self.text_element])
-```
-
-<!-- MARKDOWN-AUTO-DOCS:END-->
-
-- call `super().__init__`, where you specify name and title of the component as well as the created elements in the order that they should appear in the page
-
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/simple_component.py&lines=16-21&header=# ./examples_py/simple_component.py lines 16-21)-->
-<!-- The below code snippet is automatically added from ./examples_py/simple_component.py -->
-
-```py
-# ./examples_py/simple_component.py lines 16-21
-
-```
-
-<!-- MARKDOWN-AUTO-DOCS:END-->
-
-2. Initialize `llm_generation_server.server.Server` and pass in the initialized components
-
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/simple_app.py&lines=1-7&header=# ./examples_py/simple_app.py)-->
-<!-- The below code snippet is automatically added from ./examples_py/simple_app.py -->
-
-```py
-# ./examples_py/simple_app.py
-from visuallm.server import Server
-
-from .simple_component import SimpleComponent
-
-server = Server(__name__, [SimpleComponent()])
-app = server.app
-```
-
-<!-- MARKDOWN-AUTO-DOCS:END-->
-
-3. Standard method to run the flask application, e.g. for the example provided above, it would be
+## Run command
 
 ```sh
-python3 -m flask --app examples_py.simple_app run
+flask --app examples_py.example_modules.app run
 ```
-
-![really_simple_page](../readme_images/really_simple_page.png)
 
 ## Implemented Elements
 
 I wrote this library to help me visualize the output distributions of various models I implemented during my master's thesis. Therefore I implemented only few basic elements for ML purposes.
 
-In the following paragraphs I'll explain how to create configuration selectors, tables and bar-charts, and I'll use the following server: (You'll see the implementation of each of yet unknown components)
+In the following paragraphs I'll explain how to create configuration selectors, tables, bar-charts and other elements.
+- [Selectors](#configuration-selection)
+    - [Min-max](#minmax-subelement)
+    - [Choices](#choices-subelement)
+    - [Checkbox](#checkbox-subelement)
+    - [Button](#button-element) 
+- [Table](#table-element)
+- [BarChart](#barchart-element)   
+- [Text Input](#text-input-element)
+  
+I'll use the following server: (You'll see the implementation of each of yet unknown components)
 
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/app.py&header=# ./examples_py/app.py)-->
-<!-- The below code snippet is automatically added from ./examples_py/app.py -->
-
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./app.py&header=# ./app.py)-->
+<!-- The below code snippet is automatically added from ./app.py -->
 ```py
-# ./examples_py/app.py
+# ./app.py
 from visuallm.server import Server
 
-from .bar_chart_component_advanced import BarChartComponentAdvanced
-from .bar_chart_component_simple import BarChartComponentSimple
-from .selector_component import SelectorComponent
-from .table_component import TableComponent
-from .text_input_component import TextInputComponent
-from .two_tables_component import TwoTablesComponent
+from .components.bar_chart_component_advanced import BarChartComponentAdvanced
+from .components.bar_chart_component_simple import BarChartComponentSimple
+from .components.selector_component import SelectorComponent
+from .components.table_component import TableComponent
+from .components.text_input_component import TextInputComponent
+from .components.two_tables_component import TwoTablesComponent
 
 flask_app = Server(
     __name__,
@@ -107,24 +51,16 @@ flask_app = Server(
 )
 app = flask_app.app
 ```
-
 <!-- MARKDOWN-AUTO-DOCS:END-->
-
-You can see the generated page by running the following script after cloning the github repository and navigating into it:
-
-```sh
-flask --app examples_py.app run
-```
 
 ### Configuration Selection
 
 Several different kinds of configuration specifier, together with one button element. The button element allows backend communication and by itself it does nothing. However you can specify subelements, for which the button element will provide communication updates. For the example below, the following imports will be used:
 
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/selector_component.py&lines=1-10&header=# ./examples_py/selector_component.py lines 1-10)-->
-<!-- The below code snippet is automatically added from ./examples_py/selector_component.py -->
-
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/selector_component.py&lines=1-11&header=# ./components/selector_component.py lines 1-11)-->
+<!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
-# ./examples_py/selector_component.py lines 1-10
+# ./components/selector_component.py lines 1-11
 import time
 from typing import Optional
 
@@ -135,76 +71,60 @@ from visuallm.elements.selector_elements import (
     CheckBoxSubElement,
     ChoicesSubElement,
     MinMaxSubElement,
+)
 ```
-
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 #### MinMax SubElement
 
 Input element for setting integer in a range.
 
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/selector_component.py&lines=13-18&header=# ./examples_py/selector_component.py lines 13-18)-->
-<!-- The below code snippet is automatically added from ./examples_py/selector_component.py -->
-
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/selector_component.py&lines=18-20&header=# ./components/selector_component.py lines 18-20)-->
+<!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
-# ./examples_py/selector_component.py lines 13-18
-class SelectorComponent(ComponentBase):
-    def __init__(self):
-        super().__init__(name="selector_component", title="Selector Component")
-        self.text_element = PlainTextElement()
+# ./components/selector_component.py lines 18-20
         self.number_selector_element = MinMaxSubElement(
+            sample_min=0, sample_max=10, text="Select Number:"
+        )
 ```
-
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 #### Choices SubElement
 
 Input element for choosing between several choices.
 
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/selector_component.py&lines=19-21&header=# ./examples_py/selector_component.py lines 19-21)-->
-<!-- The below code snippet is automatically added from ./examples_py/selector_component.py -->
-
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/selector_component.py&lines=21-23&header=# ./components/selector_component.py lines 21-23)-->
+<!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
-# ./examples_py/selector_component.py lines 19-21
-            sample_min=0, sample_max=10, text="Select Number:"
-        )
+# ./components/selector_component.py lines 21-23
         self.choices_element = ChoicesSubElement(
+            choices=["super", "magnificent", "incredible"], text="This library is:"
+        )
 ```
-
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 #### Checkbox SubElement
 
 Simple checkbox input element.
 
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/selector_component.py&lines=22-22&header=# ./examples_py/selector_component.py lines 22)-->
-<!-- The below code snippet is automatically added from ./examples_py/selector_component.py -->
-
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/selector_component.py&lines=24-24&header=# ./components/selector_component.py lines 24)-->
+<!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
-# ./examples_py/selector_component.py lines 22
-            choices=["super", "magnificent", "incredible"], text="This library is:"
+# ./components/selector_component.py lines 24
+        self.checkbox_element = CheckBoxSubElement(text="Have you slept?:")
 ```
-
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 #### Button Element
 
 This is an element that should encapsulate all the other configuration selection elements. It needs a callback method that will be called when the button is pressed and we provide `ButtonElement.default_select_callback()` which handles processing all the changes sent from the frontend and attributing them to `subelement.selected` properties of subelements.
 
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/selector_component.py&lines=23-61&header=# ./examples_py/selector_component.py lines 23-61)-->
-<!-- The below code snippet is automatically added from ./examples_py/selector_component.py -->
-
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/selector_component.py&lines=30-55&header=# ./components/selector_component.py lines 30-55)-->
+<!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
-# ./examples_py/selector_component.py lines 23-61
-        )
-        self.checkbox_element = CheckBoxSubElement(text="Have you slept?:")
-        self.set_text_element(
-            self.choices_element.selected,
-            self.number_selector_element.selected,
-            "First Message",
-        )
+# ./components/selector_component.py lines 30-55
         self.button_element = ButtonElement(
-            processing_callback=self.button_clicked,
+            processing_callback=self.on_button_clicked,
             subelements=[
                 self.number_selector_element,
                 self.choices_element,
@@ -214,7 +134,7 @@ This is an element that should encapsulate all the other configuration selection
         self.add_element(MainHeadingElement(content="Selector Component"))
         self.add_elements([self.button_element, self.text_element])
 
-    def button_clicked(self):
+    def on_button_clicked(self):
         n = self.number_selector_element.selected
         c = self.choices_element.selected
         message = (
@@ -229,28 +149,20 @@ This is an element that should encapsulate all the other configuration selection
         )
         self.set_text_element(c, n, message, any_updated)
         time.sleep(n)
-
-    def set_text_element(
-        self,
-        choice: str,
-        number: float,
-        message: str,
 ```
-
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
-![selector_image](../readme_images/selector.png)
+![selector_image](../../readme_images/selector.png)
 
 ### Table Element
 
 This element can show several tables on the frontend together with a special feature, links between rows of the tables. They may connect different rows of different tables and display some value above links.
 The below example displays, how to generate one table on the frontend with the links pointing from each row to all the upwards rows as displayed on the image.
 
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/table_component.py&header=# ./examples_py/table_component.py)-->
-<!-- The below code snippet is automatically added from ./examples_py/table_component.py -->
-
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/table_component.py&header=# ./components/table_component.py)-->
+<!-- The below code snippet is automatically added from ./components/table_component.py -->
 ```py
-# ./examples_py/table_component.py
+# ./components/table_component.py
 from visuallm.component_base import ComponentBase
 from visuallm.elements.plain_text_element import MainHeadingElement
 from visuallm.elements.table_element import LinkBetweenRows, TableElement
@@ -292,10 +204,9 @@ class TableComponent(ComponentBase):
                     LinkBetweenRows(TABLE_NAME, j, TABLE_NAME, i, Label="some value")
                 )
 ```
-
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
-![table_page](../readme_images/table.png)
+![table_page](../../readme_images/table.png)
 
 ### Table Element (Advanced)
 
@@ -303,39 +214,72 @@ Let's look at an advanced example of table element, where we create two tables a
 
 Firstly, we will import `Colors` enumeration to color links to different tables with different colors.
 
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/two_tables_component.py&header=# ./examples_py/two_tables_component.py lines 1-7&lines=1-7)-->
-<!-- The below code snippet is automatically added from ./examples_py/two_tables_component.py -->
-
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/two_tables_component.py&header=# ./components/two_tables_component.py lines 1-3&lines=1-3)-->
+<!-- The below code snippet is automatically added from ./components/two_tables_component.py -->
 ```py
-# ./examples_py/two_tables_component.py lines 1-7
+# ./components/two_tables_component.py lines 1-3
 from visuallm.component_base import ComponentBase
-from visuallm.elements.plain_text_element import MainHeadingElement
+from visuallm.elements import MainHeadingElement
 from visuallm.elements.table_element import Colors, LinkBetweenRows, TableElement
-
-
-class TwoTablesComponent(ComponentBase):
-    def __init__(self):
 ```
-
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 Secondly, we will create the links in such a way, that links going within the same table will be colored orange (the default color), while the links going to the other table will be colored light blue. Also links within one table will be thin, while links to the other table will be thick (`Importance` parameter).
 
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/two_tables_component.py&header=# ./examples_py/two_tables_component.py lines 65-69&lines=65-69)-->
-<!-- The below code snippet is automatically added from ./examples_py/two_tables_component.py -->
-
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/two_tables_component.py&header=# ./components/two_tables_component.py lines 43-88&lines=43-88)-->
+<!-- The below code snippet is automatically added from ./components/two_tables_component.py -->
 ```py
-# ./examples_py/two_tables_component.py lines 65-69
+# ./components/two_tables_component.py lines 43-88
+        # add links pointing from the rows of the first table to all the rows
+        # of the first table upwards
+        for j in range(len(rows[0]) - 1, 0, -1):
+            for i in range(j):
+                self.table_element.add_link_between_rows(
+                    LinkBetweenRows(
+                        TABLE_NAMES[0],
+                        j,
+                        TABLE_NAMES[0],
+                        i,
+                        Importance=1,
+                        Label="to_this_table",
+                    )
+                )
+
+        # add links pointing from each row of the second table to all the rows
+        # of the first table and also to all the rows of the second table
+        # upwards
+        for j in range(len(rows[1]) - 1, 0, -1):
+            # links going from the row j of the second table to all the upper
+            # rows in the second table
+            for i in range(j):
                 self.table_element.add_link_between_rows(
                     LinkBetweenRows(
                         TABLE_NAMES[1],
                         j,
                         TABLE_NAMES[1],
-```
+                        i,
+                        Importance=1,
+                        Label="to_second_table",
+                    )
+                )
 
+            # links going from the row j to all the rows in the first table
+            for i in range(len(rows[0])):
+                self.table_element.add_link_between_rows(
+                    LinkBetweenRows(
+                        TABLE_NAMES[1],
+                        j,
+                        TABLE_NAMES[0],
+                        i,
+                        Label="to_first_table",
+                        Importance=4,
+                        Color=Colors.LIGHT_BLUE,
+                    )
+                )
+```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
-![table_advanced](../readme_images/table_advanced.png)
+![table_advanced](../../readme_images/table_advanced.png)
 
 ### BarChart Element
 
@@ -343,11 +287,10 @@ This element displays a modular horizontal barchart. It has several configuratio
 
 The default bar-chart displays a horizontal selectable bar-chart. It is useful for displaying softmax distributions for the next token prediction. I implemented it in such a way that it is selectable, hence you can navigate the whole process of sequence generation in the same way as the automatic generation would do. Hence this component also implements frontend-backend communication and you can supply an `endpoint_callback` to it.
 
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/bar_chart_component_simple.py&lines=1-47&header=# ./examples_py/bar_chart_component_simple.py lines 1-47)-->
-<!-- The below code snippet is automatically added from ./examples_py/bar_chart_component_simple.py -->
-
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/bar_chart_component_simple.py&lines=1-44&header=# ./components/bar_chart_component_simple.py lines 1-44)-->
+<!-- The below code snippet is automatically added from ./components/bar_chart_component_simple.py -->
 ```py
-# ./examples_py/bar_chart_component_simple.py lines 1-47
+# ./components/bar_chart_component_simple.py lines 1-44
 import heapq
 import math
 import random
@@ -392,18 +335,14 @@ class BarChartComponentSimple(ComponentBase):
         s = self.barchart_element.selected
         self.text_element.content = f"Last selected: {s}"
         self.update_barchart_component()
-
-
-def download_word_vocabulary():
 ```
-
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
-![barchart_simple](../readme_images/barchart_simple.png)
+![barchart_simple](../../readme_images/barchart_simple.png)
 
 When you set `long_contexts` option to true, the bar charts will be below the bar titles.
 
-![barchart_long_contexts](../readme_images/barchart_long_contexts.png)
+![barchart_long_contexts](../../readme_images/barchart_long_contexts.png)
 
 ### BarChart Element (Advanced)
 
@@ -411,11 +350,10 @@ This example will display the advanced possibilities I use when e.g. comparing d
 
 When I want to compare several candidates, I can display multi-bar-chart, e.g. add multiple bars with different heights, different annotations, each describing one particular quality of the generated sample.
 
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/bar_chart_component_advanced.py&lines=1-46&header=# ./examples_py/bar_chart_component_advanced.py lines 1-46)-->
-<!-- The below code snippet is automatically added from ./examples_py/bar_chart_component_advanced.py -->
-
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/bar_chart_component_advanced.py&lines=1-50&header=# ./components/bar_chart_component_advanced.py lines 1-50)-->
+<!-- The below code snippet is automatically added from ./components/bar_chart_component_advanced.py -->
 ```py
-# ./examples_py/bar_chart_component_advanced.py lines 1-46
+# ./components/bar_chart_component_advanced.py lines 1-50
 import math
 import random
 from typing import List
@@ -462,21 +400,23 @@ class BarChartComponentAdvanced(ComponentBase):
                     barHeights=bar_heights,
                     barAnnotations=bar_annotations,
                     barNames=self._names_of_bars,
-```
+                )
+            )
 
+        self.barchart_element.set_piece_infos(piece_infos)
+```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
-![barchart_advanced](../readme_images/barchart_advanced.png)
+![barchart_advanced](../../readme_images/barchart_advanced.png)
 
 ### Text Input Element
 
 Allows chat-like interfaces with the models.
 
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/text_input_component.py&header=# ./examples_py/text_input_component.py)-->
-<!-- The below code snippet is automatically added from ./examples_py/text_input_component.py -->
-
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/text_input_component.py&header=# ./components/text_input_component.py)-->
+<!-- The below code snippet is automatically added from ./components/text_input_component.py -->
 ```py
-# ./examples_py/text_input_component.py
+# ./components/text_input_component.py
 from visuallm.component_base import ComponentBase
 from visuallm.elements import (
     ButtonElement,
@@ -521,7 +461,6 @@ class TextInputComponent(ComponentBase):
     def on_button_pressed(self):
         self.text_input_element.text_input = "This is the default text!"
 ```
-
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
-![text-input-component](../readme_images/text_input.png)
+![text-input-component](../../readme_images/text_input.png)

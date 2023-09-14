@@ -12,11 +12,17 @@ class PersonaChatVisualization:
         self.loaded_sample: Any = 1
 
     def init_dialogue_vis_elements(self) -> List[ElementBase]:
+        """
+        Init elements which display the personachat tables.
+        """
         table_input_heading = HeadingElement(content="Structure of Dialogue")
         self.input_table_vis = TableElement()
         return [table_input_heading, self.input_table_vis]
 
     def update_dialogue_structure_display(self, add_target: bool = True):
+        """
+        Update elements which display the personachat tables.
+        """
         sample = self.loaded_sample
         context = copy.deepcopy(sample["history"])
         if add_target:
@@ -28,6 +34,9 @@ class PersonaChatVisualization:
     def set_sample_tables_element(
         self, persona: List[str], context: List[str], other_last: bool = False
     ):
+        """
+        Populate the tables with the information from the dataset sample.
+        """
         self.input_table_vis.clear()
 
         self.input_table_vis.add_table(

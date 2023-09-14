@@ -17,8 +17,14 @@ class CreateTextToTokenizer(Protocol):
         ...
 
 
+class RetrieveTargetStr(Protocol):
+    def __call__(self, loaded_sample: Any) -> str:
+        ...
+
+
 class Generator(ABC):
     create_text_to_tokenizer: CreateTextToTokenizer
+    retrieve_target_str: RetrieveTargetStr
 
     @property
     def supports_next_token_prediction(self):
@@ -92,12 +98,14 @@ class HuggingFaceGenerator(
         tokenizer: TOKENIZER_TYPE,
         create_text_to_tokenizer: CreateTextToTokenizer,
         create_text_to_tokenizer_one_step: Callable[[Any, List[str]], str],
+        retrieve_target_str: RetrieveTargetStr,
         n_largest_tokens_to_return: int = 10,
     ):
         self._model = model
         self._tokenizer = tokenizer
         self.create_text_to_tokenizer = create_text_to_tokenizer
         self.create_text_to_tokenizer_one_step = create_text_to_tokenizer_one_step
+        self.retrieve_target_str = retrieve_target_str
         self._n_largest_tokens_to_return = n_largest_tokens_to_return
         self.init_word_vocab()
 
@@ -225,12 +233,17 @@ class HuggingFaceGenerator(
 
 
 class OpenAIGenerator(Generator):
-    def __init__(self, create_text_to_tokenizer: CreateTextToTokenizer):
+    def __init__(
+        self,
+        create_text_to_tokenizer: CreateTextToTokenizer,
+        retrieve_target_str: RetrieveTargetStr,
+    ):
         self._api_key = os.getenv("OPENAI_API_KEY")
         if self._api_key is None:
             raise ValueError("OPENAI_API_KEY not set!")
 
         self.create_text_to_tokenizer = create_text_to_tokenizer
+        self.retrieve_target_str = retrieve_target_str
         openai.api_key = self._api_key
 
     def generate_output(self, text_to_tokenizer: Dict, **kwargs) -> Dict:

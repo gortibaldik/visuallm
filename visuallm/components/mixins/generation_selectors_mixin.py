@@ -96,7 +96,10 @@ class GenerationSelectorsMixin(ABC):
     @property
     def generation_elements(self) -> List[ElementBase]:
         """Elements which change the generation hyperparameters."""
-        return [self.generation_heading, self.generation_selector_button]
+        if len(self.generation_selectors) != 0:
+            return [self.generation_heading, self.generation_selector_button]
+        else:
+            return []
 
     @property
     def selected_generation_parameters(self) -> Dict[str, Any]:

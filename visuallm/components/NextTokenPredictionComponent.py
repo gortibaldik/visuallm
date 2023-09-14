@@ -11,9 +11,9 @@ from visuallm.components.mixins.model_selection_mixin import (
     GENERATOR_CHOICES,
     ModelSelectionMixin,
 )
+from visuallm.elements import HeadingElement, PlainTextElement
 from visuallm.elements.barchart_element import BarChartElement, PieceInfo
 from visuallm.elements.element_base import ElementBase
-from visuallm.elements.plain_text_element import PlainTextElement
 
 
 class NextTokenPredictionComponent(
@@ -57,16 +57,18 @@ class NextTokenPredictionComponent(
         )
         token_probs_display_elements = self.init_token_probs_display_elements()
         input_display_elements = self.init_model_input_display_elements()
+        expected_output_elements = self.init_expected_output_display_elements()
         self._received_tokens: List[str] = []
 
         self.add_element(self.main_heading_element)
         self.add_elements(self.dataset_elements)
         self.add_elements(self.generator_selection_elements)
         self.add_elements(input_display_elements)
+        self.add_elements(expected_output_elements)
         self.add_elements(token_probs_display_elements)
 
     def __post_init__(self):
-        pass
+        self.on_dataset_change_callback()
 
     def init_token_probs_display_elements(self) -> List[ElementBase]:
         """Init all the elements that display the next token predictions.
@@ -91,8 +93,17 @@ class NextTokenPredictionComponent(
         Returns:
             List[ElementBase]: list of elements that display the model's input.
         """
+        text_to_tokenizer_heading_element = HeadingElement("Text to Tokenizer")
         self.text_to_tokenizer_element = PlainTextElement()
-        return [self.text_to_tokenizer_element]
+        return [text_to_tokenizer_heading_element, self.text_to_tokenizer_element]
+
+    def init_expected_output_display_elements(self) -> List[ElementBase]:
+        """
+        Init all the elements that display the expected output.
+        """
+        expected_output_heading_element = HeadingElement("Expected Output")
+        self.expected_output_element = PlainTextElement()
+        return [expected_output_heading_element, self.expected_output_element]
 
     def update_model_input_display_on_sample_change(self):
         """
@@ -104,6 +115,16 @@ class NextTokenPredictionComponent(
             self.generator.create_text_to_tokenizer(self.loaded_sample)
         )
         self._received_tokens = []
+
+    def update_expected_output_display_on_sample_change(self):
+        """
+        After the sample change, self.loaded_sample holds the selected dataset sample.
+        In this method the elements that display the expected output elements should be
+        updated according to the self.loaded_sample
+        """
+        self.expected_output_element.content = self.generator.retrieve_target_str(
+            self.loaded_sample
+        )
 
     def update_model_input_display_on_selected_token(self):
         """
@@ -160,6 +181,7 @@ class NextTokenPredictionComponent(
 
     def after_on_dataset_change_callback(self):
         self.update_model_input_display_on_sample_change()
+        self.update_expected_output_display_on_sample_change()
         self.run_generation_one_step()
 
     def after_on_generator_change_callback(self):

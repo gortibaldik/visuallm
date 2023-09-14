@@ -94,6 +94,9 @@ class GenerationComponent(
         self.add_elements(input_display_elements)
         self.add_elements(self.metrics_display_elements)
 
+    def __post_init__(self):
+        self.on_dataset_change_callback()
+
     def init_model_input_display(self) -> List[ElementBase]:
         """Init elements that should display the dataset sample.
 
@@ -114,10 +117,6 @@ class GenerationComponent(
         self.text_to_tokenizer_element.content = (
             self.generator.create_text_to_tokenizer(self.loaded_sample)
         )
-
-    def get_target_str(self) -> str:
-        """Get string that would be used for the computation of generation metrics."""
-        return ""
 
     def update_generated_output_display(self):
         """Generate outputs with the model, measure probabilities, compute all the
@@ -144,7 +143,7 @@ class GenerationComponent(
 
         self.compute_n_display_metrics_on_predicted(
             output["decoded_outputs"],
-            self.get_target_str(),
+            self.generator.retrieve_target_str(self.loaded_sample),
             probs,
             output_sequences,
         )
@@ -154,7 +153,8 @@ class GenerationComponent(
             probs, output_sequences = self.generator.measure_output_probability(
                 [
                     self.generator.create_text_to_tokenizer(
-                        self.loaded_sample, self.get_target_str()
+                        self.loaded_sample,
+                        self.generator.retrieve_target_str(self.loaded_sample),
                     )
                 ],
                 output["input_length"],
@@ -162,7 +162,7 @@ class GenerationComponent(
         else:
             probs, output_sequences = [None], [None]
         self.compute_n_display_metrics_on_target(
-            self.get_target_str(),
+            self.generator.retrieve_target_str(self.loaded_sample),
             probs,
             output_sequences,
         )

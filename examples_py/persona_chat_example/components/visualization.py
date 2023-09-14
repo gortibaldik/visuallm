@@ -14,9 +14,5 @@ class Visualization(DatasetVisualizationComponent, PersonaChatVisualization):
         ]
 
     def update_sample_vis_elements(self):
-        self.text_to_tokenizer_element.content = (
-            self.generator.create_text_to_tokenizer(
-                self.loaded_sample, target=self.loaded_sample["candidates"][-1]
-            )
-        )
+        super().update_sample_vis_elements()
         PersonaChatVisualization.update_dialogue_structure_display(self)

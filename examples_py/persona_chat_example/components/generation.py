@@ -21,6 +21,3 @@ class Generation(GenerationComponent, PersonaChatVisualization):
         PersonaChatVisualization.update_dialogue_structure_display(
             self, add_target=False
         )
-
-    def get_target_str(self):
-        return self.loaded_sample["candidates"][-1]

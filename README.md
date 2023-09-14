@@ -14,36 +14,243 @@
 - refactoring and better code quality
 - more documentation strings
 
+## Table of content
+
+- [Installation](#installation)
+- [Usage](#usage)
+- Examples
+  - [Alpaca Example](#alpaca-example)
+  - [PersonaChat Example](#personachat-example)
+  - [Documentation Links](#other-examples)
+
 ## Installation
 
 - install from pypi:
   - `pip install visuallm`
 
-## Usage
+## Example Usage
 
-_The documentation is a WIP as of now, however here you can see several snippets of what the library can do._
+### Alpaca Example
 
-If you want to use the app with the personachat dataset, you can play with prepared example by running:
+The first workflow that we'll show is the workflow where you don't alter the implementation of the components at all and just use the provided components.
 
-```sh
-flask --app examples_py.persona_chat_example.app run
+#### Run Instructions
+
+The alpaca example code can be found here: [`./examples_py/alpaca_example`](./examples_py/alpaca_example/), the code can be started by running `flask --app examples_py.alpaca_example.app run`.
+
+We'll use `alpaca` dataset and `gpt2` model as those are reasonably small to run even on less performant computers.
+
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/alpaca_example/app.py&lines=14-19&header=# ./examples_py/alpaca_example/app.py lines 14-19)-->
+<!-- The below code snippet is automatically added from ./examples_py/alpaca_example/app.py -->
+```py
+# ./examples_py/alpaca_example/app.py lines 14-19
+dataset = load_dataset("yahma/alpaca-cleaned")
+if not isinstance(dataset, DatasetDict):
+    raise ValueError("Only dataset dict is supported now")
+
+tokenizer = AutoTokenizer.from_pretrained("gpt2")
+model = AutoModelForCausalLM.from_pretrained("gpt2")
 ```
+<!-- MARKDOWN-AUTO-DOCS:END-->
 
-### Generation Playground
+All the datasets are different, therefore we expect the user to provide 3 functions, which
+define how the text which is tokenized is constructed, how the text for the one step prediction
+is constructed, and how the target text is constructed.
+
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/alpaca_example/app.py&lines=22-41&header=# ./examples_py/alpaca_example/app.py lines 22-41)-->
+<!-- The below code snippet is automatically added from ./examples_py/alpaca_example/app.py -->
+```py
+# ./examples_py/alpaca_example/app.py lines 22-41
+def create_text_to_tokenizer(loaded_sample, target: Optional[str] = None) -> str:
+    text_to_tokenizer = f"Instruction: {loaded_sample['instruction']} Answer:"
+    if target is not None:
+        text_to_tokenizer += " " + target
+    return text_to_tokenizer
+
+
+def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: List[str]):
+    # one step prediction means that the model is used to predict tokens one per one
+    # received_tokens list contains already selected tokens
+
+    text_to_tokenizer = (
+        f"Instruction: {loaded_sample['instruction']} Answer:"
+        + "".join(received_tokens)
+    )
+    return text_to_tokenizer
+
+
+def retrieve_target_str(loaded_sample):
+    return loaded_sample["output"]
+```
+<!-- MARKDOWN-AUTO-DOCS:END-->
+
+Instantiate all the components from the library and run the server
+
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/alpaca_example/app.py&lines=44-57&header=# ./examples_py/alpaca_example/app.py lines 44-57)-->
+<!-- The below code snippet is automatically added from ./examples_py/alpaca_example/app.py -->
+```py
+# ./examples_py/alpaca_example/app.py lines 44-57
+generator = HuggingFaceGenerator(
+    model=model,
+    tokenizer=tokenizer,
+    create_text_to_tokenizer=create_text_to_tokenizer,
+    create_text_to_tokenizer_one_step=create_text_to_tokenizer_one_step,
+    retrieve_target_str=retrieve_target_str,
+)
+
+visualize = DatasetVisualizationComponent(generator=generator, dataset=dataset)
+generate = GenerationComponent(generator=generator, dataset=dataset)
+next_token = NextTokenPredictionComponent(generator=generator, dataset=dataset)
+
+server = Server(__name__, [next_token, visualize, generate])
+app = server.app
+```
+<!-- MARKDOWN-AUTO-DOCS:END-->
+
+#### Dataset Visualization (Screenshots)
+
+In the screenshot, you can see that the dataset browser is created, where you can select dataset sample and dataset split and the frontend will show the inputs to the model and also the expected output.
+
+![dataset_visualization](./readme_images/alpaca_dataset_vis.png)
+
+#### Generation (Screenshots)
+
+In the screenshot, you can see the dataset browser and the model generations.
+
+![generation](./readme_images/alpaca_generation.png)
+
+#### Next Token Prediction (Screenshots)
+
+In the screenshot, you can see that the library enables you to go through the generation step by step and explore why the generated sample (which can be seen e.g. on the Generation tab) looks the way it looks, how the distribution is skewed, etc.
+
+![next_token_prediction](./readme_images/alpaca_next_token.png)
+
+### PersonaChat Example
+
+The second workflow that we'll show is the workflow where you alter the implementation of the components, so that the dataset sample is shown in a different way.
+
+If you want to use the app with the personachat dataset, you can play with prepared example by running: `flask --app examples_py.persona_chat_example.app run`.
+
+The code for the sample can be found here: [`./examples_py/persona_chat_example`](./examples_py/persona_chat_example/).
+
+#### Customization
+
+The personachat dataset contains two pieces of information for each dataset sample.
+
+1. The bot's persona
+2. The past dialogue history
+
+So we will add a `TableElement` which will display the two tables, one with bot's persona and one with past dialogue history. Since the visualization code is the same for all the components we will extract it into a separate class.
+
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/persona_chat_example/components/input_display.py&lines=9-55&header=# ./examples_py/persona_chat_example/components/input_display.py lines 9-55)-->
+<!-- The below code snippet is automatically added from ./examples_py/persona_chat_example/components/input_display.py -->
+```py
+# ./examples_py/persona_chat_example/components/input_display.py lines 9-55
+class PersonaChatVisualization:
+    def __init__(self):
+        # just for the typechecker to not complain
+        self.loaded_sample: Any = 1
+
+    def init_dialogue_vis_elements(self) -> List[ElementBase]:
+        """
+        Init elements which display the personachat tables.
+        """
+        table_input_heading = HeadingElement(content="Structure of Dialogue")
+        self.input_table_vis = TableElement()
+        return [table_input_heading, self.input_table_vis]
+
+    def update_dialogue_structure_display(self, add_target: bool = True):
+        """
+        Update elements which display the personachat tables.
+        """
+        sample = self.loaded_sample
+        context = copy.deepcopy(sample["history"])
+        if add_target:
+            context.append(sample["candidates"][-1])
+        persona = sample["personality"]
+
+        self.set_sample_tables_element(persona, context)
+
+    def set_sample_tables_element(
+        self, persona: List[str], context: List[str], other_last: bool = False
+    ):
+        """
+        Populate the tables with the information from the dataset sample.
+        """
+        self.input_table_vis.clear()
+
+        self.input_table_vis.add_table(
+            title="BOT Persona",
+            headers=["Trait"],
+            rows=[[t] for t in persona],
+        )
+
+        d_len = len(context)  # dialogue length
+        bot_on_odd = int(d_len % 2 == (1 if not other_last else 0))
+        whos = ["BOT" if i % 2 == bot_on_odd else "OTHER" for i in range(d_len)]
+
+        if len(context) > 0:
+            self.input_table_vis.add_table(
+                "Turns", ["Who", "Turn"], [[w, u] for w, u in zip(whos, context)]
+            )
+```
+<!-- MARKDOWN-AUTO-DOCS:END-->
+
+Afterwards we need to implement the inheritors of components that should make use of this specific visualization of the dataset sample. Here is an example of the `Generation` component.
+
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./examples_py/persona_chat_example/components/generation.py&lines=1-23&header=# ./examples_py/persona_chat_example/components/generation.py lines 1-23)-->
+<!-- The below code snippet is automatically added from ./examples_py/persona_chat_example/components/generation.py -->
+```py
+# ./examples_py/persona_chat_example/components/generation.py lines 1-23
+from typing import List
+
+from visuallm.components.GenerationComponent import GenerationComponent
+from visuallm.elements.element_base import ElementBase
+
+from .input_display import PersonaChatVisualization
+
+
+class Generation(GenerationComponent, PersonaChatVisualization):
+    def __post_init__(self):
+        self.after_on_generator_change_callback()
+
+    def init_model_input_display(self) -> List[ElementBase]:
+        return [
+            *PersonaChatVisualization.init_dialogue_vis_elements(self),
+            *super().init_model_input_display(),
+        ]
+
+    def update_model_input_display(self):
+        super().update_model_input_display()
+        PersonaChatVisualization.update_dialogue_structure_display(
+            self, add_target=False
+        )
+```
+<!-- MARKDOWN-AUTO-DOCS:END-->
+
+#### Generation Playground
 
 Select which parameters you want to use for generation, plug in a `HuggingFace` model, or an `OpenAI` token and have fun with experimenting with various generation hyperparameters!
 
 ![gen_params](./readme_images/gen_params.png)
 ![generation](./readme_images/generations_openai.png)
 
-### Chat Playground
+#### Chat Playground
 
 Select which parameters you want to use for generation, plug in a `HuggingFace` model, or an `OpenAI` token and have fun with chatting with the model!
 
 ![chat](./readme_images/chat.png)
 
-### Visualize Next Token Predictions
+#### Visualize Next Token Predictions
 
 By using `visuallm.components.NextTokenPredictionComponent.NextTokenPredictionComponent` you can just plug the HuggingFace model in and go through the generation process step by step.
 
 ![next_token_prediction](./readme_images/next_token_probs.png)
+
+### Other Examples
+
+There is some other documentation:
+
+1. How does the communication and bootstrapping of the components work ? ([link](./docs/Communication.md))
+2. What is a minimal app that can be constructed ? ([link](./examples_py/simple_app/README.md))
+3. How do the elements work, how can I create custom components ? ([link](./examples_py/example_modules/README.md))
