@@ -132,6 +132,8 @@ The second workflow that we'll show is the workflow where you alter the implemen
 
 If you want to use the app with the personachat dataset, you can play with prepared example by running: `flask --app examples_py.persona_chat_example.app run`.
 
+The code for the sample can be found here: [`./examples_py/persona_chat_example`](./examples_py/persona_chat_example/).
+
 #### Customization
 
 The personachat dataset contains two pieces of information for each dataset sample.
