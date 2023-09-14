@@ -14,6 +14,13 @@
 - refactoring and better code quality
 - more documentation strings
 
+## Table of content
+- [Installation](#installation)
+- [Usage](#usage)
+- Examples
+  - [Alpaca Example](#alpaca-example)
+  - [PersonaChat Example](#personachat-example)  
+
 ## Installation
 
 - install from pypi:
