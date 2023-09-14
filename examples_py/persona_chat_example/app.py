@@ -59,6 +59,10 @@ def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: List[str])
     return text_to_tokenizer
 
 
+def retrieve_target_str(loaded_sample):
+    return loaded_sample["candidates"][-1]
+
+
 def create_text_to_tokenizer_openai(loaded_sample, target: Optional[str] = None):
     model = "gpt-3.5-turbo-0613"
     system_traits = "You are a chatbot for the task where you try to impersonate a human who identifies himself with the following traits: "
@@ -87,9 +91,12 @@ generator = HuggingFaceGenerator(
     tokenizer=tokenizer,
     create_text_to_tokenizer=create_text_to_tokenizer,
     create_text_to_tokenizer_one_step=create_text_to_tokenizer_one_step,
+    retrieve_target_str=retrieve_target_str,
 )
 
-open_ai_generator = OpenAIGenerator(create_text_to_tokenizer_openai)
+open_ai_generator = OpenAIGenerator(
+    create_text_to_tokenizer_openai, retrieve_target_str=retrieve_target_str
+)
 
 # create components
 visualize = Visualization(
