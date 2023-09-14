@@ -24,11 +24,12 @@ The library is composed of three parts:
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./simple_component.py&lines=1-15&header=# ./simple_component.py lines 1-15)-->
 <!-- The below code snippet is automatically added from ./simple_component.py -->
-
 ```py
 # ./simple_component.py lines 1-15
 from visuallm.component_base import ComponentBase
 from visuallm.elements import MainHeadingElement, PlainTextElement
+
+
 class SimpleComponent(ComponentBase):
     def __init__(self):
         super().__init__(name="simple_component", title="Simple Component")
@@ -41,12 +42,21 @@ class SimpleComponent(ComponentBase):
         )
         self.add_elements([main_heading_element, self.text_element])
 ```
-
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 2. Initialize `llm_generation_server.server.Server` and pass in the initialized components
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./app.py&lines=1-7&header=# ./app.py)-->
+<!-- The below code snippet is automatically added from ./app.py -->
+```py
+# ./app.py
+from visuallm.server import Server
+
+from .simple_component import SimpleComponent
+
+server = Server(__name__, [SimpleComponent()])
+app = server.app
+```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 3. Standard method to run the flask application, e.g. for the example provided above, it would be:
