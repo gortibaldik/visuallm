@@ -49,6 +49,7 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         self.loaded_sample: Dict[str, Any] = dict(history=[], user_message="")
 
         self.add_element(main_heading_element)
+        self.add_elements(self.generator_selection_elements)
         self.add_elements(self.generation_elements)
         self.add_elements(chat_elements)
         self.add_elements(text_to_tokenizer_elements)
