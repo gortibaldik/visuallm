@@ -1,33 +1,16 @@
 import unittest
-import urllib3
+from tests.firefox_test_base import FlaskSeleniumFirefoxTestBase
 from examples_py.app import app
-from flask import Flask
 from flask_testing import LiveServerTestCase
 from selenium import webdriver
 from selenium.webdriver import FirefoxOptions
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-
-class FlaskSeleniumFirefoxTestBase(LiveServerTestCase):
-
-    def create_app(self):
-        app.config['LIVESERVER_PORT'] = 5000
-        # Default timeout is 5 seconds
-        app.config['LIVESERVER_TIMEOUT'] = 10
-        return app
-
-    def setUp(self):
-        opts = FirefoxOptions()
-        opts.add_argument('--headless')
-        self.driver = webdriver.Firefox(options=opts)
-        self.driver.implicitly_wait(2)
-        self.driver.get(self.get_server_url() + "/index.html#/text_input_component")
-
-    def tearDown(self):
-        self.driver.quit()
 
 
 class TextInputComponent_InsertTextInTextarea(FlaskSeleniumFirefoxTestBase):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, address_suffix="/index.html#/text_input_component", **kwargs)
 
     def test_insert_text_in_textarea(self):
         driver = self.driver
