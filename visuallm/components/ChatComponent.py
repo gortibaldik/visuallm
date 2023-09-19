@@ -106,7 +106,7 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         # disable accept generation button
         # change text area button to "Send Message"
         self.text_to_tokenizer_element.content = ""
-        self.chat_text_input_element.text_input = ""
+        self.chat_text_input_element.predefined_text_input = ""
         self.model_output_display_element.content = ""
         self.button_accept_generation.disabled = True
         self.chat_text_input_element.button_text = "Send Message"
@@ -117,6 +117,7 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
             processing_callback=self.on_message_sent_callback,
             button_text="Send Message",
             default_text="Type a message to the bot.",
+            blank_text_after_send=False,
         )
         return [self.chat_text_input_element]
 

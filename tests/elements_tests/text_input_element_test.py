@@ -18,6 +18,7 @@ def test_on_text_input_change():
         returned_response={"text_input": "Something"},
         processing_callback=lambda: processing_callback(text_input_element),
         button_text="Select",
+        blank_text_after_send=False,
     )
     parent_component = ComponentBase(name="base", title="base")
     parent_component.add_element(text_input_element)
