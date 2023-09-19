@@ -41,9 +41,15 @@ let component = defineComponent({
         }
     },
     watch: {
-        textInputFromBackend() {
-            this.textInput = this.textInputFromBackend
+        textInputFromBackend: {
+            handler(newValue: string) {
+                this.textInput = newValue
+            },
+            immediate: true
         }
+    },
+    created() {
+        this.textInput = this.textInputFromBackend
     },
     methods: {
         submit() {
@@ -57,6 +63,7 @@ let component = defineComponent({
         },
         processResponse(response: any) {
             this.$elementRegistry.retrieveElementsFromResponse(response, dataSharedInComponent)
+            this.textInput = this.textInputFromBackend
         }
     }
 })
