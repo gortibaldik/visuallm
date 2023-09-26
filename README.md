@@ -17,11 +17,12 @@
 ## Table of content
 
 - [Installation](#installation)
-- [Usage](#usage)
+- [Usage](#example-usage)
 - Examples
   - [Alpaca Example](#alpaca-example)
   - [PersonaChat Example](#personachat-example)
   - [Documentation Links](#other-examples)
+- [Acknowledgement](#acknowledgement)
 
 ## Installation
 
@@ -254,3 +255,8 @@ There is some other documentation:
 1. How does the communication and bootstrapping of the components work ? ([link](./docs/Communication.md))
 2. What is a minimal app that can be constructed ? ([link](./examples_py/simple_app/README.md))
 3. How do the elements work, how can I create custom components ? ([link](./examples_py/example_modules/README.md))
+
+## Acknowledgement
+- this work was published on the INLG 2023 conference as a demo paper (link will be added later)
+- Supported by the project TL05000236 AI asistent pro žáky a učitele co-financed by the Technological Agency of the Czech Republic and
+by the ERC (No. 101039303 NG-NLG). Resources provided by the LINDAT/CLARIAH-CZ Research Infrastructure
