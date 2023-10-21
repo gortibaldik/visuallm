@@ -35,6 +35,7 @@ from visuallm.server import Server
 from .components.bar_chart_component_advanced import BarChartComponentAdvanced
 from .components.bar_chart_component_simple import BarChartComponentSimple
 from .components.selector_component import SelectorComponent
+from .components.selector_failing_component import SelectorFailingComponent
 from .components.table_component import TableComponent
 from .components.text_input_component import TextInputComponent
 from .components.two_tables_component import TwoTablesComponent
@@ -51,6 +52,7 @@ def create_app() -> flask.Flask:
             TwoTablesComponent(),
             SelectorComponent(),
             TextInputComponent(),
+            SelectorFailingComponent(),
         ],
     )
     app = flask_app.app
