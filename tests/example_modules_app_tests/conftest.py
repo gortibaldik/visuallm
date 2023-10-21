@@ -30,6 +30,9 @@ def app():
     )
     process.start()
 
+    # by yielding None, fixture ensures that some result is returned from the
+    # method but also ensures that some action can be taken after the end of the
+    # test
     yield None
 
     process.terminate()

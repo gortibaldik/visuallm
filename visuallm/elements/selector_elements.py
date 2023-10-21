@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import traceback
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Generic, List, MutableSet, Optional, TypeVar
@@ -106,12 +107,15 @@ class ButtonElement(ElementWithEndpoint):
         the control to the programmer for handling of the updated data and
         then returns everything updated to the frontend.
         """
-        response_json = self.get_request_dict()
-        for key, value in response_json.items():
-            self._subelements_dict[key].selected = value
+        try:
+            response_json = self.get_request_dict()
+            for key, value in response_json.items():
+                self._subelements_dict[key].selected = value
 
-        self.processing_callback()
-        return self.parent_component.fetch_info(fetch_all=False)
+            self.processing_callback()
+            return self.parent_component.fetch_info(fetch_all=False)
+        except Exception:
+            return self.parent_component.fetch_exception(traceback.format_exc())
 
     def add_subelement(self, subelement: SelectorSubElement):
         if subelement.parent_element is not None:

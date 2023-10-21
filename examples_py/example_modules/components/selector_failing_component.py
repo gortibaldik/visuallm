@@ -16,4 +16,4 @@ class SelectorFailingComponent(ComponentBase):
         )
 
     def on_button_click_raise_exception(self):
-        raise ValueError("Some error occured!")
+        raise RuntimeError("Runtime error raised on purpose!")

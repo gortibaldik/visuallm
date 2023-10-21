@@ -101,3 +101,7 @@ class ComponentBase(Named, metaclass=ComponentMetaclass):
         if debug_print:
             pprint(res)
         return res
+
+    def fetch_exception(self, traceback: str) -> Dict[str, Any]:
+        res = dict(result="exception", reason=traceback)
+        return res

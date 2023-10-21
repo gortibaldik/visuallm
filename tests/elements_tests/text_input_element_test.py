@@ -28,7 +28,6 @@ def test_on_text_input_change():
     assert len(returned_value["elementDescriptions"]) == 1
     assert returned_value["elementDescriptions"][0]["text_input"] == ""
 
-    # TODO: end asserts
     returned_value = text_input_element.endpoint_callback()
     assert returned_value["elementDescriptions"][0]["text_input"] == "Something"
 
