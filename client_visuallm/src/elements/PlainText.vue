@@ -7,7 +7,7 @@
     <h5 v-else-if="headingLevel === 5">{{ value }}</h5>
     <h6 v-else-if="headingLevel === 6">{{ value }}</h6>
   </span>
-  <div v-else class="wrapElement">{{ value }}</div>
+  <div v-else class="wrapElement plainText">{{ value }}</div>
 </template>
 
 <script lang="ts">

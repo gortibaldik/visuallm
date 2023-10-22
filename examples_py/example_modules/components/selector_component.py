@@ -1,4 +1,3 @@
-import time
 from typing import Optional
 
 from visuallm.component_base import ComponentBase
@@ -52,7 +51,6 @@ class SelectorComponent(ComponentBase):
             or self.checkbox_element.updated
         )
         self.set_text_element(c, n, message, any_updated)
-        time.sleep(n)
 
     def set_text_element(
         self,
