@@ -52,6 +52,12 @@ def test_checkbox_selected_changed_set():
     # when calling button element callback, the value is updated
     assertion = assert_updated
     returned_value = button_element.endpoint_callback()
+    assert "elementDescriptions" in returned_value
+    element_descriptions = returned_value["elementDescriptions"]
+    assert len(element_descriptions) == 1
+    assert "subelement_configs" in element_descriptions[0]
+    subelement_configs = element_descriptions[0]["subelement_configs"]
+    assert len(subelement_configs) == 1
 
     assert (
         returned_value["elementDescriptions"][0]["subelement_configs"][0].configuration[

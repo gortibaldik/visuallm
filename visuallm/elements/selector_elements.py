@@ -193,7 +193,7 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
     def _set_value_from_frontend(self, value: SelectedType):
         """Set value from frontend, value on backend and updated property"""
         if value != self._value_on_backend:
-            self._updated = True
+            self.force_set_updated()
         self._value_on_backend = value
         self._value_from_frontend = value
 
@@ -303,7 +303,7 @@ class MinMaxSubElement(SelectorSubElement[float]):
         return self.value_on_backend_getter()
 
     @value_on_backend.setter
-    def selected(self, value: float):
+    def value_on_backend(self, value: float):
         if (value > self._max) or (value < self._min):
             raise ValueError(
                 f"Invalid value ({value}) should be in range: ["

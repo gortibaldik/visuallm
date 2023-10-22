@@ -22,8 +22,8 @@ class SelectorComponent(ComponentBase):
         )
         self.checkbox_element = CheckBoxSubElement(text="Have you slept?:")
         self.set_text_element(
-            self.choices_element.selected,
-            self.number_selector_element.selected,
+            self.choices_element.value_on_backend,
+            self.number_selector_element.value_on_backend,
             "First Message",
         )
         self.button_element = ButtonElement(
@@ -38,11 +38,11 @@ class SelectorComponent(ComponentBase):
         self.add_elements([self.button_element, self.text_element])
 
     def on_button_clicked(self):
-        n = self.number_selector_element.selected
-        c = self.choices_element.selected
+        n = self.number_selector_element.value_on_backend
+        c = self.choices_element.value_on_backend
         message = (
             "I say it as a well-relaxed man!"
-            if self.checkbox_element.selected
+            if self.checkbox_element.value_on_backend
             else "Don't take me seriously."
         )
         any_updated = (
