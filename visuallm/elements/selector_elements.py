@@ -8,7 +8,7 @@ from typing import Any, Callable, Dict, Generic, List, MutableSet, Optional, Typ
 from visuallm.named import Named
 
 from .element_base import ElementWithEndpoint
-from .utils import register_named
+from .utils import assign_if_none, register_named
 
 
 @dataclass
@@ -101,16 +101,26 @@ class ButtonElement(ElementWithEndpoint):
             subelement_configs=subelement_configs,
         )
 
+    def _set_value_on_frontend_on_subelement(
+        self, subelement: SelectorSubElement, value: Any
+    ):
+        if subelement.parent_element != self:
+            raise ValueError("Updating subelement.selected on wrong subelement!")
+
+        subelement._set_value_from_frontend(value)
+
     def endpoint_callback(self):
         """Goes over the standard format of response from FE and sets all
-        the relevant selected attributes in subelement selectors, hten returns
+        the relevant selected attributes in subelement selectors, then returns
         the control to the programmer for handling of the updated data and
         then returns everything updated to the frontend.
         """
         try:
             response_json = self.get_request_dict()
             for key, value in response_json.items():
-                self._subelements_dict[key].selected = value
+                self._set_value_on_frontend_on_subelement(
+                    self._subelements_dict[key], value
+                )
 
             self.processing_callback()
             return self.parent_component.fetch_info(fetch_all=False)
@@ -140,6 +150,26 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
     - all the changed elements are sent back to the frontend (automatic)
     """
 
+    def __init__(
+        self, subtype: str, text: str, default_value: Optional[SelectedType] = None
+    ):
+        """
+        Initialize SelectorSubElement, at the first moment of the server everything
+        is new, so the `updated` property is set to `True`.
+
+        Args:
+            subtype (str): type which identifies the subelement in the frontend component
+            text (str): text displayed to the left of the subelement (e.g. description of the
+                action that is handled by the subelement)
+        """
+        super().__init__(name=str(subtype))
+        self._updated = True
+        self._subtype = subtype
+        self._value_from_frontend: Optional[SelectedType] = default_value
+        self._value_on_backend: Optional[SelectedType] = default_value
+        self.parent_element: Optional[ButtonElement] = None
+        self._text = text
+
     @property
     def subelement_configuration(self) -> SubElementConfiguration:
         if self.parent_element is None:
@@ -148,7 +178,8 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
             self._subtype,
             self.name,
             dict(
-                selected=self._selected,
+                # TODO: rename selected on frontend
+                selected=self._value_on_backend,
                 text=self._text,
                 **self.construct_selector_data(),
             ),
@@ -159,29 +190,49 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
     def construct_selector_data(self) -> Dict[str, Any]:
         ...
 
+    def _set_value_from_frontend(self, value: SelectedType):
+        """Set value from frontend, value on backend and updated property"""
+        if value != self._value_on_backend:
+            self._updated = True
+        self._value_on_backend = value
+        self._value_from_frontend = value
+
     @property
     @abstractmethod
-    def selected(self):
+    def value_from_frontend(self):
+        """
+        Value which arived from the frontend.
+        """
         ...
 
-    @selected.setter
+    @property
     @abstractmethod
-    def selected(self, value: SelectedType):
+    def value_on_backend(self):
+        """Value, which will be sent to the frontend."""
         ...
 
-    def selected_getter(self) -> SelectedType:
-        assert self._selected is not None
-        return self._selected
+    @value_on_backend.setter
+    @abstractmethod
+    def value_on_backend(self, value: SelectedType):
+        ...
 
-    def selected_setter(self, value: SelectedType):
+    def value_from_frontend_getter(self) -> SelectedType:
+        assert self._value_from_frontend is not None
+        return self._value_from_frontend
+
+    def value_on_backend_getter(self) -> SelectedType:
+        assert self._value_on_backend is not None
+        return self._value_on_backend
+
+    def value_on_backend_setter(self, value: SelectedType):
         if self.parent_element is None:
             raise ValueError(
                 "Cannot change the value of the element without atributing "
                 + "the element to the parent component"
             )
-        if value != self._selected:
+        if value != self._value_on_backend:
             self.force_set_updated()
-        self._selected = value
+        self._value_on_backend = value
 
     def force_set_updated(self):
         """Set updated to true, so that any changes associated with the update
@@ -203,17 +254,6 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
         """Whether the selector was updated by the frontend."""
         return self._updated
 
-    def __init__(self, subtype: str, text: str):
-        """WARNING:
-        `subtype` must match the subtype field in frontend.
-        """
-        super().__init__(name=str(subtype))
-        self._updated = True
-        self._subtype = subtype
-        self._selected: Optional[SelectedType] = None
-        self.parent_element: Optional[ButtonElement] = None
-        self._text = text
-
 
 class MinMaxSubElement(SelectorSubElement[float]):
     """Subelement in the ButtonElement that creates an int selection in
@@ -228,31 +268,48 @@ class MinMaxSubElement(SelectorSubElement[float]):
         step_size: float = 1.0,
         default_value: Optional[float] = None,
     ):
-        super().__init__(subtype="min_max", text=text)
+        """TODO
+
+        Args:
+            sample_min (float): _description_
+            sample_max (float): _description_
+            text (str): _description_
+            step_size (float, optional): _description_. Defaults to 1.0.
+            default_value (Optional[float], optional): _description_. Defaults to None.
+
+        Raises:
+            ValueError: _description_
+        """
+        super().__init__(
+            subtype="min_max",
+            text=text,
+            default_value=assign_if_none(default_value, sample_min),
+        )
         if sample_min > sample_max:
             raise ValueError(
                 f"sample_min ({sample_min}) should be bigger than or equal "
                 f"to sample_max ({sample_max})"
             )
-        if default_value is None:
-            default_value = sample_min
-        self._selected: float = default_value
         self._min = sample_min
         self._max = sample_max
         self._step_size = step_size
 
     @property
-    def selected(self) -> float:
-        return self.selected_getter()
+    def value_from_frontend(self) -> float:
+        return self.value_from_frontend_getter()
 
-    @selected.setter
+    @property
+    def value_on_backend(self):
+        return self.value_on_backend_getter()
+
+    @value_on_backend.setter
     def selected(self, value: float):
         if (value > self._max) or (value < self._min):
             raise ValueError(
-                f"Invalid value to selected ({value}) should be in range: ["
+                f"Invalid value ({value}) should be in range: ["
                 + f"{self._min}, {self._max}]"
             )
-        self.selected_setter(value)
+        self.value_on_backend_setter(value)
 
     def construct_selector_data(self) -> Dict[str, Any]:
         return dict(min=self._min, max=self._max, step_size=self._step_size)
@@ -261,31 +318,35 @@ class MinMaxSubElement(SelectorSubElement[float]):
 class ChoicesSubElement(SelectorSubElement[str]):
     def __init__(self, choices: List[str], text: str):
         """Default selected value is the first value in the `choices` list"""
-        super().__init__(subtype="choices", text=text)
         if len(choices) == 0:
             raise RuntimeError("choices should have length at least 1!")
-        self._selected = choices[0]
+        super().__init__(subtype="choices", text=text, default_value=choices[0])
         self._choices = choices
 
     @property
-    def selected(self):
-        return self.selected_getter()
+    def value_from_frontend(self):
+        return self.value_from_frontend_getter()
 
-    @selected.setter
-    def selected(self, value: str):
+    @property
+    def value_on_backend(self):
+        return self.value_on_backend_getter()
+
+    @value_on_backend.setter
+    def value_on_backend(self, value: str):
         if value not in self._choices:
-            raise ValueError(
-                f"Invalid value to selected ({value}), "
-                + f"possibilities: {self._choices}"
-            )
-        self.selected_setter(value)
+            raise ValueError(f"Invalid value ({value}), possibilities: {self._choices}")
+        self.value_on_backend_setter(value)
 
     def set_choices(self, new_choices: List[str]):
+        """Update the value of the choices in the subelement. Updated
+        choices must be a non-empty list. If the new choices don't contain
+        the current `value_on_backend` then `value_on_backend` is updated.
+        """
         if len(new_choices) == 0:
             raise RuntimeError("Choices should have length at least 1!")
         self._choices = new_choices
-        if self._selected not in self._choices:
-            self._selected = self._choices[0]
+        if self._value_on_backend not in self._choices:
+            self._value_on_backend = self._choices[0]
         self.force_set_updated()
 
     def construct_selector_data(self) -> Dict[str, Any]:
@@ -294,18 +355,142 @@ class ChoicesSubElement(SelectorSubElement[str]):
 
 class CheckBoxSubElement(SelectorSubElement[bool]):
     def __init__(self, text: str, default_value: bool = False):
-        super().__init__(subtype="check_box", text=text)
-        self._selected = default_value
+        super().__init__(subtype="check_box", text=text, default_value=default_value)
 
     @property
-    def selected(self):
-        return self.selected_getter()
+    def value_from_frontend(self):
+        return self.value_from_frontend_getter()
 
-    @selected.setter
-    def selected(self, value: bool):
+    @property
+    def value_on_backend(self):
+        return self.value_on_backend_getter()
+
+    @value_on_backend.setter
+    def value_on_backend(self, value: bool):
         if not isinstance(value, bool):
             raise ValueError(f"Invalid value assigned to bool: {value}")
-        self.selected_setter(value)
+        self.value_on_backend_setter(value)
 
     def construct_selector_data(self) -> Dict[str, Any]:
         return {}
+
+
+# what is different about text input element ?
+# - it has a placeholder value
+#
+
+
+class TextInputElement(SelectorSubElement[str]):
+    def __init__(self, placeholder_text: str, blank_after_text_send: bool = True):
+        """
+        Args:
+            placeholder_text (str): Placeholder in the textarea. Defaults to "Type something here".
+            blank_text_after_send (bool): Whether the text displayed in the text area should be blank after
+                sending to the backend. Defaults to True.
+        """
+        super().__init__(subtype="text_input", text="", default_value="")
+        self._placeholder_text = placeholder_text
+        self.blank_after_text_send = blank_after_text_send
+
+    @property
+    def value_from_frontend(self):
+        return self.value_from_frontend_getter()
+
+    def _set_value_from_frontend(self, value: str):
+        if value != self._value_on_backend:
+            self._updated = True
+        if self.blank_after_text_send:
+            self._value_on_backend = ""
+        self._value_from_frontend = value
+
+    @property
+    def value_on_backend(self):
+        return self.value_on_backend_getter()
+
+    @value_on_backend.setter
+    def value_on_backend(self, value: str):
+        self.value_on_backend_setter(value)
+
+    @property
+    def placeholder_text(self):
+        return self._placeholder_text
+
+    @placeholder_text.setter
+    def placeholder_text(self, value: str):
+        if value != self._placeholder_text:
+            self._updated = True
+        self._placeholder_text = value
+
+    @property
+    def button_text(self) -> str:
+        """Text that is displayed in the button on the side of the text box."""
+        return self._button_text
+
+    @button_text.setter
+    def button_text(self, value: str) -> None:
+        if value != self._button_text:
+            self._changed = True
+        self._button_text = value
+
+    # def __init__(
+    #     self,
+    #     processing_callback: Callable[[], None],
+    #     name: str = "text_input",
+    #     button_text: str = "Send Text",
+    #     default_text: str = "Type something here",
+    #     blank_text_after_send: bool = True,
+    # ):
+    #     """Element with textarea input and a button with `button_text`.
+
+    #     Args:
+    #         processing_callback (Callable[[], None]): what to do after the user text input is sent
+    #             to the backend
+    #         name (str, optional): unique identifier of the element, if numerous elements share the same name, the library
+    #             internally suffixes the names with suffixes so that the names of all the elements within one components
+    #             are unique . Defaults to "text_input".
+    #         button_text (str, optional): text to display on the button used to send the data. Defaults to "Send Text".
+    #         default_text (str, optional): Placeholder in the textarea. Defaults to "Type something here".
+    #         blank_text_after_send (bool, optional): Whether the text displayed in the text area should be blank after
+    #             sending to the backend. Defaults to True.
+    #     """
+    #     super().__init__(name=name, type="text_input")
+    #     self.processing_callback = processing_callback
+    #     self._text_input = ""
+    #     self._predefined_text_input = ""
+    #     self._button_text = button_text
+    #     self._default_text = default_text
+    #     self._blank_text_after_send = blank_text_after_send
+
+    # def endpoint_callback(self):
+    #     response_json = self.get_request_dict()
+    #     self._text_input = response_json["text_input"]
+    #     if self._blank_text_after_send:
+    #         self.predefined_text_input = ""
+    #     else:
+    #         self.predefined_text_input = self._text_input
+    #     self.processing_callback()
+    #     return self.parent_component.fetch_info(fetch_all=False)
+
+    # @property
+    # def text_input(self) -> str:
+    #     """Data that is sent from the user."""
+    #     return self._text_input
+
+    # @property
+    # def predefined_text_input(self) -> str:
+    #     """Data that will be displayed to the user in the textarea of the element."""
+    #     return self._predefined_text_input
+
+    # @predefined_text_input.setter
+    # def predefined_text_input(self, value: str) -> None:
+    #     if value != self._predefined_text_input:
+    #         self._changed = True
+    #     self._predefined_text_input = value
+
+    def construct_element_configuration(self):
+        return dict(
+            button_text=self.button_text,
+            # TODO: rename default_text to placeholder
+            default_text=self.placeholder_text,
+            text_input=self.value_on_backend,
+        )

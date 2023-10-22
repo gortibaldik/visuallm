@@ -43,3 +43,11 @@ def sanitize_url(url: str):
     if sanitized[0] != "/":
         sanitized = "/" + sanitized
     return sanitized
+
+
+Assigned = TypeVar("Assigned")
+
+
+def assign_if_none(old_value: Optional[Assigned], new_value: Assigned) -> Assigned:
+    """If `old_value` is None return `new_value` otherwise keep the `old_value`."""
+    return old_value if old_value is not None else new_value
