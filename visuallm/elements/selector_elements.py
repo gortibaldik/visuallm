@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 import traceback
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -106,7 +107,6 @@ class ButtonElement(ElementWithEndpoint):
     ):
         if subelement.parent_element != self:
             raise ValueError("Updating subelement.selected on wrong subelement!")
-
         subelement._set_value_from_frontend(value)
 
     def endpoint_callback(self):
@@ -181,13 +181,16 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
                 # TODO: rename selected on frontend
                 selected=self._value_on_backend,
                 text=self._text,
-                **self.construct_selector_data(),
+                **self.construct_subelement_specifics(),
             ),
             self.parent_element.name,
         )
 
     @abstractmethod
-    def construct_selector_data(self) -> Dict[str, Any]:
+    def construct_subelement_specifics(self) -> Dict[str, Any]:
+        """Return dict with all the values needed to instantiate the subelement
+        in the frontend.
+        """
         ...
 
     def _set_value_from_frontend(self, value: SelectedType):
@@ -311,7 +314,7 @@ class MinMaxSubElement(SelectorSubElement[float]):
             )
         self.value_on_backend_setter(value)
 
-    def construct_selector_data(self) -> Dict[str, Any]:
+    def construct_subelement_specifics(self) -> Dict[str, Any]:
         return dict(min=self._min, max=self._max, step_size=self._step_size)
 
 
@@ -349,7 +352,7 @@ class ChoicesSubElement(SelectorSubElement[str]):
             self._value_on_backend = self._choices[0]
         self.force_set_updated()
 
-    def construct_selector_data(self) -> Dict[str, Any]:
+    def construct_subelement_specifics(self) -> Dict[str, Any]:
         return dict(choices=self._choices)
 
 
@@ -371,17 +374,16 @@ class CheckBoxSubElement(SelectorSubElement[bool]):
             raise ValueError(f"Invalid value assigned to bool: {value}")
         self.value_on_backend_setter(value)
 
-    def construct_selector_data(self) -> Dict[str, Any]:
+    def construct_subelement_specifics(self) -> Dict[str, Any]:
         return {}
 
 
-# what is different about text input element ?
-# - it has a placeholder value
-#
-
-
-class TextInputElement(SelectorSubElement[str]):
-    def __init__(self, placeholder_text: str, blank_after_text_send: bool = True):
+class TextInputSubElement(SelectorSubElement[str]):
+    def __init__(
+        self,
+        placeholder_text: str = "Type something here",
+        blank_after_text_send: bool = True,
+    ):
         """
         Args:
             placeholder_text (str): Placeholder in the textarea. Defaults to "Type something here".
@@ -398,9 +400,11 @@ class TextInputElement(SelectorSubElement[str]):
 
     def _set_value_from_frontend(self, value: str):
         if value != self._value_on_backend:
-            self._updated = True
+            self.force_set_updated()
         if self.blank_after_text_send:
             self._value_on_backend = ""
+        else:
+            self._value_on_backend = value
         self._value_from_frontend = value
 
     @property
@@ -418,79 +422,12 @@ class TextInputElement(SelectorSubElement[str]):
     @placeholder_text.setter
     def placeholder_text(self, value: str):
         if value != self._placeholder_text:
-            self._updated = True
+            self.force_set_updated()
         self._placeholder_text = value
 
-    @property
-    def button_text(self) -> str:
-        """Text that is displayed in the button on the side of the text box."""
-        return self._button_text
-
-    @button_text.setter
-    def button_text(self, value: str) -> None:
-        if value != self._button_text:
-            self._changed = True
-        self._button_text = value
-
-    # def __init__(
-    #     self,
-    #     processing_callback: Callable[[], None],
-    #     name: str = "text_input",
-    #     button_text: str = "Send Text",
-    #     default_text: str = "Type something here",
-    #     blank_text_after_send: bool = True,
-    # ):
-    #     """Element with textarea input and a button with `button_text`.
-
-    #     Args:
-    #         processing_callback (Callable[[], None]): what to do after the user text input is sent
-    #             to the backend
-    #         name (str, optional): unique identifier of the element, if numerous elements share the same name, the library
-    #             internally suffixes the names with suffixes so that the names of all the elements within one components
-    #             are unique . Defaults to "text_input".
-    #         button_text (str, optional): text to display on the button used to send the data. Defaults to "Send Text".
-    #         default_text (str, optional): Placeholder in the textarea. Defaults to "Type something here".
-    #         blank_text_after_send (bool, optional): Whether the text displayed in the text area should be blank after
-    #             sending to the backend. Defaults to True.
-    #     """
-    #     super().__init__(name=name, type="text_input")
-    #     self.processing_callback = processing_callback
-    #     self._text_input = ""
-    #     self._predefined_text_input = ""
-    #     self._button_text = button_text
-    #     self._default_text = default_text
-    #     self._blank_text_after_send = blank_text_after_send
-
-    # def endpoint_callback(self):
-    #     response_json = self.get_request_dict()
-    #     self._text_input = response_json["text_input"]
-    #     if self._blank_text_after_send:
-    #         self.predefined_text_input = ""
-    #     else:
-    #         self.predefined_text_input = self._text_input
-    #     self.processing_callback()
-    #     return self.parent_component.fetch_info(fetch_all=False)
-
-    # @property
-    # def text_input(self) -> str:
-    #     """Data that is sent from the user."""
-    #     return self._text_input
-
-    # @property
-    # def predefined_text_input(self) -> str:
-    #     """Data that will be displayed to the user in the textarea of the element."""
-    #     return self._predefined_text_input
-
-    # @predefined_text_input.setter
-    # def predefined_text_input(self, value: str) -> None:
-    #     if value != self._predefined_text_input:
-    #         self._changed = True
-    #     self._predefined_text_input = value
-
-    def construct_element_configuration(self):
+    def construct_subelement_specifics(self) -> Dict[str, Any]:
         return dict(
-            button_text=self.button_text,
-            # TODO: rename default_text to placeholder
-            default_text=self.placeholder_text,
-            text_input=self.value_on_backend,
+            placeholder_text=self.placeholder_text,
+            blank_after_text_send=self.blank_after_text_send,
+            random_number=random.randint(0, int(1e7)),
         )

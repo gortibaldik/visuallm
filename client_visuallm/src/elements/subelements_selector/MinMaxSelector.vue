@@ -71,12 +71,6 @@ export default component
 let subtype = 'min_max'
 export { subtype }
 
-export function checkSubtype(context: any, subtype: string) {
-  if (context.content.subtype != subtype) {
-    throw RangeError('Invalid subtype of context.content')
-  }
-}
-
 export function processSubElementConfiguration(this_name: string, subElementConfiguration: any) {
   let requiredValues = { min: 'min', max: 'max', selected: 'defaultSelected', text: 'text', step_size: 'stepSize' } as { [key: string]: string }
   valuesRequiredInConfiguration(subElementConfiguration, Object.keys(requiredValues))

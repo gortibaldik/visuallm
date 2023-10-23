@@ -13,19 +13,22 @@ flask --app examples_py.example_modules.app run
 I wrote this library to help me visualize the output distributions of various models I implemented during my master's thesis. Therefore I implemented only few basic elements for ML purposes.
 
 In the following paragraphs I'll explain how to create configuration selectors, tables, bar-charts and other elements.
+
 - [Selectors](#configuration-selection)
-    - [Min-max](#minmax-subelement)
-    - [Choices](#choices-subelement)
-    - [Checkbox](#checkbox-subelement)
-    - [Button](#button-element) 
+  - [Min-max](#minmax-subelement)
+  - [Choices](#choices-subelement)
+  - [Checkbox](#checkbox-subelement)
+  - [Text Input](#text-input-subelement)
+  - [Button](#button-element)
 - [Table](#table-element)
-- [BarChart](#barchart-element)   
+- [BarChart](#barchart-element)
 - [Text Input](#text-input-element)
-  
+
 I'll use the following server: (You'll see the implementation of each of yet unknown components)
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./app.py&header=# ./app.py)-->
 <!-- The below code snippet is automatically added from ./app.py -->
+
 ```py
 # ./app.py
 import flask
@@ -62,6 +65,7 @@ def create_app() -> flask.Flask:
 if __name__ == "__main__":
     app = create_app()
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ### Configuration Selection
@@ -70,6 +74,7 @@ Several different kinds of configuration specifier, together with one button ele
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/selector_component.py&lines=1-11&header=# ./components/selector_component.py lines 1-11)-->
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
+
 ```py
 # ./components/selector_component.py lines 1-11
 import time
@@ -84,6 +89,7 @@ from visuallm.elements.selector_elements import (
     MinMaxSubElement,
 )
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 #### MinMax SubElement
@@ -92,12 +98,14 @@ Input element for setting integer in a range.
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/selector_component.py&lines=18-20&header=# ./components/selector_component.py lines 18-20)-->
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
+
 ```py
 # ./components/selector_component.py lines 18-20
         self.number_selector_element = MinMaxSubElement(
             sample_min=0, sample_max=10, text="Select Number:"
         )
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 #### Choices SubElement
@@ -106,12 +114,14 @@ Input element for choosing between several choices.
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/selector_component.py&lines=21-23&header=# ./components/selector_component.py lines 21-23)-->
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
+
 ```py
 # ./components/selector_component.py lines 21-23
         self.choices_element = ChoicesSubElement(
             choices=["super", "magnificent", "incredible"], text="This library is:"
         )
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 #### Checkbox SubElement
@@ -120,18 +130,27 @@ Simple checkbox input element.
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/selector_component.py&lines=24-24&header=# ./components/selector_component.py lines 24)-->
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
+
 ```py
 # ./components/selector_component.py lines 24
         self.checkbox_element = CheckBoxSubElement(text="Have you slept?:")
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
+
+### Text Input SubElement
+
+Allows chat-like interfaces with the models.
+
+![text-input-component](../../readme_images/text_input.png)
 
 #### Button Element
 
-This is an element that should encapsulate all the other configuration selection elements. It needs a callback method that will be called when the button is pressed and we provide `ButtonElement.default_select_callback()` which handles processing all the changes sent from the frontend and attributing them to `subelement.selected` properties of subelements.
+This is an element that should encapsulate all the other configuration selection elements. It needs a callback method that will be called when the button is pressed and we provide `ButtonElement.default_select_callback()` which handles processing all the changes sent from the frontend and attributing them to `subelement.value_from_frontend` properties of subelements.
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/selector_component.py&lines=30-55&header=# ./components/selector_component.py lines 30-55)-->
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
+
 ```py
 # ./components/selector_component.py lines 30-55
         self.button_element = ButtonElement(
@@ -161,6 +180,7 @@ This is an element that should encapsulate all the other configuration selection
         self.set_text_element(c, n, message, any_updated)
         time.sleep(n)
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ![selector_image](../../readme_images/selector.png)
@@ -172,6 +192,7 @@ The below example displays, how to generate one table on the frontend with the l
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/table_component.py&header=# ./components/table_component.py)-->
 <!-- The below code snippet is automatically added from ./components/table_component.py -->
+
 ```py
 # ./components/table_component.py
 from visuallm.component_base import ComponentBase
@@ -215,6 +236,7 @@ class TableComponent(ComponentBase):
                     LinkBetweenRows(TABLE_NAME, j, TABLE_NAME, i, Label="some value")
                 )
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ![table_page](../../readme_images/table.png)
@@ -227,18 +249,21 @@ Firstly, we will import `Colors` enumeration to color links to different tables 
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/two_tables_component.py&header=# ./components/two_tables_component.py lines 1-3&lines=1-3)-->
 <!-- The below code snippet is automatically added from ./components/two_tables_component.py -->
+
 ```py
 # ./components/two_tables_component.py lines 1-3
 from visuallm.component_base import ComponentBase
 from visuallm.elements import MainHeadingElement
 from visuallm.elements.table_element import Colors, LinkBetweenRows, TableElement
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 Secondly, we will create the links in such a way, that links going within the same table will be colored orange (the default color), while the links going to the other table will be colored light blue. Also links within one table will be thin, while links to the other table will be thick (`Importance` parameter).
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/two_tables_component.py&header=# ./components/two_tables_component.py lines 43-88&lines=43-88)-->
 <!-- The below code snippet is automatically added from ./components/two_tables_component.py -->
+
 ```py
 # ./components/two_tables_component.py lines 43-88
         # add links pointing from the rows of the first table to all the rows
@@ -288,6 +313,7 @@ Secondly, we will create the links in such a way, that links going within the sa
                     )
                 )
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ![table_advanced](../../readme_images/table_advanced.png)
@@ -300,6 +326,7 @@ The default bar-chart displays a horizontal selectable bar-chart. It is useful f
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/bar_chart_component_simple.py&lines=1-44&header=# ./components/bar_chart_component_simple.py lines 1-44)-->
 <!-- The below code snippet is automatically added from ./components/bar_chart_component_simple.py -->
+
 ```py
 # ./components/bar_chart_component_simple.py lines 1-44
 import heapq
@@ -347,6 +374,7 @@ class BarChartComponentSimple(ComponentBase):
         self.text_element.content = f"Last selected: {s}"
         self.update_barchart_component()
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ![barchart_simple](../../readme_images/barchart_simple.png)
@@ -363,6 +391,7 @@ When I want to compare several candidates, I can display multi-bar-chart, e.g. a
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/bar_chart_component_advanced.py&lines=1-50&header=# ./components/bar_chart_component_advanced.py lines 1-50)-->
 <!-- The below code snippet is automatically added from ./components/bar_chart_component_advanced.py -->
+
 ```py
 # ./components/bar_chart_component_advanced.py lines 1-50
 import math
@@ -416,89 +445,7 @@ class BarChartComponentAdvanced(ComponentBase):
 
         self.barchart_element.set_piece_infos(piece_infos)
 ```
+
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ![barchart_advanced](../../readme_images/barchart_advanced.png)
-
-### Text Input Element
-
-Allows chat-like interfaces with the models.
-
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/text_input_component.py&header=# ./components/text_input_component.py)-->
-<!-- The below code snippet is automatically added from ./components/text_input_component.py -->
-```py
-# ./components/text_input_component.py
-from visuallm.component_base import ComponentBase
-from visuallm.elements import (
-    ButtonElement,
-    HeadingElement,
-    MainHeadingElement,
-    PlainTextElement,
-    TextInputElement,
-)
-
-
-class TextInputComponent(ComponentBase):
-    def __init__(self):
-        super().__init__(name="text_input_component", title="Text Input Component")
-        self.add_elements(
-            [
-                MainHeadingElement(content="Text Input Component"),
-                HeadingElement("Text Input Blanks After Send"),
-                PlainTextElement(
-                    """`Send Text` button fills in the text in the element below. The
-                    textarea is blanked out. `Fill in default text` fills the element
-                    with some default text."""
-                ),
-                HeadingElement("Sent Text:", heading_level=4),
-            ]
-        )
-        self.text_display_element_1 = PlainTextElement(
-            content="Nothing has been typed in yet"
-        )
-        self.text_input_blanked_element = TextInputElement(
-            processing_callback=self.on_text_sent_blanked,
-            button_text="Send Text",
-            blank_text_after_send=True,
-        )
-        self.add_elements(
-            [
-                self.text_display_element_1,
-                self.text_input_blanked_element,
-                ButtonElement(
-                    processing_callback=self.on_set_default_text_button_pressed,
-                    button_text="Fill in default text",
-                ),
-                HeadingElement("Text Input Stays After Send"),
-                PlainTextElement(
-                    """`Send Text` button fills in the text in the element below. The
-                    textarea stays the same, so the user can edit the text that was
-                    previously sent."""
-                ),
-                HeadingElement("Sent Text:", heading_level=4),
-            ]
-        )
-        self.text_display_element_2 = PlainTextElement(
-            content="Nothing has been typed in yet"
-        )
-        self.text_input_stay_element = TextInputElement(
-            processing_callback=self.on_text_sent_stays,
-            button_text="Send Text",
-            blank_text_after_send=False,
-        )
-        self.add_elements([self.text_display_element_2, self.text_input_stay_element])
-
-    def on_text_sent_blanked(self):
-        self.text_display_element_1.content = self.text_input_blanked_element.text_input
-
-    def on_text_sent_stays(self):
-        self.text_display_element_2.content = self.text_input_stay_element.text_input
-
-    def on_set_default_text_button_pressed(self):
-        self.text_input_blanked_element.predefined_text_input = (
-            "This is the default text!"
-        )
-```
-<!-- MARKDOWN-AUTO-DOCS:END-->
-
-![text-input-component](../../readme_images/text_input.png)

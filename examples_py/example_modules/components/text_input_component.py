@@ -4,8 +4,8 @@ from visuallm.elements import (
     HeadingElement,
     MainHeadingElement,
     PlainTextElement,
-    TextInputElement,
 )
+from visuallm.elements.selector_elements import TextInputSubElement
 
 
 class TextInputComponent(ComponentBase):
@@ -26,15 +26,18 @@ class TextInputComponent(ComponentBase):
         self.text_display_element_1 = PlainTextElement(
             content="Nothing has been typed in yet"
         )
-        self.text_input_blanked_element = TextInputElement(
+        self.text_input_blanked_element = TextInputSubElement(
+            blank_after_text_send=True,
+        )
+        self.button_with_text_input_blanked = ButtonElement(
             processing_callback=self.on_text_sent_blanked,
             button_text="Send Text",
-            blank_text_after_send=True,
+            subelements=[self.text_input_blanked_element],
         )
         self.add_elements(
             [
                 self.text_display_element_1,
-                self.text_input_blanked_element,
+                self.button_with_text_input_blanked,
                 ButtonElement(
                     processing_callback=self.on_set_default_text_button_pressed,
                     button_text="Fill in default text",
@@ -51,20 +54,27 @@ class TextInputComponent(ComponentBase):
         self.text_display_element_2 = PlainTextElement(
             content="Nothing has been typed in yet"
         )
-        self.text_input_stay_element = TextInputElement(
+        self.text_input_stay_element = TextInputSubElement(
+            blank_after_text_send=False,
+        )
+        self.button_with_text_input_stay = ButtonElement(
             processing_callback=self.on_text_sent_stays,
             button_text="Send Text",
-            blank_text_after_send=False,
+            subelements=[self.text_input_stay_element],
         )
-        self.add_elements([self.text_display_element_2, self.text_input_stay_element])
+        self.add_elements(
+            [self.text_display_element_2, self.button_with_text_input_stay]
+        )
 
     def on_text_sent_blanked(self):
-        self.text_display_element_1.content = self.text_input_blanked_element.text_input
+        self.text_display_element_1.content = (
+            self.text_input_blanked_element.value_from_frontend
+        )
 
     def on_text_sent_stays(self):
-        self.text_display_element_2.content = self.text_input_stay_element.text_input
+        self.text_display_element_2.content = (
+            self.text_input_stay_element.value_from_frontend
+        )
 
     def on_set_default_text_button_pressed(self):
-        self.text_input_blanked_element.predefined_text_input = (
-            "This is the default text!"
-        )
+        self.text_input_blanked_element.value_on_backend = "This is the default text!"
