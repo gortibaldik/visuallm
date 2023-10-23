@@ -1,5 +1,4 @@
 import copy
-from typing import List, Optional
 
 from datasets import DatasetDict, load_dataset
 from transformers.models.auto.modeling_auto import AutoModelForCausalLM
@@ -10,7 +9,7 @@ from visuallm.components.mixins.generation_selectors_mixin import (
     CheckBoxSelectorType,
     MinMaxSelectorType,
 )
-from visuallm.components.mixins.Generator import (
+from visuallm.components.mixins.generator import (
     HuggingFaceGenerator,
     OpenAIGenerator,
     switch_persona_from_first_to_second_sentence,
@@ -26,12 +25,12 @@ from .components.visualization import Visualization
 # load models
 dataset = load_dataset("bavard/personachat_truecased")
 if not isinstance(dataset, DatasetDict):
-    raise ValueError("Only dataset and dataset dict are supported")
+    raise TypeError("Only dataset and dataset dict are supported")
 tokenizer = AutoTokenizer.from_pretrained("gpt2")
 model = AutoModelForCausalLM.from_pretrained("gpt2")
 
 
-def create_text_to_tokenizer(loaded_sample, target: Optional[str] = None) -> str:
+def create_text_to_tokenizer(loaded_sample, target: str | None = None) -> str:
     text_to_tokenizer = " ".join(
         [
             s
@@ -50,7 +49,7 @@ def create_text_to_tokenizer(loaded_sample, target: Optional[str] = None) -> str
     return text_to_tokenizer
 
 
-def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: List[str]):
+def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: list[str]):
     sample = copy.deepcopy(loaded_sample)
     if len(received_tokens) > 0:
         received_tokens[0] = received_tokens[0].lstrip()
@@ -63,7 +62,7 @@ def retrieve_target_str(loaded_sample):
     return loaded_sample["candidates"][-1]
 
 
-def create_text_to_tokenizer_openai(loaded_sample, target: Optional[str] = None):
+def create_text_to_tokenizer_openai(loaded_sample, target: str | None = None):
     model = "gpt-3.5-turbo-0613"
     system_traits = "You are a chatbot for the task where you try to impersonate a human who identifies himself with the following traits: "
     system_traits += " ".join(

@@ -1,4 +1,4 @@
-from typing import Callable
+from collections.abc import Callable
 
 from .element_base import ElementWithEndpoint
 
@@ -15,6 +15,7 @@ class TextInputElement(ElementWithEndpoint):
         """Element with textarea input and a button with `button_text`.
 
         Args:
+        ----
             processing_callback (Callable[[], None]): what to do after the user text input is sent
                 to the backend
             name (str, optional): unique identifier of the element, if numerous elements share the same name, the library
@@ -70,8 +71,8 @@ class TextInputElement(ElementWithEndpoint):
         self._button_text = value
 
     def construct_element_configuration(self):
-        return dict(
-            button_text=self.button_text,
-            default_text=self._default_text,
-            text_input=self.predefined_text_input,
-        )
+        return {
+            "button_text": self.button_text,
+            "default_text": self._default_text,
+            "text_input": self.predefined_text_input,
+        }

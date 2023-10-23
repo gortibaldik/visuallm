@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-import random
+import secrets
 import traceback
 from abc import ABC, abstractmethod
+from collections.abc import Callable, MutableSet
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Generic, List, MutableSet, Optional, TypeVar
+from typing import Any, Generic, TypeVar
 
 from visuallm.named import Named
 
@@ -16,11 +17,12 @@ from .utils import assign_if_none, register_named
 class SubElementConfiguration:
     subtype: str
     name: str
-    configuration: Dict[str, Any]
+    configuration: dict[str, Any]
     parent_name: str
 
 
 class ButtonElement(ElementWithEndpoint):
+
     """I expect the following flow of data:
     - In frontend the user selects some value from the selector (automatic)
     - In frontend the user clicks the button element which is the parent of
@@ -35,13 +37,13 @@ class ButtonElement(ElementWithEndpoint):
         self,
         processing_callback: Callable[[], None],
         name: str = "button",
-        subelements: List[SelectorSubElement] = [],
+        subelements: list[SelectorSubElement] | None = None,
         button_text: str = "Select",
         disabled: bool = False,
         **kwargs,
     ):
-        """
-        Args:
+        """Args:
+        ----
             processing_callback (Callable[[], None]): a function that is
                 called just after all the data from the frontend have been
                 processed.
@@ -58,10 +60,13 @@ class ButtonElement(ElementWithEndpoint):
         super().__init__(name=name, type="button", **kwargs)
         self.processing_callback = processing_callback
         self._button_text = button_text
-        self._subelements_dict: Dict[str, SelectorSubElement] = {}
-        self._subelements: List[SelectorSubElement] = []
+        self._subelements_dict: dict[str, SelectorSubElement] = {}
+        self._subelements: list[SelectorSubElement] = []
         self._subelement_names: MutableSet[str] = set()
         self._disabled = disabled
+
+        if subelements is None:
+            subelements = []
 
         for subelement in subelements:
             self.add_subelement(subelement)
@@ -96,11 +101,11 @@ class ButtonElement(ElementWithEndpoint):
         for c in self._subelements:
             subelement_configs.append(c.subelement_configuration)
             c.unset_updated()
-        return dict(
-            button_text=self.button_text,
-            disabled=self.disabled,
-            subelement_configs=subelement_configs,
-        )
+        return {
+            "button_text": self.button_text,
+            "disabled": self.disabled,
+            "subelement_configs": subelement_configs,
+        }
 
     def _set_value_on_frontend_on_subelement(
         self, subelement: SelectorSubElement, value: Any
@@ -140,6 +145,7 @@ SelectedType = TypeVar("SelectedType")
 
 
 class SelectorSubElement(ABC, Generic[SelectedType], Named):
+
     """I expect the following flow of data:
     - In frontend the user selects some value from the selector (automatic)
     - In frontend the user clicks the button element which is the parent of
@@ -151,23 +157,25 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
     """
 
     def __init__(
-        self, subtype: str, text: str, default_value: Optional[SelectedType] = None
+        self, subtype: str, text: str, default_value: SelectedType | None = None
     ):
-        """
-        Initialize SelectorSubElement, at the first moment of the server everything
+        """Initialize SelectorSubElement, at the first moment of the server everything
         is new, so the `updated` property is set to `True`.
 
         Args:
+        ----
             subtype (str): type which identifies the subelement in the frontend component
             text (str): text displayed to the left of the subelement (e.g. description of the
                 action that is handled by the subelement)
+            default_value (SelectedType): initial value of both `self.value_from_frontend` and
+                `self.value_on_backend`
         """
         super().__init__(name=str(subtype))
         self._updated = True
         self._subtype = subtype
-        self._value_from_frontend: Optional[SelectedType] = default_value
-        self._value_on_backend: Optional[SelectedType] = default_value
-        self.parent_element: Optional[ButtonElement] = None
+        self._value_from_frontend: SelectedType | None = default_value
+        self._value_on_backend: SelectedType | None = default_value
+        self.parent_element: ButtonElement | None = None
         self._text = text
 
     @property
@@ -177,17 +185,17 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
         return SubElementConfiguration(
             self._subtype,
             self.name,
-            dict(
+            {
                 # TODO: rename selected on frontend
-                selected=self._value_on_backend,
-                text=self._text,
+                "selected": self._value_on_backend,
+                "text": self._text,
                 **self.construct_subelement_specifics(),
-            ),
+            },
             self.parent_element.name,
         )
 
     @abstractmethod
-    def construct_subelement_specifics(self) -> Dict[str, Any]:
+    def construct_subelement_specifics(self) -> dict[str, Any]:
         """Return dict with all the values needed to instantiate the subelement
         in the frontend.
         """
@@ -203,9 +211,7 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
     @property
     @abstractmethod
     def value_from_frontend(self):
-        """
-        Value which arived from the frontend.
-        """
+        """Value which arived from the frontend."""
         ...
 
     @property
@@ -220,18 +226,20 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
         ...
 
     def value_from_frontend_getter(self) -> SelectedType:
-        assert self._value_from_frontend is not None
+        if self._value_from_frontend is None:
+            raise ValueError("`self._value_from_frontend` not initialized yet!")
         return self._value_from_frontend
 
     def value_on_backend_getter(self) -> SelectedType:
-        assert self._value_on_backend is not None
+        if self._value_on_backend is None:
+            raise ValueError("`self._value_on_backend` not initialized yet!")
         return self._value_on_backend
 
     def value_on_backend_setter(self, value: SelectedType):
         if self.parent_element is None:
             raise ValueError(
                 "Cannot change the value of the element without atributing "
-                + "the element to the parent component"
+                "the element to the parent component"
             )
         if value != self._value_on_backend:
             self.force_set_updated()
@@ -239,11 +247,12 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
 
     def force_set_updated(self):
         """Set updated to true, so that any changes associated with the update
-        are triggered"""
+        are triggered
+        """
         if self.parent_element is None:
             raise ValueError(
                 "Cannot set the element to the updated state without "
-                + "atributing the element to the parent component"
+                "atributing the element to the parent component"
             )
         self.parent_element._changed = True
         self._updated = True
@@ -259,6 +268,7 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
 
 
 class MinMaxSubElement(SelectorSubElement[float]):
+
     """Subelement in the ButtonElement that creates an int selection in
     a range. E.g. selector between [min, max].
     """
@@ -269,11 +279,12 @@ class MinMaxSubElement(SelectorSubElement[float]):
         sample_max: float,
         text: str,
         step_size: float = 1.0,
-        default_value: Optional[float] = None,
+        default_value: float | None = None,
     ):
         """TODO
 
         Args:
+        ----
             sample_min (float): _description_
             sample_max (float): _description_
             text (str): _description_
@@ -281,6 +292,7 @@ class MinMaxSubElement(SelectorSubElement[float]):
             default_value (Optional[float], optional): _description_. Defaults to None.
 
         Raises:
+        ------
             ValueError: _description_
         """
         super().__init__(
@@ -310,16 +322,16 @@ class MinMaxSubElement(SelectorSubElement[float]):
         if (value > self._max) or (value < self._min):
             raise ValueError(
                 f"Invalid value ({value}) should be in range: ["
-                + f"{self._min}, {self._max}]"
+                f"{self._min}, {self._max}]"
             )
         self.value_on_backend_setter(value)
 
-    def construct_subelement_specifics(self) -> Dict[str, Any]:
-        return dict(min=self._min, max=self._max, step_size=self._step_size)
+    def construct_subelement_specifics(self) -> dict[str, Any]:
+        return {"min": self._min, "max": self._max, "step_size": self._step_size}
 
 
 class ChoicesSubElement(SelectorSubElement[str]):
-    def __init__(self, choices: List[str], text: str):
+    def __init__(self, choices: list[str], text: str):
         """Default selected value is the first value in the `choices` list"""
         if len(choices) == 0:
             raise RuntimeError("choices should have length at least 1!")
@@ -340,7 +352,7 @@ class ChoicesSubElement(SelectorSubElement[str]):
             raise ValueError(f"Invalid value ({value}), possibilities: {self._choices}")
         self.value_on_backend_setter(value)
 
-    def set_choices(self, new_choices: List[str]):
+    def set_choices(self, new_choices: list[str]):
         """Update the value of the choices in the subelement. Updated
         choices must be a non-empty list. If the new choices don't contain
         the current `value_on_backend` then `value_on_backend` is updated.
@@ -352,8 +364,8 @@ class ChoicesSubElement(SelectorSubElement[str]):
             self._value_on_backend = self._choices[0]
         self.force_set_updated()
 
-    def construct_subelement_specifics(self) -> Dict[str, Any]:
-        return dict(choices=self._choices)
+    def construct_subelement_specifics(self) -> dict[str, Any]:
+        return {"choices": self._choices}
 
 
 class CheckBoxSubElement(SelectorSubElement[bool]):
@@ -371,10 +383,10 @@ class CheckBoxSubElement(SelectorSubElement[bool]):
     @value_on_backend.setter
     def value_on_backend(self, value: bool):
         if not isinstance(value, bool):
-            raise ValueError(f"Invalid value assigned to bool: {value}")
+            raise TypeError(f"Invalid value assigned to bool: {value}")
         self.value_on_backend_setter(value)
 
-    def construct_subelement_specifics(self) -> Dict[str, Any]:
+    def construct_subelement_specifics(self) -> dict[str, Any]:
         return {}
 
 
@@ -384,8 +396,8 @@ class TextInputSubElement(SelectorSubElement[str]):
         placeholder_text: str = "Type something here",
         blank_after_text_send: bool = True,
     ):
-        """
-        Args:
+        """Args:
+        ----
             placeholder_text (str): Placeholder in the textarea. Defaults to "Type something here".
             blank_text_after_send (bool): Whether the text displayed in the text area should be blank after
                 sending to the backend. Defaults to True.
@@ -425,9 +437,9 @@ class TextInputSubElement(SelectorSubElement[str]):
             self.force_set_updated()
         self._placeholder_text = value
 
-    def construct_subelement_specifics(self) -> Dict[str, Any]:
-        return dict(
-            placeholder_text=self.placeholder_text,
-            blank_after_text_send=self.blank_after_text_send,
-            random_number=random.randint(0, int(1e7)),
-        )
+    def construct_subelement_specifics(self) -> dict[str, Any]:
+        return {
+            "placeholder_text": self.placeholder_text,
+            "blank_after_text_send": self.blank_after_text_send,
+            "random_number": secrets.randbelow(int(1e7)),
+        }

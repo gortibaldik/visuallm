@@ -4,9 +4,8 @@ from visuallm.elements import TextInputElement
 
 
 class TextInputElementStub(CustomRequestMixin, TextInputElement):
-    """
-    Stub that instead of real request json returns something that test user specifies
-    """
+
+    """Stub that instead of real request json returns something that test user specifies"""
 
 
 def test_on_text_input_change():

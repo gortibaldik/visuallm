@@ -1,11 +1,11 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from visuallm.component_base import ComponentBase
 from visuallm.components.mixins.generation_selectors_mixin import (
     SELECTORS_TYPE,
     GenerationSelectorsMixin,
 )
-from visuallm.components.mixins.Generator import Generator
+from visuallm.components.mixins.generator import Generator
 from visuallm.components.mixins.model_selection_mixin import (
     GENERATOR_CHOICES,
     ModelSelectionMixin,
@@ -26,14 +26,16 @@ from visuallm.elements.selector_elements import ButtonElement
 
 # TODO: other than top to down linear organization
 
+# TODO: switch chat component to new text input component interface
+
 
 class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin):
     def __init__(
         self,
         title: str,
-        generator_choices: Optional[GENERATOR_CHOICES] = None,
-        generator: Optional[Generator] = None,
-        selectors: SELECTORS_TYPE = {},
+        generator_choices: GENERATOR_CHOICES | None = None,
+        generator: Generator | None = None,
+        selectors: SELECTORS_TYPE | None = None,
     ):
         super().__init__(name="chat_component", title=title)
         main_heading_element = MainHeadingElement(content=title)
@@ -46,7 +48,7 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         chat_elements = self.init_chat_elements()
         text_to_tokenizer_elements = self.init_text_to_tokenizer_elements()
         model_outputs_elements = self.init_model_outputs_elements()
-        self.loaded_sample: Dict[str, Any] = dict(history=[], user_message="")
+        self.loaded_sample: dict[str, Any] = {"history": [], "user_message": ""}
 
         self.add_element(main_heading_element)
         self.add_elements(self.generator_selection_elements)
@@ -66,9 +68,7 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         self.on_message_sent_callback()
 
     def on_message_sent_callback(self):
-        """
-        This event is fired when a send message button is pressed.
-        """
+        """Event that is fired when a send message button is pressed."""
         self.before_on_message_sent_callback()
 
         # generate with the model
@@ -88,7 +88,7 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         self.button_accept_generation.disabled = False
 
     def before_on_accept_generation_callback(self):
-        """This callback is called just before all the common elements are changed"""
+        """Callback called just before all the common elements are changed"""
         self.loaded_sample["history"].extend(
             [
                 self.loaded_sample["user_message"],
@@ -98,7 +98,6 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
 
     def on_accept_generation_callback(self):
         """After the generation is accepted, the messages in TODO: complete docstring"""
-
         self.before_on_accept_generation_callback()
 
         # after accepting:
@@ -111,7 +110,7 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         self.button_accept_generation.disabled = True
         self.chat_text_input_element.button_text = "Send Message"
 
-    def init_chat_elements(self) -> List[ElementBase]:
+    def init_chat_elements(self) -> list[ElementBase]:
         """Init elements which enable user to make text input and send it to the model."""
         self.chat_text_input_element = TextInputElement(
             processing_callback=self.on_message_sent_callback,
@@ -121,7 +120,7 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         )
         return [self.chat_text_input_element]
 
-    def init_model_outputs_elements(self) -> List[ElementBase]:
+    def init_model_outputs_elements(self) -> list[ElementBase]:
         """Init elements which show the outputs of the model."""
         model_output_display_heading = HeadingElement(content="Model Output")
         self.model_output_display_element = PlainTextElement()
@@ -136,7 +135,7 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
             self.button_accept_generation,
         ]
 
-    def init_text_to_tokenizer_elements(self) -> List[ElementBase]:
+    def init_text_to_tokenizer_elements(self) -> list[ElementBase]:
         """Init elements which will display the text that is tokenized"""
         text_to_tokenizer_heading = HeadingElement("Text to Tokenizer")
         self.text_to_tokenizer_element = PlainTextElement()

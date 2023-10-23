@@ -1,8 +1,9 @@
 import copy
 import os
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from heapq import nlargest
-from typing import Any, Callable, Dict, List, Optional, Protocol, Tuple, Union, cast
+from typing import Any, Protocol, cast
 
 import nltk
 import openai
@@ -13,7 +14,7 @@ from transformers.generation.utils import GenerateOutput
 
 
 class CreateTextToTokenizer(Protocol):
-    def __call__(self, loaded_sample: Any, target: Optional[Any] = None) -> Any:
+    def __call__(self, loaded_sample: Any, target: Any | None = None) -> Any:
         ...
 
 
@@ -31,23 +32,23 @@ class Generator(ABC):
         return False
 
     @abstractmethod
-    def generate_output(self, text_to_tokenizer: str, **kwargs) -> Dict:
+    def generate_output(self, text_to_tokenizer: str, **kwargs) -> dict:
         ...
 
 
-TOKENIZER_TYPE = Union[PreTrainedTokenizer, PreTrainedTokenizerFast]
+TOKENIZER_TYPE = PreTrainedTokenizer | PreTrainedTokenizerFast
 
 
 class NextTokenPredictionInterface(ABC):
-    """
-    A class implementing this interface provides the ability to go over the
+
+    """A class implementing this interface provides the ability to go over the
     generation in a token by token manner.
     """
 
-    create_text_to_tokenizer_one_step: Callable[[Any, List[str]], str]
+    create_text_to_tokenizer_one_step: Callable[[Any, list[str]], str]
 
     @abstractmethod
-    def one_step_prediction(self, text_to_tokenizer: str) -> List[Tuple[float, str]]:
+    def one_step_prediction(self, text_to_tokenizer: str) -> list[tuple[float, str]]:
         ...
 
     @abstractmethod
@@ -55,7 +56,7 @@ class NextTokenPredictionInterface(ABC):
         ...
 
     @abstractmethod
-    def init_word_vocab(self) -> List[str]:
+    def init_word_vocab(self) -> list[str]:
         ...
 
     @property
@@ -64,24 +65,25 @@ class NextTokenPredictionInterface(ABC):
 
 
 class OutputProbabilityInterface(ABC):
-    """
-    A class implementing this interface provides `measure_output_probability` method
+
+    """A class implementing this interface provides `measure_output_probability` method
     thanks to which one can measure the probability of generated tokens.
     """
 
     @abstractmethod
     def measure_output_probability(
-        self, texts: List[str], input_length: int
-    ) -> Tuple[Any, Any]:
-        """
-        Measure the probabilities of individual tokens.
+        self, texts: list[str], input_length: int
+    ) -> tuple[Any, Any]:
+        """Measure the probabilities of individual tokens.
 
         Args:
+        ----
             texts (List[str]): the generated sequences
             input_length (int): the length of tokenized input (only tokens after that are used for the
                 probability computation)
 
         Returns:
+        -------
             List[torch.Tensor], List[torch.Tensor]: assigned probabilities, generated_ids tensor
         """
         ...
@@ -90,6 +92,7 @@ class OutputProbabilityInterface(ABC):
 class HuggingFaceGenerator(
     OutputProbabilityInterface, NextTokenPredictionInterface, Generator
 ):
+
     """Generator that generates using HuggingFace models and tokenizers."""
 
     def __init__(
@@ -97,7 +100,7 @@ class HuggingFaceGenerator(
         model: PreTrainedModel,
         tokenizer: TOKENIZER_TYPE,
         create_text_to_tokenizer: CreateTextToTokenizer,
-        create_text_to_tokenizer_one_step: Callable[[Any, List[str]], str],
+        create_text_to_tokenizer_one_step: Callable[[Any, list[str]], str],
         retrieve_target_str: RetrieveTargetStr,
         n_largest_tokens_to_return: int = 10,
     ):
@@ -111,7 +114,6 @@ class HuggingFaceGenerator(
 
     def generate_output(self, text_to_tokenizer: str, **kwargs):
         """Run model_inputs through self._model.generate"""
-
         model_inputs = self._tokenizer(text_to_tokenizer, return_tensors="pt")
         if "pad_token_id" not in kwargs:
             kwargs["pad_token_id"] = self._tokenizer.eos_token_id
@@ -131,9 +133,11 @@ class HuggingFaceGenerator(
 
         decoded_outputs = self.decode_output(output, input_length)
 
-        return dict(
-            output=output, decoded_outputs=decoded_outputs, input_length=input_length
-        )
+        return {
+            "output": output,
+            "decoded_outputs": decoded_outputs,
+            "input_length": input_length,
+        }
 
     def decode_output(
         self,
@@ -143,12 +147,14 @@ class HuggingFaceGenerator(
         """Decode generated output and remove the input part from it.
 
         Args:
+        ----
             output (GenerateOutput): the output from huggingface model.generate
             input_length (int): length of input (we would remove the first part
                 of the generated sequences, so that only the part that the model
                 generated is returned)
 
         Returns:
+        -------
             List[str]: list of generated outputs from the model (only the generated part
                 is returned, the input part is removed)
         """
@@ -159,11 +165,12 @@ class HuggingFaceGenerator(
 
         return detokenized_outputs
 
-    def one_step_prediction(self, text_to_tokenizer: str) -> List[Tuple[float, str]]:
+    def one_step_prediction(self, text_to_tokenizer: str) -> list[tuple[float, str]]:
         """Pass the model inputs created by self.create_model_inputs through the data and
         return the numpy array with the probabilities of the next token.
 
-        Returns:
+        Returns
+        -------
             np.NDArray: probabilities of the next token of shape (vocab_size, )
         """
         model_inputs = self._tokenizer(text_to_tokenizer, return_tensors="pt")
@@ -184,20 +191,23 @@ class HuggingFaceGenerator(
             word_vocab[int_val] = str_val
         self.word_vocab = word_vocab
 
-    def measure_output_probability(self, texts: List[str], input_length: int):
-        """
-        At first model is used to generate tokens. Then we want to compute probabilities of
+    def measure_output_probability(self, texts: list[str], input_length: int):
+        """At first model is used to generate tokens. Then we want to compute probabilities of
         individual tokens. While this method is really suboptimal, it is quite robust.
 
         Sequences is a tensor of shape (NUMBER_OF_GENERATIONS, LONGEST_GENERATION_LEN).
+
         Args:
-            output: the result of self.generate_output
+        ----
+            texts (list[str]): TODO
+            input_length (int): TODO
 
         Returns:
+        -------
             List[torch.Tensor], List[torch.Tensor]: assigned probabilities, only generated ids tensor
         """
-        probabilities: List[torch.Tensor] = []
-        output_sequences_list: List[torch.Tensor] = []
+        probabilities: list[torch.Tensor] = []
+        output_sequences_list: list[torch.Tensor] = []
         for text in texts:
             with torch.inference_mode():
                 sequence = self._tokenizer(text, return_tensors="pt")
@@ -211,14 +221,16 @@ class HuggingFaceGenerator(
 
         return probabilities, output_sequences_list
 
-    def get_n_largest_tokens_and_probs(self, probs: NDArray) -> List[Tuple[float, str]]:
+    def get_n_largest_tokens_and_probs(self, probs: NDArray) -> list[tuple[float, str]]:
         """Get the self._n_largest_tokens_to_return largest probabilities from the probs array,
         and pair them with the corresponding str tokens.
 
         Args:
+        ----
             probs (NDArray): array with probabilities of tokens assigned by the language model. Shape (vocab_size,)
 
         Returns:
+        -------
             List[Tuple[float, str]]: list of tuples of the token's probability and the corresponding
                 token
         """
@@ -227,7 +239,7 @@ class HuggingFaceGenerator(
 
         return nlargest(
             n=self._n_largest_tokens_to_return,
-            iterable=zip(map(lambda x: float(x) * 100, probs), self.word_vocab),
+            iterable=zip((float(x) * 100 for x in probs), self.word_vocab, strict=True),
             key=lambda x: x[0],
         )
 
@@ -246,7 +258,7 @@ class OpenAIGenerator(Generator):
         self.retrieve_target_str = retrieve_target_str
         openai.api_key = self._api_key
 
-    def generate_output(self, text_to_tokenizer: Dict, **kwargs) -> Dict:
+    def generate_output(self, text_to_tokenizer: dict, **kwargs) -> dict:
         params = copy.deepcopy(text_to_tokenizer)
         if "top_p" in kwargs:
             params["top_p"] = kwargs["top_p"]
@@ -257,9 +269,11 @@ class OpenAIGenerator(Generator):
         if "temperature" in kwargs:
             params["temperature"] = kwargs["temperature"]
         response = openai.ChatCompletion.create(**params)
-        return dict(
-            decoded_outputs=[choice["message"]["content"] for choice in response["choices"]]  # type: ignore
-        )
+        return {
+            "decoded_outputs": [
+                choice["message"]["content"] for choice in response["choices"]
+            ]
+        }
 
 
 forms = {

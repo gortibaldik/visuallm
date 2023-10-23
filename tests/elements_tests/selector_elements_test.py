@@ -9,9 +9,8 @@ from visuallm.elements.selector_elements import (
 
 
 class ButtonElementStub(CustomRequestMixin, ButtonElement):
-    """
-    Stub that instead of real request json returns something that test user specifies.
-    """
+
+    """Stub that instead of real request json returns something that test user specifies."""
 
 
 def test_checkbox_selected_changed_set():

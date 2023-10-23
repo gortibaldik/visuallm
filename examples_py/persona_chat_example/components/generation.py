@@ -1,5 +1,3 @@
-from typing import List
-
 from visuallm.components.GenerationComponent import GenerationComponent
 from visuallm.elements.element_base import ElementBase
 
@@ -10,7 +8,7 @@ class Generation(GenerationComponent, PersonaChatVisualization):
     def __post_init__(self):
         self.after_on_generator_change_callback()
 
-    def init_model_input_display(self) -> List[ElementBase]:
+    def init_model_input_display(self) -> list[ElementBase]:
         return [
             *PersonaChatVisualization.init_dialogue_vis_elements(self),
             *super().init_model_input_display(),

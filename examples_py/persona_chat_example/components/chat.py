@@ -1,5 +1,3 @@
-from typing import List
-
 from datasets import DatasetDict, load_dataset
 from datasets.arrow_dataset import Dataset
 
@@ -23,25 +21,22 @@ class ChatComponent(ChatComponentBase, PersonaChatVisualization):
         self.on_change_selected_traits()
 
     def on_change_selected_traits(self):
-        """
-        This event is fired when a select persona traits button is pressed.
-        """
+        """Fired when a select persona traits button is pressed."""
         if not self.button_select_persona_traits.changed:
             return
-        self.loaded_sample = dict(
-            personality=[
-                element.selected
+        self.loaded_sample = {
+            "personality": [
+                element.value_on_backend
                 for element in self.button_select_persona_traits.subelements_iter
             ],
-            history=[],
-        )
+            "history": [],
+        }
         self.text_to_tokenizer_element.content = ""
         self.chat_text_input_element.predefined_text_input = ""
         self.model_output_display_element.content = ""
         self.update_dialogue_structure_display(add_target=False)
 
     def before_on_accept_generation_callback(self):
-        """This callback is called just before all the common elements are changed"""
         super().before_on_accept_generation_callback()
         self.update_dialogue_structure_display(add_target=False)
 
@@ -64,13 +59,13 @@ class ChatComponent(ChatComponentBase, PersonaChatVisualization):
         return [selection_heading_element, self.button_select_persona_traits]
 
 
-def get_persona_traits() -> List[str]:
+def get_persona_traits() -> list[str]:
     dataset_dict = load_dataset("bavard/personachat_truecased")
     if not isinstance(dataset_dict, DatasetDict):
-        raise ValueError()
+        raise TypeError()
     dataset = dataset_dict["train"]
     if not isinstance(dataset, Dataset):
-        raise ValueError()
+        raise TypeError()
     persona_traits = set()
     persona_traits_list = []
     for sample in dataset:

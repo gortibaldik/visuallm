@@ -15,7 +15,7 @@ class TwoTablesComponent(ComponentBase):
         self.table_element = TableElement()
 
         # create n tables with headers
-        NUMBER_OF_TABLES = 2
+        number_of_tables = 2
         headers = ["No.", "Turn"]
         rows = [
             [
@@ -30,15 +30,15 @@ class TwoTablesComponent(ComponentBase):
                     ]
                 )
             ]
-            for table_n in range(NUMBER_OF_TABLES)
+            for table_n in range(number_of_tables)
         ]
-        TABLE_NAMES = [
-            f"Table{table_n} is a Great Table" for table_n in range(NUMBER_OF_TABLES)
+        table_names = [
+            f"Table{table_n} is a Great Table" for table_n in range(number_of_tables)
         ]
         self.table_element.clear()
 
-        for i in range(NUMBER_OF_TABLES):
-            self.table_element.add_table(TABLE_NAMES[i], headers, rows[i])
+        for i in range(number_of_tables):
+            self.table_element.add_table(table_names[i], headers, rows[i])
 
         # add links pointing from the rows of the first table to all the rows
         # of the first table upwards
@@ -46,9 +46,9 @@ class TwoTablesComponent(ComponentBase):
             for i in range(j):
                 self.table_element.add_link_between_rows(
                     LinkBetweenRows(
-                        TABLE_NAMES[0],
+                        table_names[0],
                         j,
-                        TABLE_NAMES[0],
+                        table_names[0],
                         i,
                         Importance=1,
                         Label="to_this_table",
@@ -64,9 +64,9 @@ class TwoTablesComponent(ComponentBase):
             for i in range(j):
                 self.table_element.add_link_between_rows(
                     LinkBetweenRows(
-                        TABLE_NAMES[1],
+                        table_names[1],
                         j,
-                        TABLE_NAMES[1],
+                        table_names[1],
                         i,
                         Importance=1,
                         Label="to_second_table",
@@ -77,9 +77,9 @@ class TwoTablesComponent(ComponentBase):
             for i in range(len(rows[0])):
                 self.table_element.add_link_between_rows(
                     LinkBetweenRows(
-                        TABLE_NAMES[1],
+                        table_names[1],
                         j,
-                        TABLE_NAMES[0],
+                        table_names[0],
                         i,
                         Label="to_first_table",
                         Importance=4,

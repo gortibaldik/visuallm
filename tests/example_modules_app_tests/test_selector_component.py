@@ -17,8 +17,8 @@ def test_text_before_any_input(app, firefox_driver: Firefox, link: str):
 
     elem = firefox_driver.find_element(by=By.CLASS_NAME, value="plainText")
     assert (
-        "This library is super and I would give it 0 stars out of 0 if I could. (First Message)"
-        == elem.text
+        elem.text
+        == "This library is super and I would give it 0 stars out of 0 if I could. (First Message)"
     )
 
 
@@ -30,8 +30,8 @@ def test_nothing_changed(app, firefox_driver: Firefox, link: str):
 
     text_elem = firefox_driver.find_element(by=By.CLASS_NAME, value="plainText")
     assert (
-        "This library is super and I would give it 0 stars out of 0 if I could. (Don't take me seriously.) This has not changed!"
-        == text_elem.text
+        text_elem.text
+        == "This library is super and I would give it 0 stars out of 0 if I could. (Don't take me seriously.) This has not changed!"
     )
 
 

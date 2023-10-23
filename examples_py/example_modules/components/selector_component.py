@@ -1,5 +1,3 @@
-from typing import Optional
-
 from visuallm.component_base import ComponentBase
 from visuallm.elements import MainHeadingElement, PlainTextElement
 from visuallm.elements.selector_elements import (
@@ -57,11 +55,11 @@ class SelectorComponent(ComponentBase):
         choice: str,
         number: float,
         message: str,
-        any_updated: Optional[bool] = None,
+        any_updated: bool | None = None,
     ):
         self.text_element.content = (
             f"This library is {choice} and I would give "
-            + f"it {number} stars out of {number} if I could. ({message})"
+            f"it {number} stars out of {number} if I could. ({message})"
             + (
                 ""
                 if any_updated is None

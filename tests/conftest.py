@@ -4,11 +4,12 @@ from selenium import webdriver
 
 @pytest.fixture(scope="module")
 def firefox_driver():
-    """This is a fixture that creates a selenium webdriver with firefox
+    """Create a selenium webdriver with firefox
     and runs it for the duration of whole module, and closes it after
     the last test in the module
 
-    Yields:
+    Yields
+    ------
         selenium.webdriver.Firefox
     """
     opts = webdriver.FirefoxOptions()

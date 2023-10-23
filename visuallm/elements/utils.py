@@ -1,4 +1,5 @@
-from typing import List, MutableSet, Optional, TypeVar
+from collections.abc import MutableSet
+from typing import TypeVar
 
 from visuallm.named import NamedProtocol
 
@@ -8,7 +9,7 @@ T = TypeVar("T", bound=NamedProtocol)
 def register_named(
     named: T,
     registered_names_set: MutableSet[str],
-    registered_named_list: Optional[List[T]] = None,
+    registered_named_list: list[T] | None = None,
 ):
     """Append `value` with property `value.name` to `registered_names_list`
     while preserving the invariant that no other value in that list has the
@@ -48,6 +49,6 @@ def sanitize_url(url: str):
 Assigned = TypeVar("Assigned")
 
 
-def assign_if_none(old_value: Optional[Assigned], new_value: Assigned) -> Assigned:
+def assign_if_none(old_value: Assigned | None, new_value: Assigned) -> Assigned:
     """If `old_value` is None return `new_value` otherwise keep the `old_value`."""
     return old_value if old_value is not None else new_value

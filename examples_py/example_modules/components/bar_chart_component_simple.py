@@ -22,11 +22,13 @@ class BarChartComponentSimple(ComponentBase):
 
     def update_barchart_component(self):
         probs = sample_ten_words(self.word_ids)
-        K = 10
-        ten_largest_probs = heapq.nlargest(K, zip(*zip(*probs), self.word_vocab))
+        top_k = 10
+        ten_largest_probs = heapq.nlargest(
+            top_k, zip(*zip(*probs), self.word_vocab)  # noqa: B905
+        )
 
         piece_infos = []
-        for i in range(K):
+        for i in range(top_k):
             piece_infos.append(
                 PieceInfo(
                     pieceTitle=ten_largest_probs[i][1],
@@ -47,12 +49,13 @@ class BarChartComponentSimple(ComponentBase):
 def download_word_vocabulary():
     """Download MIT word list as a word vocab.
 
-    Returns:
+    Returns
+    -------
         Tuple[List[str], List[int]]: list of words and list of indices of the
             corresponding words
     """
     word_site = "https://www.mit.edu/~ecprice/wordlist.10000"
-    response = requests.get(word_site)
+    response = requests.get(word_site, timeout=10)
     word_vocab = [x.decode("utf-8") for x in response.content.splitlines()]
     word_ids = [i for i, _ in enumerate(word_vocab)]
     return word_vocab, word_ids
@@ -63,13 +66,13 @@ def sample_ten_words(word_ids):
     distributed probabilities.
     """
     k = 10
-    ten_samples = random.choices(word_ids, k=k)
+    ten_samples = random.choices(word_ids, k=k)  # noqa: S311
     ten_numbers = [math.exp(i + random_noise()) for i in range(k)]
     ten_numbers_sum = sum(ten_numbers)
     ten_probs = [n / ten_numbers_sum for n in ten_numbers]
 
     probs = [[0.0] for _ in word_ids]
-    for i, p in zip(ten_samples, ten_probs):
+    for i, p in zip(ten_samples, ten_probs, strict=True):
         probs[i][0] = p * 100
     return probs
 
@@ -79,5 +82,5 @@ def random_noise(lower_bound=-1, upper_bound=1):
     if lower_bound >= upper_bound:
         raise ValueError()
     range_size = upper_bound - lower_bound
-    noise = random.random() * range_size + lower_bound
+    noise = random.random() * range_size + lower_bound  # noqa: S311
     return noise

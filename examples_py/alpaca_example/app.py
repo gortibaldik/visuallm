@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from datasets import DatasetDict, load_dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -8,25 +6,25 @@ from visuallm import (
     GenerationComponent,
     NextTokenPredictionComponent,
 )
-from visuallm.components.mixins.Generator import HuggingFaceGenerator
+from visuallm.components.mixins.generator import HuggingFaceGenerator
 from visuallm.server import Server
 
 dataset = load_dataset("yahma/alpaca-cleaned")
 if not isinstance(dataset, DatasetDict):
-    raise ValueError("Only dataset dict is supported now")
+    raise TypeError("Only dataset dict is supported now")
 
 tokenizer = AutoTokenizer.from_pretrained("gpt2")
 model = AutoModelForCausalLM.from_pretrained("gpt2")
 
 
-def create_text_to_tokenizer(loaded_sample, target: Optional[str] = None) -> str:
+def create_text_to_tokenizer(loaded_sample, target: str | None = None) -> str:
     text_to_tokenizer = f"Instruction: {loaded_sample['instruction']} Answer:"
     if target is not None:
         text_to_tokenizer += " " + target
     return text_to_tokenizer
 
 
-def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: List[str]):
+def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: list[str]):
     # one step prediction means that the model is used to predict tokens one per one
     # received_tokens list contains already selected tokens
 

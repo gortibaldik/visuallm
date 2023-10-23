@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from .element_base import ElementBase
 
@@ -25,12 +25,12 @@ class PlainTextElement(ElementBase):
         self._changed = True
         self._content = value
 
-    def construct_element_configuration(self) -> Dict[str, Any]:
-        return dict(
-            value=self.content,
-            heading=self.is_heading,
-            heading_level=self.heading_level,
-        )
+    def construct_element_configuration(self) -> dict[str, Any]:
+        return {
+            "value": self.content,
+            "heading": self.is_heading,
+            "heading_level": self.heading_level,
+        }
 
 
 class HeadingElement(PlainTextElement):
