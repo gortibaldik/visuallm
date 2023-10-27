@@ -7,7 +7,7 @@
     <h5 v-else-if="headingLevel === 5">{{ value }}</h5>
     <h6 v-else-if="headingLevel === 6">{{ value }}</h6>
   </span>
-  <div v-else class="wrapElement plainText">{{ value }}</div>
+  <div v-else class="wrapElement plainText" v-html="value"></div>
 </template>
 
 <script lang="ts">
@@ -16,6 +16,7 @@ import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiv
 import type ElementRegistry from '@/assets/elementRegistry'
 import { ElementDescription } from '@/assets/elementRegistry'
 import { valuesRequiredInConfiguration } from '@/assets/elementRegistry'
+import { replaceAll } from '@/assets/stringMethods'
 
 // TODO: allow custom html in the plain text element
 
@@ -34,7 +35,12 @@ let component = defineComponent({
       return dataSharedInComponent[getSharedDataUniqueName(this.name, 'heading')]
     },
     value(): string {
-      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'value')]
+      let candidateValue = dataSharedInComponent[getSharedDataUniqueName(this.name, 'value')] as string
+      let checkedValue = replaceAll(candidateValue, "<br />", "")
+      if (checkedValue.includes("<") || checkedValue.includes(">")) {
+        throw Error("Invalid value arrived from backend")
+      }
+      return candidateValue
     }
   },
 })

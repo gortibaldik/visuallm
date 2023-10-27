@@ -1,5 +1,6 @@
 <template>
-    <textarea :placeholder="placeholderText" v-model="selected" />
+    <textarea ref="textarea" :placeholder="placeholderText" v-model="selected" @keydown.enter.exact.prevent="submit"
+        @keydown.enter.shift.exact.prevent="addNewLine" />
 </template>
 
 <script lang="ts">
@@ -34,6 +35,27 @@ let component = defineComponent({
         },
         randomNumber(): number {
             return dataSharedInComponent[getSharedDataUniqueName(this.name, 'randomNumber')]
+        }
+    },
+    methods: {
+        submit(e: Event) {
+            console.log("submitting!")
+            let textarea = this.$refs.textarea as HTMLTextAreaElement
+            let form = textarea.form
+            if (form == null) {
+                this.selected = "TEXTAREA.FORM is NULL"
+                return
+            }
+
+            if (!form.requestSubmit) {
+                this.selected = "UNSUPPORTED BROWSER VERSION!"
+                throw Error("not supported browser")
+            }
+
+            form.requestSubmit()
+        },
+        addNewLine() {
+            this.selected += "\n"
         }
     },
     watch: {

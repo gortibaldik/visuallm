@@ -1,6 +1,8 @@
 import pytest
 from selenium.webdriver import Firefox
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 
 
 @pytest.fixture()
@@ -80,3 +82,57 @@ def test_text_shown_in_wrap_element_after_form_submission(
 
 
 # TODO add test where the shift enter is pressed as a mean of using enter in the text input
+def test_enter_can_be_used_to_send_text(app, firefox_driver: Firefox, link):
+    firefox_driver.get(link)
+
+    expected_value = "Some short text."
+    form = firefox_driver.find_element(By.TAG_NAME, "form")
+    textarea = form.find_element(By.TAG_NAME, "textarea")
+    textarea.send_keys(expected_value)
+    textarea.send_keys(Keys.ENTER)
+
+    wrap_elems = firefox_driver.find_elements(By.CLASS_NAME, "wrapElement")
+    assert wrap_elems[1].text == expected_value
+
+
+def test_shift_enter_can_be_used_to_enter_newline(app, firefox_driver: Firefox, link):
+    firefox_driver.get(link)
+
+    expected_value1 = "Some short text line 1"
+    expected_value2 = "Some short text line 2"
+
+    form = firefox_driver.find_element(By.TAG_NAME, "form")
+    textarea = form.find_element(By.TAG_NAME, "textarea")
+    textarea.send_keys(expected_value1)
+    ActionChains(firefox_driver).key_down(Keys.SHIFT).send_keys(Keys.ENTER).perform()
+    textarea.send_keys(expected_value2)
+
+    form = firefox_driver.find_element(By.TAG_NAME, "form")
+    textarea = form.find_element(By.TAG_NAME, "textarea")
+
+    actual_text = textarea.get_attribute("value")
+    assert actual_text == expected_value1 + "\n" + expected_value2
+
+
+def test_shift_enter_then_enter_to_submit(app, firefox_driver: Firefox, link):
+    firefox_driver.get(link)
+
+    expected_value1 = "Some short text line 1"
+    expected_value2 = "Some short text line 2"
+
+    form = firefox_driver.find_element(By.TAG_NAME, "form")
+    textarea = form.find_element(By.TAG_NAME, "textarea")
+    textarea.send_keys(expected_value1)
+
+    # add newline to textarea
+    ActionChains(firefox_driver).key_down(Keys.SHIFT).send_keys(Keys.ENTER).perform()
+    ActionChains(firefox_driver).key_up(Keys.SHIFT).perform()
+
+    # write another line of text
+    textarea.send_keys(expected_value2)
+
+    # send the text to the backend
+    textarea.send_keys(Keys.ENTER)
+
+    wrap_elems = firefox_driver.find_elements(By.CLASS_NAME, "wrapElement")
+    assert wrap_elems[1].text == expected_value1 + "\n" + expected_value2
