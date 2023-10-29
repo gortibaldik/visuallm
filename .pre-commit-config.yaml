@@ -44,11 +44,12 @@ repos:
       - id: pytests
         name: pytests
         entry: pytest
-        language: system
+        language: python
         "types": [python]
         stage: [commit]
         pass_filenames: false
         always_run: true
+        verbose: true
 # TODO: set up mypy https://jaredkhan.com/blog/mypy-pre-commit
 # - repo: local
 #   hooks:
