@@ -74,8 +74,6 @@ Several different kinds of configuration specifier, together with one button ele
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
 # ./components/selector_component.py lines 1-11
-from typing import Optional
-
 from visuallm.component_base import ComponentBase
 from visuallm.elements import MainHeadingElement, PlainTextElement
 from visuallm.elements.selector_elements import (
@@ -84,6 +82,9 @@ from visuallm.elements.selector_elements import (
     ChoicesSubElement,
     MinMaxSubElement,
 )
+
+
+class SelectorComponent(ComponentBase):
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -95,9 +96,9 @@ Input element for setting integer in a range.
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
 # ./components/selector_component.py lines 18-20
-            sample_min=0, sample_max=10, text="Select Number:"
-        )
         self.choices_element = ChoicesSubElement(
+            choices=["super", "magnificent", "incredible"], text="This library is:"
+        )
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -109,9 +110,9 @@ Input element for choosing between several choices.
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
 # ./components/selector_component.py lines 21-23
-            choices=["super", "magnificent", "incredible"], text="This library is:"
-        )
         self.checkbox_element = CheckBoxSubElement(text="Have you slept?:")
+        self.set_text_element(
+            self.choices_element.value_on_backend,
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -123,7 +124,7 @@ Simple checkbox input element.
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
 # ./components/selector_component.py lines 24
-        self.set_text_element(
+            self.number_selector_element.value_on_backend,
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -141,8 +142,6 @@ This is an element that should encapsulate all the other configuration selection
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
 # ./components/selector_component.py lines 30-55
-            processing_callback=self.on_button_clicked,
-            subelements=[
                 self.number_selector_element,
                 self.choices_element,
                 self.checkbox_element,
@@ -167,6 +166,8 @@ This is an element that should encapsulate all the other configuration selection
         self.set_text_element(c, n, message, any_updated)
 
     def set_text_element(
+        self,
+        choice: str,
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -212,14 +213,14 @@ class TableComponent(ComponentBase):
             )
         ]
         self.table_element.clear()
-        TABLE_NAME = "Table1 is a Great Table"
-        self.table_element.add_table(TABLE_NAME, headers, rows)
+        table_name = "Table1 is a Great Table"
+        self.table_element.add_table(table_name, headers, rows)
 
         # add links pointing to all the rows upwards
         for j in range(len(rows) - 1, 0, -1):
             for i in range(j):
                 self.table_element.add_link_between_rows(
-                    LinkBetweenRows(TABLE_NAME, j, TABLE_NAME, i, Label="some value")
+                    LinkBetweenRows(table_name, j, table_name, i, Label="some value")
                 )
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
@@ -254,9 +255,9 @@ Secondly, we will create the links in such a way, that links going within the sa
             for i in range(j):
                 self.table_element.add_link_between_rows(
                     LinkBetweenRows(
-                        TABLE_NAMES[0],
+                        table_names[0],
                         j,
-                        TABLE_NAMES[0],
+                        table_names[0],
                         i,
                         Importance=1,
                         Label="to_this_table",
@@ -272,9 +273,9 @@ Secondly, we will create the links in such a way, that links going within the sa
             for i in range(j):
                 self.table_element.add_link_between_rows(
                     LinkBetweenRows(
-                        TABLE_NAMES[1],
+                        table_names[1],
                         j,
-                        TABLE_NAMES[1],
+                        table_names[1],
                         i,
                         Importance=1,
                         Label="to_second_table",
@@ -285,9 +286,9 @@ Secondly, we will create the links in such a way, that links going within the sa
             for i in range(len(rows[0])):
                 self.table_element.add_link_between_rows(
                     LinkBetweenRows(
-                        TABLE_NAMES[1],
+                        table_names[1],
                         j,
-                        TABLE_NAMES[0],
+                        table_names[0],
                         i,
                         Label="to_first_table",
                         Importance=4,
@@ -333,11 +334,13 @@ class BarChartComponentSimple(ComponentBase):
 
     def update_barchart_component(self):
         probs = sample_ten_words(self.word_ids)
-        K = 10
-        ten_largest_probs = heapq.nlargest(K, zip(*zip(*probs), self.word_vocab))
+        top_k = 10
+        ten_largest_probs = heapq.nlargest(
+            top_k, zip(*zip(*probs), self.word_vocab)  # noqa: B905
+        )
 
         piece_infos = []
-        for i in range(K):
+        for i in range(top_k):
             piece_infos.append(
                 PieceInfo(
                     pieceTitle=ten_largest_probs[i][1],
@@ -351,8 +354,6 @@ class BarChartComponentSimple(ComponentBase):
 
     def barchart_callback(self):
         s = self.barchart_element.selected
-        self.text_element.content = f"Last selected: {s}"
-        self.update_barchart_component()
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -374,7 +375,6 @@ When I want to compare several candidates, I can display multi-bar-chart, e.g. a
 # ./components/bar_chart_component_advanced.py lines 1-50
 import math
 import random
-from typing import List
 
 from visuallm.component_base import ComponentBase
 from visuallm.elements.barchart_element import BarChartElement, PieceInfo
@@ -389,9 +389,9 @@ class BarChartComponentAdvanced(ComponentBase):
         self.init_barchart_element()
 
     def init_barchart_element(self):
-        distributions: List[List[float]] = []
+        distributions: list[list[float]] = []
         size_of_distro = 5
-        for i in range(len(self._names_of_bars)):
+        for _ in range(len(self._names_of_bars)):
             distributions.append(make_some_distribution(size_of_distro))
 
         # names of the whole piece with multiple bars
@@ -400,12 +400,12 @@ class BarChartComponentAdvanced(ComponentBase):
             "Give very verbose output about all the program knows about.",
             "Terminate option list.",
             "You should document the library so that the potential user "
-            + "could make sense of it.",
+            "could make sense of it.",
             "This will indicate the state of the repository that should be "
-            + "evaluated.",
+            "evaluated.",
         ]
 
-        piece_infos: List[PieceInfo] = []
+        piece_infos: list[PieceInfo] = []
         for i in range(size_of_distro):
             # heights of individual bars in the piece
             bar_heights = [distro[i] for distro in distributions]

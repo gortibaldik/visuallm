@@ -42,9 +42,7 @@ We'll use `alpaca` dataset and `gpt2` model as those are reasonably small to run
 <!-- The below code snippet is automatically added from ./examples_py/alpaca_example/app.py -->
 ```py
 # ./examples_py/alpaca_example/app.py lines 14-19
-dataset = load_dataset("yahma/alpaca-cleaned")
-if not isinstance(dataset, DatasetDict):
-    raise ValueError("Only dataset dict is supported now")
+    raise TypeError("Only dataset dict is supported now")
 
 tokenizer = AutoTokenizer.from_pretrained("gpt2")
 model = AutoModelForCausalLM.from_pretrained("gpt2")
@@ -59,14 +57,12 @@ is constructed, and how the target text is constructed.
 <!-- The below code snippet is automatically added from ./examples_py/alpaca_example/app.py -->
 ```py
 # ./examples_py/alpaca_example/app.py lines 22-41
-def create_text_to_tokenizer(loaded_sample, target: Optional[str] = None) -> str:
-    text_to_tokenizer = f"Instruction: {loaded_sample['instruction']} Answer:"
     if target is not None:
         text_to_tokenizer += " " + target
     return text_to_tokenizer
 
 
-def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: List[str]):
+def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: list[str]):
     # one step prediction means that the model is used to predict tokens one per one
     # received_tokens list contains already selected tokens
 
@@ -88,8 +84,6 @@ Instantiate all the components from the library and run the server
 <!-- The below code snippet is automatically added from ./examples_py/alpaca_example/app.py -->
 ```py
 # ./examples_py/alpaca_example/app.py lines 44-57
-generator = HuggingFaceGenerator(
-    model=model,
     tokenizer=tokenizer,
     create_text_to_tokenizer=create_text_to_tokenizer,
     create_text_to_tokenizer_one_step=create_text_to_tokenizer_one_step,
@@ -149,18 +143,14 @@ class PersonaChatVisualization:
         # just for the typechecker to not complain
         self.loaded_sample: Any = 1
 
-    def init_dialogue_vis_elements(self) -> List[ElementBase]:
-        """
-        Init elements which display the personachat tables.
-        """
+    def init_dialogue_vis_elements(self) -> list[ElementBase]:
+        """Init elements which display the personachat tables."""
         table_input_heading = HeadingElement(content="Structure of Dialogue")
         self.input_table_vis = TableElement()
         return [table_input_heading, self.input_table_vis]
 
     def update_dialogue_structure_display(self, add_target: bool = True):
-        """
-        Update elements which display the personachat tables.
-        """
+        """Update elements which display the personachat tables."""
         sample = self.loaded_sample
         context = copy.deepcopy(sample["history"])
         if add_target:
@@ -170,11 +160,9 @@ class PersonaChatVisualization:
         self.set_sample_tables_element(persona, context)
 
     def set_sample_tables_element(
-        self, persona: List[str], context: List[str], other_last: bool = False
+        self, persona: list[str], context: list[str], other_last: bool = False
     ):
-        """
-        Populate the tables with the information from the dataset sample.
-        """
+        """Populate the tables with the information from the dataset sample."""
         self.input_table_vis.clear()
 
         self.input_table_vis.add_table(
@@ -189,7 +177,9 @@ class PersonaChatVisualization:
 
         if len(context) > 0:
             self.input_table_vis.add_table(
-                "Turns", ["Who", "Turn"], [[w, u] for w, u in zip(whos, context)]
+                "Turns",
+                ["Who", "Turn"],
+                [[w, u] for w, u in zip(whos, context, strict=True)],
             )
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
@@ -200,8 +190,6 @@ Afterwards we need to implement the inheritors of components that should make us
 <!-- The below code snippet is automatically added from ./examples_py/persona_chat_example/components/generation.py -->
 ```py
 # ./examples_py/persona_chat_example/components/generation.py lines 1-23
-from typing import List
-
 from visuallm.components.GenerationComponent import GenerationComponent
 from visuallm.elements.element_base import ElementBase
 
@@ -209,10 +197,10 @@ from .input_display import PersonaChatVisualization
 
 
 class Generation(GenerationComponent, PersonaChatVisualization):
-    def __post_init__(self):
+    def __post_init__(self, *args, **kwargs):
         self.after_on_generator_change_callback()
 
-    def init_model_input_display(self) -> List[ElementBase]:
+    def init_model_input_display(self) -> list[ElementBase]:
         return [
             *PersonaChatVisualization.init_dialogue_vis_elements(self),
             *super().init_model_input_display(),
