@@ -1,9 +1,10 @@
-import copy
+import dataclasses
+import json
 import os
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from heapq import nlargest
-from typing import Any, Protocol, cast
+from typing import Any, Protocol, TypeAlias, cast
 
 import nltk
 import openai
@@ -14,7 +15,16 @@ from transformers.generation.utils import GenerateOutput
 
 
 class CreateTextToTokenizer(Protocol):
-    def __call__(self, loaded_sample: Any, target: Any | None = None) -> Any:
+
+    """The library enforces the following flow:
+    1. a text to the tokenizer is created from the loaded sample and returned (handled by this method)
+    2. the text to the tokenizer is passed to the generator to tokenize and create a generation
+
+    This way we can display the text to the tokenizer in the frontend and check whether we aren't sending
+    garbage to the model.
+    """
+
+    def __call__(self, loaded_sample: dict[str, Any], target: Any | None = None) -> str:
         ...
 
 
@@ -23,20 +33,39 @@ class RetrieveTargetStr(Protocol):
         ...
 
 
+@dataclasses.dataclass
+class GeneratedOutput:
+    decoded_outputs: list[str]
+    """Human readable outputs of the generator (generated texts)"""
+    input_length: int | None = None
+    """Length of the tokenized inputs"""
+
+
 class Generator(ABC):
     create_text_to_tokenizer: CreateTextToTokenizer
+    """The library enforces the following flow:
+    1. a text to the tokenizer is created from the loaded sample and returned (handled by this method)
+    2. the text to the tokenizer is passed to the generator to tokenize and create a generation
+
+    This way we can display the text to the tokenizer in the frontend and check whether we aren't sending
+    garbage to the model.
+    """
     retrieve_target_str: RetrieveTargetStr
 
     @property
     def supports_next_token_prediction(self):
+        """Whether the generator supports NextTokenPrediction (can be plugged into the
+        NextTokenPredictionComponent, e.g. it can return probabilities of tokens and
+        step over the token prediction).
+        """
         return False
 
     @abstractmethod
-    def generate_output(self, text_to_tokenizer: str, **kwargs) -> dict:
+    def generate_output(self, text_to_tokenizer: str, **kwargs) -> GeneratedOutput:
         ...
 
 
-TOKENIZER_TYPE = PreTrainedTokenizer | PreTrainedTokenizerFast
+TOKENIZER_TYPE: TypeAlias = PreTrainedTokenizer | PreTrainedTokenizerFast
 
 
 class NextTokenPredictionInterface(ABC):
@@ -112,32 +141,32 @@ class HuggingFaceGenerator(
         self._n_largest_tokens_to_return = n_largest_tokens_to_return
         self.init_word_vocab()
 
-    def generate_output(self, text_to_tokenizer: str, **kwargs):
+    def generate_output(
+        self, text_to_tokenizer: str, **generation_arguments: Any
+    ) -> GeneratedOutput:
         """Run model_inputs through self._model.generate"""
         model_inputs = self._tokenizer(text_to_tokenizer, return_tensors="pt")
-        if "pad_token_id" not in kwargs:
-            kwargs["pad_token_id"] = self._tokenizer.eos_token_id
+        if "pad_token_id" not in generation_arguments:
+            generation_arguments["pad_token_id"] = self._tokenizer.eos_token_id
 
-        if "max_new_tokens" not in kwargs:
-            kwargs["max_new_tokens"] = 40
+        if "max_new_tokens" not in generation_arguments:
+            generation_arguments["max_new_tokens"] = 40
 
         # generate with loaded settings
         output = self._model.generate(
             **model_inputs,
             output_scores=True,
             return_dict_in_generate=True,
-            **kwargs,
+            **generation_arguments,
         )
         output = cast(GenerateOutput, output)
         input_length: int = model_inputs.input_ids.size(1)
 
         decoded_outputs = self.decode_output(output, input_length)
 
-        return {
-            "output": output,
-            "decoded_outputs": decoded_outputs,
-            "input_length": input_length,
-        }
+        return GeneratedOutput(
+            decoded_outputs=decoded_outputs, input_length=input_length
+        )
 
     def decode_output(
         self,
@@ -258,22 +287,23 @@ class OpenAIGenerator(Generator):
         self.retrieve_target_str = retrieve_target_str
         openai.api_key = self._api_key
 
-    def generate_output(self, text_to_tokenizer: dict, **kwargs) -> dict:
-        params = copy.deepcopy(text_to_tokenizer)
-        if "top_p" in kwargs:
-            params["top_p"] = kwargs["top_p"]
-        if "num_return_sequences" in kwargs:
-            params["n"] = kwargs["num_return_sequences"]
-        if "max_new_tokens" in kwargs:
-            params["max_tokens"] = kwargs["max_new_tokens"]
-        if "temperature" in kwargs:
-            params["temperature"] = kwargs["temperature"]
+    def generate_output(
+        self, text_to_tokenizer: str, **generation_args
+    ) -> GeneratedOutput:
+        params = json.loads(text_to_tokenizer)
+        # params = copy.deepcopy(text_to_tokenizer)
+        if "top_p" in generation_args:
+            params["top_p"] = generation_args["top_p"]
+        if "num_return_sequences" in generation_args:
+            params["n"] = generation_args["num_return_sequences"]
+        if "max_new_tokens" in generation_args:
+            params["max_tokens"] = generation_args["max_new_tokens"]
+        if "temperature" in generation_args:
+            params["temperature"] = generation_args["temperature"]
         response = openai.ChatCompletion.create(**params)
-        return {
-            "decoded_outputs": [
-                choice["message"]["content"] for choice in response["choices"]
-            ]
-        }
+        return GeneratedOutput(
+            decoded_outputs=[choice["message"]["content"] for choice in response["choices"]]  # type: ignore
+        )
 
 
 forms = {

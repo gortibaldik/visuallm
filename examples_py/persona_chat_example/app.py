@@ -1,33 +1,20 @@
 import copy
+import json
+import os
 
 from datasets import DatasetDict, load_dataset
 from transformers.models.auto.modeling_auto import AutoModelForCausalLM
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
-from visuallm.components.GenerationComponent import GeneratedTextMetric, ProbsMetric
-from visuallm.components.mixins.generation_selectors_mixin import (
-    CheckBoxSelectorType,
-    MinMaxSelectorType,
-)
 from visuallm.components.mixins.generator import (
+    Generator,
     HuggingFaceGenerator,
     OpenAIGenerator,
     switch_persona_from_first_to_second_sentence,
 )
-from visuallm.server import Server
 
-from .components.chat import ChatComponent
-from .components.generation import Generation
-from .components.metrics import F1Score, Perplexity
-from .components.next_token_prediction import NextTokenPrediction
-from .components.visualization import Visualization
-
-# load models
-dataset = load_dataset("bavard/personachat_truecased")
-if not isinstance(dataset, DatasetDict):
-    raise TypeError("Only dataset and dataset dict are supported")
-tokenizer = AutoTokenizer.from_pretrained("gpt2")
-model = AutoModelForCausalLM.from_pretrained("gpt2")
+from .components.chat import get_persona_traits
+from .create_app import create_app
 
 
 def create_text_to_tokenizer(loaded_sample, target: str | None = None) -> str:
@@ -62,7 +49,7 @@ def retrieve_target_str(loaded_sample):
     return loaded_sample["candidates"][-1]
 
 
-def create_text_to_tokenizer_openai(loaded_sample, target: str | None = None):
+def create_text_to_tokenizer_openai(loaded_sample, target: str | None = None) -> str:
     model = "gpt-3.5-turbo-0613"
     system_traits = "You are a chatbot for the task where you try to impersonate a human who identifies himself with the following traits: "
     system_traits += " ".join(
@@ -82,52 +69,39 @@ def create_text_to_tokenizer_openai(loaded_sample, target: str | None = None):
     for i, message in enumerate(history):
         messages.append({"role": roles[i % 2], "content": message})
 
-    return {"model": model, "messages": messages}
+    return json.dumps({"model": model, "messages": messages})
 
 
+# load models
+_dataset = load_dataset("bavard/personachat_truecased")
+if not isinstance(_dataset, DatasetDict):
+    raise TypeError("Only dataset and dataset dict are supported")
+_tokenizer = AutoTokenizer.from_pretrained("gpt2")
+_model = AutoModelForCausalLM.from_pretrained("gpt2")
+
+_generator_choices: dict[str, Generator] = {}
 generator = HuggingFaceGenerator(
-    model=model,
-    tokenizer=tokenizer,
+    model=_model,
+    tokenizer=_tokenizer,
     create_text_to_tokenizer=create_text_to_tokenizer,
     create_text_to_tokenizer_one_step=create_text_to_tokenizer_one_step,
     retrieve_target_str=retrieve_target_str,
 )
+_generator_choices["gpt2"] = generator
 
-open_ai_generator = OpenAIGenerator(
-    create_text_to_tokenizer_openai, retrieve_target_str=retrieve_target_str
-)
+if "OPENAI_API_KEY" in os.environ:
+    open_ai_generator = OpenAIGenerator(
+        create_text_to_tokenizer_openai, retrieve_target_str=retrieve_target_str
+    )
+    _generator_choices["gpt-3.5-turbo-0613"] = open_ai_generator
 
-# create components
-visualize = Visualization(
-    dataset=dataset,
-    generator_choices={"gpt-3.5-turbo-0613": open_ai_generator, "gpt2": generator},
-)
-generate = Generation(
-    dataset=dataset,
-    generator_choices={"gpt-3.5-turbo-0613": open_ai_generator, "gpt2": generator},
-    selectors={
-        "do_sample": CheckBoxSelectorType(False),
-        "top_p": MinMaxSelectorType(0, 1, default_value=1.0, step_size=0.05),
-        "max_new_tokens": MinMaxSelectorType(10, 100, default_value=30),
-        "num_return_sequences": MinMaxSelectorType(1, 20),
-    },
-    metrics_on_probs={"Perplexity": ProbsMetric("{:.5f}", False, Perplexity())},
-    metrics_on_generated_text={
-        "F1-Score": GeneratedTextMetric("{:.2%}", True, F1Score())
-    },
+app = create_app(
+    _dataset,
+    _generator_choices,
+    get_persona_traits=get_persona_traits,
+    next_token_generator_choices={"gpt2": _generator_choices["gpt2"]},
 )
 
-chat = ChatComponent(
-    title="chat",
-    generator_choices={"gpt-3.5-turbo-0613": open_ai_generator, "gpt2": generator},
-    selectors={
-        "do_sample": CheckBoxSelectorType(False),
-        "top_p": MinMaxSelectorType(0, 1, default_value=1.0, step_size=0.05),
-        "max_new_tokens": MinMaxSelectorType(10, 100, default_value=30),
-        "num_return_sequences": MinMaxSelectorType(1, 20),
-        "temperature": MinMaxSelectorType(0, 2, default_value=1.0, step_size=0.1),
-    },
-)
-next_token = NextTokenPrediction(generator=generator, dataset=dataset)
-server = Server(__name__, [generate, next_token, visualize, chat])
-app = server.app
+
+# TODO: collapsible elements (i.e. element in element) - after merge request
+# TODO: add new text input to the chat component

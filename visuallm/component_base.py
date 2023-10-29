@@ -25,7 +25,7 @@ class ComponentMetaclass(ABCMeta):
         """Add __post_init__ call right after all the constructor of all the inheritors are called"""
         obj = super().__call__(*args, **kwargs)
         if hasattr(obj, "__post_init__"):
-            obj.__post_init__()
+            obj.__post_init__(*args, **kwargs)
         return obj
 
 
@@ -53,7 +53,7 @@ class ComponentBase(Named, metaclass=ComponentMetaclass):
 
         self.default_callback = default_callback
 
-    def __post_init__(self):
+    def __post_init__(self, *args, **kwargs):
         pass
 
     def _get_order(self, order: float | None):

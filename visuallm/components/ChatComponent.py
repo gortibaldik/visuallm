@@ -36,6 +36,7 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         generator_choices: GENERATOR_CHOICES | None = None,
         generator: Generator | None = None,
         selectors: SELECTORS_TYPE | None = None,
+        **kwargs,
     ):
         super().__init__(name="chat_component", title=title)
         main_heading_element = MainHeadingElement(content=title)
@@ -57,7 +58,7 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         self.add_elements(text_to_tokenizer_elements)
         self.add_elements(model_outputs_elements)
 
-    def __post_init__(self):
+    def __post_init__(self, *args, **kwargs):
         pass
 
     def before_on_message_sent_callback(self):
@@ -83,7 +84,7 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         # - button next to text input area is updated with text "Regenerate"
         # - accept generation button is enabled
         self.text_to_tokenizer_element.content = text_to_tokenizer
-        self.model_output_display_element.content = output["decoded_outputs"][0]
+        self.model_output_display_element.content = output.decoded_outputs[0]
         self.chat_text_input_element.button_text = "Regenerate"
         self.button_accept_generation.disabled = False
 
@@ -112,13 +113,14 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
 
     def init_chat_elements(self) -> list[ElementBase]:
         """Init elements which enable user to make text input and send it to the model."""
+        self.chat_heading_element = HeadingElement("Send Message to Bot")
         self.chat_text_input_element = TextInputElement(
             processing_callback=self.on_message_sent_callback,
             button_text="Send Message",
             default_text="Type a message to the bot.",
             blank_text_after_send=False,
         )
-        return [self.chat_text_input_element]
+        return [self.chat_heading_element, self.chat_text_input_element]
 
     def init_model_outputs_elements(self) -> list[ElementBase]:
         """Init elements which show the outputs of the model."""

@@ -33,10 +33,29 @@ repos:
     hooks:
       - id: eslint
         args: ["-c", "client_visuallm/.eslintrc.cjs"]
-
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
     rev: v0.1.1
     hooks:
       - id: ruff
         args: ["--fix"]
+  - repo: local
+    hooks:
+      - id: pytests
+        name: pytests
+        entry: pytest
+        language: system
+        "types": [python]
+        stage: [commit]
+        pass_filenames: false
+        always_run: true
+# TODO: set up mypy https://jaredkhan.com/blog/mypy-pre-commit
+# - repo: local
+#   hooks:
+#     - id: mypy
+#       name: mypy
+#       entry: mypy
+#       language: python
+#       language_version: python3.10
+#       types: [python]
+#       verbose: true

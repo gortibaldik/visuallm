@@ -122,6 +122,7 @@ def test_shift_enter_then_enter_to_submit(app, firefox_driver: Firefox, link):
 
     form = firefox_driver.find_element(By.TAG_NAME, "form")
     textarea = form.find_element(By.TAG_NAME, "textarea")
+    textarea.clear()
     textarea.send_keys(expected_value1)
 
     # add newline to textarea

@@ -4,7 +4,7 @@ from .input_display import PersonaChatVisualization
 
 
 class Visualization(DatasetVisualizationComponent, PersonaChatVisualization):
-    def __post_init__(self):
+    def __post_init__(self, *args, **kwargs):
         self.after_on_dataset_change_callback()
 
     def initialize_sample_visualization_elements(self):

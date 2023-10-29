@@ -89,7 +89,7 @@ class GenerationComponent(
         self.add_elements(input_display_elements)
         self.add_elements(self.metrics_display_elements)
 
-    def __post_init__(self):
+    def __post_init__(self, *args, **kwargs):
         self.on_dataset_change_callback()
 
     def init_model_input_display(self) -> list[ElementBase]:
@@ -126,27 +126,33 @@ class GenerationComponent(
         # compute metrics on generated
         probs, output_sequences = None, None
 
-        if isinstance(self.generator, OutputProbabilityInterface):
+        if (
+            isinstance(self.generator, OutputProbabilityInterface)
+            and output.input_length is not None
+        ):
             full_generated_texts = [
                 self.generator.create_text_to_tokenizer(self.loaded_sample, generated)
-                for generated in output["decoded_outputs"]
+                for generated in output.decoded_outputs
             ]
             probs, output_sequences = self.generator.measure_output_probability(
-                full_generated_texts, output["input_length"]
+                full_generated_texts, output.input_length
             )
         else:
-            probs = [None] * len(output["decoded_outputs"])
+            probs = [None] * len(output.decoded_outputs)
             output_sequences = probs
 
         self.compute_n_display_metrics_on_predicted(
-            output["decoded_outputs"],
+            output.decoded_outputs,
             self.generator.retrieve_target_str(self.loaded_sample),
             probs,
             output_sequences,
         )
 
         # compute scores on target
-        if isinstance(self.generator, OutputProbabilityInterface):
+        if (
+            isinstance(self.generator, OutputProbabilityInterface)
+            and output.input_length is not None
+        ):
             probs, output_sequences = self.generator.measure_output_probability(
                 [
                     self.generator.create_text_to_tokenizer(
@@ -154,7 +160,7 @@ class GenerationComponent(
                         self.generator.retrieve_target_str(self.loaded_sample),
                     )
                 ],
-                output["input_length"],
+                output.input_length,
             )
         else:
             probs, output_sequences = [None], [None]
