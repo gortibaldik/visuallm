@@ -50,6 +50,7 @@ repos:
         pass_filenames: false
         always_run: true
         verbose: true
+        additional_dependencies: ["datasets"]
 # TODO: set up mypy https://jaredkhan.com/blog/mypy-pre-commit
 # - repo: local
 #   hooks:
