@@ -1,121 +1,36 @@
-import dataclasses
-import json
-import os
-from abc import ABC, abstractmethod
 from collections.abc import Callable
 from heapq import nlargest
-from typing import Any, Protocol, TypeAlias, cast
+from typing import TYPE_CHECKING, Any, TypeAlias, cast
 
-import nltk
-import openai
-import torch
-from numpy.typing import NDArray
-from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
 from transformers.generation.utils import GenerateOutput
 
+from visuallm.components.generators.base import (
+    CreateTextToTokenizer,
+    GeneratedOutput,
+    Generator,
+    NextTokenPredictionInterface,
+    OutputProbabilityInterface,
+    RetrieveTargetStr,
+)
 
-class CreateTextToTokenizer(Protocol):
-
-    """The library enforces the following flow:
-    1. a text to the tokenizer is created from the loaded sample and returned (handled by this method)
-    2. the text to the tokenizer is passed to the generator to tokenize and create a generation
-
-    This way we can display the text to the tokenizer in the frontend and check whether we aren't sending
-    garbage to the model.
-    """
-
-    def __call__(self, loaded_sample: dict[str, Any], target: Any | None = None) -> str:
-        ...
-
-
-class RetrieveTargetStr(Protocol):
-    def __call__(self, loaded_sample: Any) -> str:
-        ...
+try:
+    import torch
+    import transformers  # noqa: F401
+except ImportError:
+    _has_torch = False
+else:
+    _has_torch = True
 
 
-@dataclasses.dataclass
-class GeneratedOutput:
-    decoded_outputs: list[str]
-    """Human readable outputs of the generator (generated texts)"""
-    input_length: int | None = None
-    """Length of the tokenized inputs"""
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+    from transformers import (
+        PreTrainedModel,
+        PreTrainedTokenizer,
+        PreTrainedTokenizerFast,
+    )
 
-
-class Generator(ABC):
-    create_text_to_tokenizer: CreateTextToTokenizer
-    """The library enforces the following flow:
-    1. a text to the tokenizer is created from the loaded sample and returned (handled by this method)
-    2. the text to the tokenizer is passed to the generator to tokenize and create a generation
-
-    This way we can display the text to the tokenizer in the frontend and check whether we aren't sending
-    garbage to the model.
-    """
-    retrieve_target_str: RetrieveTargetStr
-
-    @property
-    def supports_next_token_prediction(self):
-        """Whether the generator supports NextTokenPrediction (can be plugged into the
-        NextTokenPredictionComponent, e.g. it can return probabilities of tokens and
-        step over the token prediction).
-        """
-        return False
-
-    @abstractmethod
-    def generate_output(self, text_to_tokenizer: str, **kwargs) -> GeneratedOutput:
-        ...
-
-
-TOKENIZER_TYPE: TypeAlias = PreTrainedTokenizer | PreTrainedTokenizerFast
-
-
-class NextTokenPredictionInterface(ABC):
-
-    """A class implementing this interface provides the ability to go over the
-    generation in a token by token manner.
-    """
-
-    create_text_to_tokenizer_one_step: Callable[[Any, list[str]], str]
-
-    @abstractmethod
-    def one_step_prediction(self, text_to_tokenizer: str) -> list[tuple[float, str]]:
-        ...
-
-    @abstractmethod
-    def convert_token_to_string(self, token: str) -> str:
-        ...
-
-    @abstractmethod
-    def init_word_vocab(self) -> list[str]:
-        ...
-
-    @property
-    def supports_next_token_prediction(self):
-        return True
-
-
-class OutputProbabilityInterface(ABC):
-
-    """A class implementing this interface provides `measure_output_probability` method
-    thanks to which one can measure the probability of generated tokens.
-    """
-
-    @abstractmethod
-    def measure_output_probability(
-        self, texts: list[str], input_length: int
-    ) -> tuple[Any, Any]:
-        """Measure the probabilities of individual tokens.
-
-        Args:
-        ----
-            texts (List[str]): the generated sequences
-            input_length (int): the length of tokenized input (only tokens after that are used for the
-                probability computation)
-
-        Returns:
-        -------
-            List[torch.Tensor], List[torch.Tensor]: assigned probabilities, generated_ids tensor
-        """
-        ...
+    TOKENIZER_TYPE: TypeAlias = PreTrainedTokenizer | PreTrainedTokenizerFast
 
 
 class HuggingFaceGenerator(
@@ -133,6 +48,10 @@ class HuggingFaceGenerator(
         retrieve_target_str: RetrieveTargetStr,
         n_largest_tokens_to_return: int = 10,
     ):
+        if not _has_torch:
+            raise RuntimeError(
+                "Torch or HuggingFace Transformers isn't installed, HuggingFaceGenerator needs them."
+            )
         self._model = model
         self._tokenizer = tokenizer
         self.create_text_to_tokenizer = create_text_to_tokenizer
@@ -271,71 +190,3 @@ class HuggingFaceGenerator(
             iterable=zip((float(x) * 100 for x in probs), self.word_vocab, strict=True),
             key=lambda x: x[0],
         )
-
-
-class OpenAIGenerator(Generator):
-    def __init__(
-        self,
-        create_text_to_tokenizer: CreateTextToTokenizer,
-        retrieve_target_str: RetrieveTargetStr,
-    ):
-        self._api_key = os.getenv("OPENAI_API_KEY")
-        if self._api_key is None:
-            raise ValueError("OPENAI_API_KEY not set!")
-
-        self.create_text_to_tokenizer = create_text_to_tokenizer
-        self.retrieve_target_str = retrieve_target_str
-        openai.api_key = self._api_key
-
-    def generate_output(
-        self, text_to_tokenizer: str, **generation_args
-    ) -> GeneratedOutput:
-        params = json.loads(text_to_tokenizer)
-        # params = copy.deepcopy(text_to_tokenizer)
-        if "top_p" in generation_args:
-            params["top_p"] = generation_args["top_p"]
-        if "num_return_sequences" in generation_args:
-            params["n"] = generation_args["num_return_sequences"]
-        if "max_new_tokens" in generation_args:
-            params["max_tokens"] = generation_args["max_new_tokens"]
-        if "temperature" in generation_args:
-            params["temperature"] = generation_args["temperature"]
-        response = openai.ChatCompletion.create(**params)
-        return GeneratedOutput(
-            decoded_outputs=[choice["message"]["content"] for choice in response["choices"]]  # type: ignore
-        )
-
-
-forms = {
-    "am": "are",
-    "Am": "Are",
-    "are": "am",
-    "Are": "Am",
-    "i": "you",
-    "I": "You",
-    "you": "i",
-    "You": "I",
-    "my": "your",
-    "My": "Your",
-    "your": "my",
-    "Your": "My",
-    "yours": "mine",
-    "Yours": "Mine",
-    "Mine": "Yours",
-    "mine": "yours",
-    "me": "you",
-    "Me": "You",
-}
-
-
-def switch_persona_from_first_to_second_word(word: str):
-    return forms.get(word, word)
-
-
-def switch_persona_from_first_to_second_sentence(sentence: str):
-    return " ".join(
-        [
-            switch_persona_from_first_to_second_word(word)
-            for word in nltk.wordpunct_tokenize(sentence)
-        ]
-    )

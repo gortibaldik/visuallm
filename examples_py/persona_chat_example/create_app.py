@@ -1,18 +1,22 @@
 import copy
 import json
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
-from datasets import DatasetDict
+if TYPE_CHECKING:
+    from datasets import DatasetDict
+
+
+import nltk
 
 from visuallm import ComponentBase
 from visuallm.components.GenerationComponent import GeneratedTextMetric, ProbsMetric
+from visuallm.components.generators.base import (
+    Generator,
+)
 from visuallm.components.mixins.generation_selectors_mixin import (
     CheckBoxSelectorType,
     MinMaxSelectorType,
-)
-from visuallm.components.mixins.generator import (
-    Generator,
-    switch_persona_from_first_to_second_sentence,
 )
 from visuallm.server import Server
 
@@ -21,6 +25,40 @@ from .components.generation import Generation
 from .components.metrics import F1Score, Perplexity
 from .components.next_token_prediction import NextTokenPrediction
 from .components.visualization import Visualization
+
+forms = {
+    "am": "are",
+    "Am": "Are",
+    "are": "am",
+    "Are": "Am",
+    "i": "you",
+    "I": "You",
+    "you": "i",
+    "You": "I",
+    "my": "your",
+    "My": "Your",
+    "your": "my",
+    "Your": "My",
+    "yours": "mine",
+    "Yours": "Mine",
+    "Mine": "Yours",
+    "mine": "yours",
+    "me": "you",
+    "Me": "You",
+}
+
+
+def switch_persona_from_first_to_second_word(word: str):
+    return forms.get(word, word)
+
+
+def switch_persona_from_first_to_second_sentence(sentence: str):
+    return " ".join(
+        [
+            switch_persona_from_first_to_second_word(word)
+            for word in nltk.wordpunct_tokenize(sentence)
+        ]
+    )
 
 
 def create_text_to_tokenizer(loaded_sample, target: str | None = None) -> str:
@@ -79,7 +117,7 @@ def create_text_to_tokenizer_openai(loaded_sample, target: str | None = None) ->
 
 
 def create_app(
-    dataset: DatasetDict,
+    dataset: "DatasetDict",
     generator_choices: dict[str, Generator],
     next_token_generator_choices: dict[str, Generator],
     get_persona_traits: Callable[[], list[str]],

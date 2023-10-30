@@ -1,4 +1,5 @@
 from visuallm.component_base import ComponentBase
+from visuallm.components.generators.base import Generator, OutputProbabilityInterface
 from visuallm.components.mixins.data_preparation_mixin import (
     DATASET_TYPE,
     DATASETS_TYPE,
@@ -8,7 +9,6 @@ from visuallm.components.mixins.generation_selectors_mixin import (
     SELECTORS_TYPE,
     GenerationSelectorsMixin,
 )
-from visuallm.components.mixins.generator import Generator, OutputProbabilityInterface
 from visuallm.components.mixins.metrics_mixin import (
     GeneratedTextMetric,
     MetricsMixin,

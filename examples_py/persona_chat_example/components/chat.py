@@ -1,8 +1,5 @@
 from collections.abc import Callable
 
-from datasets import DatasetDict, load_dataset
-from datasets.arrow_dataset import Dataset
-
 from visuallm.components.ChatComponent import ChatComponent as ChatComponentBase
 from visuallm.elements import HeadingElement
 from visuallm.elements.selector_elements import ButtonElement, ChoicesSubElement
@@ -68,6 +65,9 @@ class ChatComponent(ChatComponentBase, PersonaChatVisualization):
 
 
 def get_persona_traits() -> list[str]:
+    from datasets import DatasetDict, load_dataset
+    from datasets.arrow_dataset import Dataset
+
     dataset_dict = load_dataset("bavard/personachat_truecased")
     if not isinstance(dataset_dict, DatasetDict):
         raise TypeError()

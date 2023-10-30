@@ -6,12 +6,12 @@ from datasets import DatasetDict, load_dataset
 from transformers.models.auto.modeling_auto import AutoModelForCausalLM
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
-from visuallm.components.mixins.generator import (
-    Generator,
-    HuggingFaceGenerator,
-    OpenAIGenerator,
+from examples_py.persona_chat_example.create_app import (
     switch_persona_from_first_to_second_sentence,
 )
+from visuallm.components.generators.base import Generator
+from visuallm.components.generators.huggingface import HuggingFaceGenerator
+from visuallm.components.generators.openai import OpenAIGenerator
 
 from .components.chat import get_persona_traits
 from .create_app import create_app

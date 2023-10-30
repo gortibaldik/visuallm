@@ -6,7 +6,7 @@ import pytest
 
 from examples_py.persona_chat_example.create_app import create_app
 from tests.example_modules_app_tests.conftest import app_run
-from visuallm.components.mixins.generator import GeneratedOutput, Generator
+from visuallm.components.generators.base import GeneratedOutput, Generator
 
 
 def get_persona_traits():

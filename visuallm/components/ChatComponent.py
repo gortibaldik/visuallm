@@ -1,11 +1,11 @@
 from typing import Any
 
 from visuallm.component_base import ComponentBase
+from visuallm.components.generators.base import Generator
 from visuallm.components.mixins.generation_selectors_mixin import (
     SELECTORS_TYPE,
     GenerationSelectorsMixin,
 )
-from visuallm.components.mixins.generator import Generator
 from visuallm.components.mixins.model_selection_mixin import (
     GENERATOR_CHOICES,
     ModelSelectionMixin,

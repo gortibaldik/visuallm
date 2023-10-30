@@ -1,10 +1,10 @@
 from visuallm.component_base import ComponentBase
+from visuallm.components.generators.base import Generator, NextTokenPredictionInterface
 from visuallm.components.mixins.data_preparation_mixin import (
     DATASET_TYPE,
     DATASETS_TYPE,
     DataPreparationMixin,
 )
-from visuallm.components.mixins.generator import Generator, NextTokenPredictionInterface
 from visuallm.components.mixins.model_selection_mixin import (
     GENERATOR_CHOICES,
     ModelSelectionMixin,

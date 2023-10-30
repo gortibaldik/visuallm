@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from visuallm.components.mixins.generator import Generator
+from visuallm.components.generators.base import Generator
 from visuallm.elements.plain_text_element import PlainTextElement
 from visuallm.elements.selector_elements import ButtonElement, ChoicesSubElement
 

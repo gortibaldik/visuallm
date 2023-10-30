@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import torch
+if TYPE_CHECKING:
+    import torch
 
 from visuallm.elements.barchart_element import BarChartElement, PieceInfo
 from visuallm.elements.plain_text_element import PlainTextElement
@@ -147,8 +148,8 @@ class MetricsMixin(ABC):
         self,
         generated_text_list: Sequence[str],
         label_text: str,
-        probs_encoded_list: Sequence[torch.Tensor] | Sequence[None],
-        generated_encoded_list: Sequence[torch.Tensor] | Sequence[None],
+        probs_encoded_list: Sequence["torch.Tensor"] | Sequence[None],
+        generated_encoded_list: Sequence["torch.Tensor"] | Sequence[None],
         element: BarChartElement,
     ):
         """Calculate generation metrics for each element of `generated_text_list` and
@@ -158,8 +159,8 @@ class MetricsMixin(ABC):
         ----
             generated_text_list (Sequence[str]): Sequence with generations of the model.
             label_text (str): Gold output.
-            probs_encoded_list (Sequence[torch.Tensor]): Sequence of tensors of shape
-            generated_encoded_list (Sequence[torch.Tensor]): Sequence of generated indices of tokens (sequence
+            probs_encoded_list (Sequence['torch.Tensor']): Sequence of tensors of shape
+            generated_encoded_list (Sequence['torch.Tensor']): Sequence of generated indices of tokens (sequence
                 of generated sequences of indices of tokens)
             element (BarChartElement): Element where to display computed metrics.
         """
@@ -214,8 +215,8 @@ class MetricsMixin(ABC):
         self,
         generated_text_list: Sequence[str],
         label_text: str,
-        probs_encoded_list: Sequence[torch.Tensor] | Sequence[None],
-        generated_encoded_list: Sequence[None] | Sequence[torch.Tensor],
+        probs_encoded_list: Sequence["torch.Tensor"] | Sequence[None],
+        generated_encoded_list: Sequence[None] | Sequence["torch.Tensor"],
     ):
         """Compute metrics on the predictions of the model and
         display them with `self._display_metrics_on_predicted_element`.
@@ -224,9 +225,9 @@ class MetricsMixin(ABC):
         ----
             generated_text_list (Sequence[str]): list of generations of the model.
             label_text (str): gold output.
-            probs_encoded_list (Sequence[torch.Tensor]): Sequence of tensors with shape (1, sentence_length, vocab_size)
+            probs_encoded_list (Sequence['torch.Tensor']): Sequence of tensors with shape (1, sentence_length, vocab_size)
                 each depicting the probabilities
-            generated_encoded_list (Sequence[torch.Tensor]): Sequence of tensors with shape (sentence_length,) each
+            generated_encoded_list (Sequence['torch.Tensor']): Sequence of tensors with shape (sentence_length,) each
                 depicting the token ids that vere actually generated
         """
         self._compute_n_display_metrics_for_element(
@@ -240,19 +241,19 @@ class MetricsMixin(ABC):
     def compute_n_display_metrics_on_target(
         self,
         target: str,
-        probs_target: Sequence[torch.Tensor] | Sequence[None],
-        target_encoded: Sequence[torch.Tensor] | Sequence[None],
+        probs_target: Sequence["torch.Tensor"] | Sequence[None],
+        target_encoded: Sequence["torch.Tensor"] | Sequence[None],
     ):
         """Compute metrics on the targets.
 
         Args:
         ----
             target (str): gold output.
-            probs_target (Sequence[torch.Tensor]): Sequence of sequences of probabilities of each
+            probs_target (Sequence['torch.Tensor']): Sequence of sequences of probabilities of each
                 target token.
-            generated_encoded_list (Sequence[torch.Tensor]): Sequence of sequences of ids of each
+            generated_encoded_list (Sequence['torch.Tensor']): Sequence of sequences of ids of each
                 target token.
-            target_encoded (Sequence[torch.Tensor]): TODO
+            target_encoded (Sequence['torch.Tensor']): TODO
         """
         if not self.use_target_metrics:
             raise ValueError("This component wasn't configured for target metrics!")
