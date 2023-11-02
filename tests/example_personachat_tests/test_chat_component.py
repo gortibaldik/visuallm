@@ -108,6 +108,7 @@ def test_exception_raised(
     assert "ValueError: Exception raised during generation!" in alert.text
 
     alert.accept()
+    time.sleep(0.2)
 
     # the page should work as before
     sent_message = "test message"
