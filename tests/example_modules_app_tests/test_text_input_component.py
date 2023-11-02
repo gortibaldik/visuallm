@@ -1,3 +1,5 @@
+import time
+
 import pytest
 from selenium.webdriver import Firefox
 from selenium.webdriver.common.action_chains import ActionChains
@@ -134,6 +136,7 @@ def test_shift_enter_then_enter_to_submit(app, firefox_driver: Firefox, link):
 
     # send the text to the backend
     textarea.send_keys(Keys.ENTER)
+    time.sleep(0.2)
 
     wrap_elems = firefox_driver.find_elements(By.CLASS_NAME, "wrapElement")
     assert wrap_elems[1].text == expected_value1 + "\n" + expected_value2
