@@ -46,7 +46,6 @@ repos:
         entry: pytest
         language: python
         "types": [python]
-        stage: [commit]
         pass_filenames: false
         always_run: true
         verbose: true

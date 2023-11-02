@@ -83,3 +83,42 @@ def test_after_accept_generation_table_should_be_extended(
 
     assert ";".join(cells[-1]) == "OTHER;generated text: 'test message'"
     assert ";".join(cells[-2]) == "BOT;test message"
+
+
+def test_exception_raised(
+    app, firefox_driver: Firefox, link: str, exception_message: str
+):
+    import time
+
+    firefox_driver.get(link)
+
+    sent_message = exception_message
+    elem = firefox_driver.find_element(By.TAG_NAME, "textarea")
+    # type message
+    elem.clear()
+    elem.send_keys(sent_message)
+
+    # send message
+    elem.send_keys(Keys.ENTER)
+
+    # firefox_driver.switch_to.alert
+    time.sleep(0.2)
+    alert = firefox_driver.switch_to.alert
+
+    assert "ValueError: Exception raised during generation!" in alert.text
+
+    alert.accept()
+
+    # the page should work as before
+    sent_message = "test message"
+    elem = firefox_driver.find_element(By.TAG_NAME, "textarea")
+    # type message
+    elem.clear()
+    elem.send_keys(sent_message)
+
+    # send message
+    elem.send_keys(Keys.ENTER)
+
+    text_elems = firefox_driver.find_elements(By.CLASS_NAME, "plainText")
+    assert text_elems[0].text == sent_message
+    assert text_elems[1].text == f"generated text: '{sent_message}'"

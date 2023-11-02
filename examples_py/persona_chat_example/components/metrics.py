@@ -3,14 +3,19 @@ from __future__ import annotations
 import re
 from collections import Counter
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
+try:
     import torch
+except ImportError:
+    _has_torch = False
+else:
+    _has_torch = True
 
 
 class Perplexity:
     def __call__(self, preds: torch.Tensor, labels: torch.Tensor):
+        if not _has_torch:
+            raise RuntimeError("Cannot run perplexity, torch not defined!")
         preds = preds.reshape((-1, preds.size(-1)))
         labels = labels.reshape((-1,))
 

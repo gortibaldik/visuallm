@@ -41,8 +41,8 @@ class HuggingFaceGenerator(
 
     def __init__(
         self,
-        model: PreTrainedModel,
-        tokenizer: TOKENIZER_TYPE,
+        model: "PreTrainedModel",
+        tokenizer: "TOKENIZER_TYPE",
         create_text_to_tokenizer: CreateTextToTokenizer,
         create_text_to_tokenizer_one_step: Callable[[Any, list[str]], str],
         retrieve_target_str: RetrieveTargetStr,
@@ -169,7 +169,9 @@ class HuggingFaceGenerator(
 
         return probabilities, output_sequences_list
 
-    def get_n_largest_tokens_and_probs(self, probs: NDArray) -> list[tuple[float, str]]:
+    def get_n_largest_tokens_and_probs(
+        self, probs: "NDArray"
+    ) -> list[tuple[float, str]]:
         """Get the self._n_largest_tokens_to_return largest probabilities from the probs array,
         and pair them with the corresponding str tokens.
 

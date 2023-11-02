@@ -21,6 +21,14 @@ class TestSample(TypedDict):
     personality: list[str]
 
 
+EXCEPTION_MESSAGE = "RAISE EXCEPTION"
+
+
+@pytest.fixture()
+def exception_message():
+    return EXCEPTION_MESSAGE
+
+
 class GeneratorStub(Generator):
 
     """Dummy generator with few well defined options invoked through messages"""
@@ -39,6 +47,9 @@ class GeneratorStub(Generator):
 
         if text is None:
             raise TypeError()
+
+        if text == EXCEPTION_MESSAGE:
+            raise ValueError("Exception raised during generation!")
 
         return text
 

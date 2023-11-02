@@ -15,18 +15,13 @@ from visuallm.elements import (
     HeadingElement,
     MainHeadingElement,
     PlainTextElement,
-    TextInputElement,
 )
-from visuallm.elements.selector_elements import ButtonElement
-
-# from visuallm.components.ChatComponent import ChatComponent as ChatComponentBase
+from visuallm.elements.selector_elements import ButtonElement, TextInputSubElement
 
 # TODO: it would be great to add sections (which are expandable, e.g. only
 # title is shown when collapsed, everything is shown when expanded)
 
 # TODO: other than top to down linear organization
-
-# TODO: switch chat component to new text input component interface
 
 
 class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin):
@@ -63,7 +58,9 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
 
     def before_on_message_sent_callback(self):
         """Update loaded sample with the message from the user"""
-        self.loaded_sample["user_message"] = self.chat_text_input_element.text_input
+        self.loaded_sample[
+            "user_message"
+        ] = self.chat_text_input_element.value_from_frontend
 
     def on_generation_changed_callback(self):
         self.on_message_sent_callback()
@@ -85,7 +82,7 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         # - accept generation button is enabled
         self.text_to_tokenizer_element.content = text_to_tokenizer
         self.model_output_display_element.content = output.decoded_outputs[0]
-        self.chat_text_input_element.button_text = "Regenerate"
+        self.chat_button_element.button_text = "Regenerate"
         self.button_accept_generation.disabled = False
 
     def before_on_accept_generation_callback(self):
@@ -106,21 +103,24 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         # disable accept generation button
         # change text area button to "Send Message"
         self.text_to_tokenizer_element.content = ""
-        self.chat_text_input_element.predefined_text_input = ""
+        self.chat_text_input_element.value_on_backend = ""
         self.model_output_display_element.content = ""
         self.button_accept_generation.disabled = True
-        self.chat_text_input_element.button_text = "Send Message"
+        self.chat_button_element.button_text = "Send Message"
 
     def init_chat_elements(self) -> list[ElementBase]:
         """Init elements which enable user to make text input and send it to the model."""
         self.chat_heading_element = HeadingElement("Send Message to Bot")
-        self.chat_text_input_element = TextInputElement(
+        self.chat_text_input_element = TextInputSubElement(
+            placeholder_text="Type a message to the bot.",
+            blank_after_text_send=False,
+        )
+        self.chat_button_element = ButtonElement(
             processing_callback=self.on_message_sent_callback,
             button_text="Send Message",
-            default_text="Type a message to the bot.",
-            blank_text_after_send=False,
+            subelements=[self.chat_text_input_element],
         )
-        return [self.chat_heading_element, self.chat_text_input_element]
+        return [self.chat_heading_element, self.chat_button_element]
 
     def init_model_outputs_elements(self) -> list[ElementBase]:
         """Init elements which show the outputs of the model."""
