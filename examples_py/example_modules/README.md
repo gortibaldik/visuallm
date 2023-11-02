@@ -13,43 +13,56 @@ flask --app examples_py.example_modules.app run
 I wrote this library to help me visualize the output distributions of various models I implemented during my master's thesis. Therefore I implemented only few basic elements for ML purposes.
 
 In the following paragraphs I'll explain how to create configuration selectors, tables, bar-charts and other elements.
+
 - [Selectors](#configuration-selection)
-    - [Min-max](#minmax-subelement)
-    - [Choices](#choices-subelement)
-    - [Checkbox](#checkbox-subelement)
-    - [Button](#button-element) 
+  - [Min-max](#minmax-subelement)
+  - [Choices](#choices-subelement)
+  - [Checkbox](#checkbox-subelement)
+  - [Text Input](#text-input-subelement)
+  - [Button](#button-element)
 - [Table](#table-element)
-- [BarChart](#barchart-element)   
+- [BarChart](#barchart-element)
 - [Text Input](#text-input-element)
-  
+
 I'll use the following server: (You'll see the implementation of each of yet unknown components)
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./app.py&header=# ./app.py)-->
 <!-- The below code snippet is automatically added from ./app.py -->
 ```py
 # ./app.py
+import flask
+
 from visuallm.server import Server
 
 from .components.bar_chart_component_advanced import BarChartComponentAdvanced
 from .components.bar_chart_component_simple import BarChartComponentSimple
 from .components.selector_component import SelectorComponent
+from .components.selector_failing_component import SelectorFailingComponent
 from .components.table_component import TableComponent
 from .components.text_input_component import TextInputComponent
 from .components.two_tables_component import TwoTablesComponent
 
-flask_app = Server(
-    __name__,
-    [
-        BarChartComponentAdvanced(),
-        BarChartComponentSimple(),
-        BarChartComponentSimple(long_contexts=True, title="Long Contexts BarChart"),
-        TableComponent(),
-        TwoTablesComponent(),
-        SelectorComponent(),
-        TextInputComponent(),
-    ],
-)
-app = flask_app.app
+
+def create_app() -> flask.Flask:
+    flask_app = Server(
+        __name__,
+        [
+            BarChartComponentAdvanced(),
+            BarChartComponentSimple(),
+            BarChartComponentSimple(long_contexts=True, title="Long Contexts BarChart"),
+            TableComponent(),
+            TwoTablesComponent(),
+            SelectorComponent(),
+            TextInputComponent(),
+            SelectorFailingComponent(),
+        ],
+    )
+    app = flask_app.app
+    return app
+
+
+if __name__ == "__main__":
+    app = create_app()
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -61,9 +74,6 @@ Several different kinds of configuration specifier, together with one button ele
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
 # ./components/selector_component.py lines 1-11
-import time
-from typing import Optional
-
 from visuallm.component_base import ComponentBase
 from visuallm.elements import MainHeadingElement, PlainTextElement
 from visuallm.elements.selector_elements import (
@@ -72,6 +82,9 @@ from visuallm.elements.selector_elements import (
     ChoicesSubElement,
     MinMaxSubElement,
 )
+
+
+class SelectorComponent(ComponentBase):
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -83,8 +96,8 @@ Input element for setting integer in a range.
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
 # ./components/selector_component.py lines 18-20
-        self.number_selector_element = MinMaxSubElement(
-            sample_min=0, sample_max=10, text="Select Number:"
+        self.choices_element = ChoicesSubElement(
+            choices=["super", "magnificent", "incredible"], text="This library is:"
         )
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
@@ -97,9 +110,9 @@ Input element for choosing between several choices.
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
 # ./components/selector_component.py lines 21-23
-        self.choices_element = ChoicesSubElement(
-            choices=["super", "magnificent", "incredible"], text="This library is:"
-        )
+        self.checkbox_element = CheckBoxSubElement(text="Have you slept?:")
+        self.set_text_element(
+            self.choices_element.value_on_backend,
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -111,21 +124,24 @@ Simple checkbox input element.
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
 # ./components/selector_component.py lines 24
-        self.checkbox_element = CheckBoxSubElement(text="Have you slept?:")
+            self.number_selector_element.value_on_backend,
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
+### Text Input SubElement
+
+Allows chat-like interfaces with the models.
+
+![text-input-component](../../readme_images/text_input.png)
+
 #### Button Element
 
-This is an element that should encapsulate all the other configuration selection elements. It needs a callback method that will be called when the button is pressed and we provide `ButtonElement.default_select_callback()` which handles processing all the changes sent from the frontend and attributing them to `subelement.selected` properties of subelements.
+This is an element that should encapsulate all the other configuration selection elements. It needs a callback method that will be called when the button is pressed and we provide `ButtonElement.default_select_callback()` which handles processing all the changes sent from the frontend and attributing them to `subelement.value_from_frontend` properties of subelements.
 
 <!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/selector_component.py&lines=30-55&header=# ./components/selector_component.py lines 30-55)-->
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
 # ./components/selector_component.py lines 30-55
-        self.button_element = ButtonElement(
-            processing_callback=self.on_button_clicked,
-            subelements=[
                 self.number_selector_element,
                 self.choices_element,
                 self.checkbox_element,
@@ -135,11 +151,11 @@ This is an element that should encapsulate all the other configuration selection
         self.add_elements([self.button_element, self.text_element])
 
     def on_button_clicked(self):
-        n = self.number_selector_element.selected
-        c = self.choices_element.selected
+        n = self.number_selector_element.value_on_backend
+        c = self.choices_element.value_on_backend
         message = (
             "I say it as a well-relaxed man!"
-            if self.checkbox_element.selected
+            if self.checkbox_element.value_on_backend
             else "Don't take me seriously."
         )
         any_updated = (
@@ -148,7 +164,10 @@ This is an element that should encapsulate all the other configuration selection
             or self.checkbox_element.updated
         )
         self.set_text_element(c, n, message, any_updated)
-        time.sleep(n)
+
+    def set_text_element(
+        self,
+        choice: str,
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -194,14 +213,14 @@ class TableComponent(ComponentBase):
             )
         ]
         self.table_element.clear()
-        TABLE_NAME = "Table1 is a Great Table"
-        self.table_element.add_table(TABLE_NAME, headers, rows)
+        table_name = "Table1 is a Great Table"
+        self.table_element.add_table(table_name, headers, rows)
 
         # add links pointing to all the rows upwards
         for j in range(len(rows) - 1, 0, -1):
             for i in range(j):
                 self.table_element.add_link_between_rows(
-                    LinkBetweenRows(TABLE_NAME, j, TABLE_NAME, i, Label="some value")
+                    LinkBetweenRows(table_name, j, table_name, i, Label="some value")
                 )
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
@@ -236,9 +255,9 @@ Secondly, we will create the links in such a way, that links going within the sa
             for i in range(j):
                 self.table_element.add_link_between_rows(
                     LinkBetweenRows(
-                        TABLE_NAMES[0],
+                        table_names[0],
                         j,
-                        TABLE_NAMES[0],
+                        table_names[0],
                         i,
                         Importance=1,
                         Label="to_this_table",
@@ -254,9 +273,9 @@ Secondly, we will create the links in such a way, that links going within the sa
             for i in range(j):
                 self.table_element.add_link_between_rows(
                     LinkBetweenRows(
-                        TABLE_NAMES[1],
+                        table_names[1],
                         j,
-                        TABLE_NAMES[1],
+                        table_names[1],
                         i,
                         Importance=1,
                         Label="to_second_table",
@@ -267,9 +286,9 @@ Secondly, we will create the links in such a way, that links going within the sa
             for i in range(len(rows[0])):
                 self.table_element.add_link_between_rows(
                     LinkBetweenRows(
-                        TABLE_NAMES[1],
+                        table_names[1],
                         j,
-                        TABLE_NAMES[0],
+                        table_names[0],
                         i,
                         Label="to_first_table",
                         Importance=4,
@@ -315,11 +334,13 @@ class BarChartComponentSimple(ComponentBase):
 
     def update_barchart_component(self):
         probs = sample_ten_words(self.word_ids)
-        K = 10
-        ten_largest_probs = heapq.nlargest(K, zip(*zip(*probs), self.word_vocab))
+        top_k = 10
+        ten_largest_probs = heapq.nlargest(
+            top_k, zip(*zip(*probs), self.word_vocab)  # noqa: B905
+        )
 
         piece_infos = []
-        for i in range(K):
+        for i in range(top_k):
             piece_infos.append(
                 PieceInfo(
                     pieceTitle=ten_largest_probs[i][1],
@@ -333,8 +354,6 @@ class BarChartComponentSimple(ComponentBase):
 
     def barchart_callback(self):
         s = self.barchart_element.selected
-        self.text_element.content = f"Last selected: {s}"
-        self.update_barchart_component()
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -356,7 +375,6 @@ When I want to compare several candidates, I can display multi-bar-chart, e.g. a
 # ./components/bar_chart_component_advanced.py lines 1-50
 import math
 import random
-from typing import List
 
 from visuallm.component_base import ComponentBase
 from visuallm.elements.barchart_element import BarChartElement, PieceInfo
@@ -371,9 +389,9 @@ class BarChartComponentAdvanced(ComponentBase):
         self.init_barchart_element()
 
     def init_barchart_element(self):
-        distributions: List[List[float]] = []
+        distributions: list[list[float]] = []
         size_of_distro = 5
-        for i in range(len(self._names_of_bars)):
+        for _ in range(len(self._names_of_bars)):
             distributions.append(make_some_distribution(size_of_distro))
 
         # names of the whole piece with multiple bars
@@ -382,12 +400,12 @@ class BarChartComponentAdvanced(ComponentBase):
             "Give very verbose output about all the program knows about.",
             "Terminate option list.",
             "You should document the library so that the potential user "
-            + "could make sense of it.",
+            "could make sense of it.",
             "This will indicate the state of the repository that should be "
-            + "evaluated.",
+            "evaluated.",
         ]
 
-        piece_infos: List[PieceInfo] = []
+        piece_infos: list[PieceInfo] = []
         for i in range(size_of_distro):
             # heights of individual bars in the piece
             bar_heights = [distro[i] for distro in distributions]
@@ -408,59 +426,3 @@ class BarChartComponentAdvanced(ComponentBase):
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
 ![barchart_advanced](../../readme_images/barchart_advanced.png)
-
-### Text Input Element
-
-Allows chat-like interfaces with the models.
-
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./components/text_input_component.py&header=# ./components/text_input_component.py)-->
-<!-- The below code snippet is automatically added from ./components/text_input_component.py -->
-```py
-# ./components/text_input_component.py
-from visuallm.component_base import ComponentBase
-from visuallm.elements import (
-    ButtonElement,
-    MainHeadingElement,
-    PlainTextElement,
-    TextInputElement,
-)
-
-
-class TextInputComponent(ComponentBase):
-    def __init__(self):
-        super().__init__(name="text_input_component", title="Text Input Component")
-        main_heading = MainHeadingElement(content="Text Input Component")
-        description_element = PlainTextElement(
-            content="""This component implements the following things: you can type something into the text
-            input element and click on `Send Text` button and it will display in the text box below and the
-            text in the text input area will disappear.
-
-            If you click on `Fill in default text` button, the text input area will contain the text
-            reading `This is the default text`.
-            """
-        )
-        self.add_elements([main_heading, description_element])
-        self.text_display_element = PlainTextElement(
-            content="Nothing has been typed in yet"
-        )
-        self.text_input_element = TextInputElement(
-            processing_callback=self.on_text_sent, button_text="Send Text"
-        )
-        self.add_element(self.text_display_element)
-        self.add_element(self.text_input_element)
-        button_element = ButtonElement(
-            processing_callback=self.on_button_pressed,
-            button_text="Fill in default text",
-        )
-        self.add_element(button_element)
-
-    def on_text_sent(self):
-        self.text_display_element.content = self.text_input_element.text_input
-        self.text_input_element.text_input = ""
-
-    def on_button_pressed(self):
-        self.text_input_element.text_input = "This is the default text!"
-```
-<!-- MARKDOWN-AUTO-DOCS:END-->
-
-![text-input-component](../../readme_images/text_input.png)

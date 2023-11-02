@@ -29,12 +29,12 @@ class TableComponent(ComponentBase):
             )
         ]
         self.table_element.clear()
-        TABLE_NAME = "Table1 is a Great Table"
-        self.table_element.add_table(TABLE_NAME, headers, rows)
+        table_name = "Table1 is a Great Table"
+        self.table_element.add_table(table_name, headers, rows)
 
         # add links pointing to all the rows upwards
         for j in range(len(rows) - 1, 0, -1):
             for i in range(j):
                 self.table_element.add_link_between_rows(
-                    LinkBetweenRows(TABLE_NAME, j, TABLE_NAME, i, Label="some value")
+                    LinkBetweenRows(table_name, j, table_name, i, Label="some value")
                 )

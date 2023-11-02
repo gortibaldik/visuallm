@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from visuallm.component_base import ComponentBase
 from visuallm.components.mixins.data_preparation_mixin import (
     DATASET_TYPE,
@@ -20,10 +18,10 @@ class DatasetVisualizationComponent(
     def __init__(
         self,
         title: str = "Dataset Visualization",
-        generator: Optional[Generator] = None,
-        generator_choices: Optional[GENERATOR_CHOICES] = None,
-        dataset: Optional[DATASET_TYPE] = None,
-        dataset_choices: Optional[DATASETS_TYPE] = None,
+        generator: Generator | None = None,
+        generator_choices: GENERATOR_CHOICES | None = None,
+        dataset: DATASET_TYPE | None = None,
+        dataset_choices: DATASETS_TYPE | None = None,
     ):
         super().__init__(name="dataset_visualization", title=title)
         self.main_heading_element = PlainTextElement(
@@ -47,7 +45,7 @@ class DatasetVisualizationComponent(
     def __post_init__(self):
         self.update_sample_vis_elements()
 
-    def initialize_sample_visualization_elements(self) -> List[ElementBase]:
+    def initialize_sample_visualization_elements(self) -> list[ElementBase]:
         text_to_tokenizer_heading = HeadingElement(content="Text Model Inputs")
         self.text_to_tokenizer_element = PlainTextElement()
 

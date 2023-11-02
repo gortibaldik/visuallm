@@ -1,6 +1,5 @@
 import math
 import random
-from typing import List
 
 from visuallm.component_base import ComponentBase
 from visuallm.elements.barchart_element import BarChartElement, PieceInfo
@@ -15,9 +14,9 @@ class BarChartComponentAdvanced(ComponentBase):
         self.init_barchart_element()
 
     def init_barchart_element(self):
-        distributions: List[List[float]] = []
+        distributions: list[list[float]] = []
         size_of_distro = 5
-        for i in range(len(self._names_of_bars)):
+        for _ in range(len(self._names_of_bars)):
             distributions.append(make_some_distribution(size_of_distro))
 
         # names of the whole piece with multiple bars
@@ -26,12 +25,12 @@ class BarChartComponentAdvanced(ComponentBase):
             "Give very verbose output about all the program knows about.",
             "Terminate option list.",
             "You should document the library so that the potential user "
-            + "could make sense of it.",
+            "could make sense of it.",
             "This will indicate the state of the repository that should be "
-            + "evaluated.",
+            "evaluated.",
         ]
 
-        piece_infos: List[PieceInfo] = []
+        piece_infos: list[PieceInfo] = []
         for i in range(size_of_distro):
             # heights of individual bars in the piece
             bar_heights = [distro[i] for distro in distributions]
@@ -51,7 +50,7 @@ class BarChartComponentAdvanced(ComponentBase):
 
 
 def make_some_distribution(size: int):
-    d = random.choice(["uniform", "exponential"])
+    d = random.choice(["uniform", "exponential"])  # noqa: S311
 
     if d == "uniform":
         return make_uniform_distribution(size)
@@ -60,13 +59,15 @@ def make_some_distribution(size: int):
 
 
 def make_uniform_distribution(size: int):
-    return distributify([random.random() for _ in range(size)])
+    return distributify([random.random() for _ in range(size)])  # noqa: S311
 
 
 def make_exponential_distribution(size: int):
-    return distributify([math.exp(random.random() * (i + 1)) for i in range(size)])
+    return distributify(
+        [math.exp(random.random() * (i + 1)) for i in range(size)]  # noqa: S311
+    )
 
 
-def distributify(d: List[float]):
+def distributify(d: list[float]):
     _sum = sum(d)
     return [c / _sum * 100 for c in d]

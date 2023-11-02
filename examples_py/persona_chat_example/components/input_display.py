@@ -1,5 +1,5 @@
 import copy
-from typing import Any, List
+from typing import Any
 
 from visuallm.elements.element_base import ElementBase
 from visuallm.elements.plain_text_element import HeadingElement
@@ -11,18 +11,14 @@ class PersonaChatVisualization:
         # just for the typechecker to not complain
         self.loaded_sample: Any = 1
 
-    def init_dialogue_vis_elements(self) -> List[ElementBase]:
-        """
-        Init elements which display the personachat tables.
-        """
+    def init_dialogue_vis_elements(self) -> list[ElementBase]:
+        """Init elements which display the personachat tables."""
         table_input_heading = HeadingElement(content="Structure of Dialogue")
         self.input_table_vis = TableElement()
         return [table_input_heading, self.input_table_vis]
 
     def update_dialogue_structure_display(self, add_target: bool = True):
-        """
-        Update elements which display the personachat tables.
-        """
+        """Update elements which display the personachat tables."""
         sample = self.loaded_sample
         context = copy.deepcopy(sample["history"])
         if add_target:
@@ -32,11 +28,9 @@ class PersonaChatVisualization:
         self.set_sample_tables_element(persona, context)
 
     def set_sample_tables_element(
-        self, persona: List[str], context: List[str], other_last: bool = False
+        self, persona: list[str], context: list[str], other_last: bool = False
     ):
-        """
-        Populate the tables with the information from the dataset sample.
-        """
+        """Populate the tables with the information from the dataset sample."""
         self.input_table_vis.clear()
 
         self.input_table_vis.add_table(
@@ -51,5 +45,7 @@ class PersonaChatVisualization:
 
         if len(context) > 0:
             self.input_table_vis.add_table(
-                "Turns", ["Who", "Turn"], [[w, u] for w, u in zip(whos, context)]
+                "Turns",
+                ["Who", "Turn"],
+                [[w, u] for w, u in zip(whos, context, strict=True)],
             )

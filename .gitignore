@@ -2,3 +2,4 @@ __pycache__
 ./dist/
 llm_generation_server.egg-info/
 open_ai_key.txt
+geckodriver.log

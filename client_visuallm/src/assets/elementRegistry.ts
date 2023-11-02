@@ -26,6 +26,12 @@ export function* entries(obj: any) {
   }
 }
 
+export type ResponseFormat = {
+  result: string;
+  reason: string | undefined;
+  elementDescriptions: ElementDescription[]
+}
+
 /**
  * Class holding all the elements that can be created from the backend.
  * It also provides utilities for unpacking the element data which arrive
@@ -64,10 +70,14 @@ export default class ElementRegistry {
    * @param elements the mapping of elements to which to push the newly created elements
    */
   retrieveElementsFromResponse(
-    response: { elementDescriptions: ElementDescription[] },
+    response: ResponseFormat,
     reactiveStore: { [name: string]: any },
     elements: { [name: string]: any } | undefined = undefined
   ) {
+    if (response.result === "exception") {
+      alert(`Exception: ${response.reason}`)
+      return
+    }
     const elementDescriptions = response.elementDescriptions
     for (let i = 0; i < elementDescriptions.length; i++) {
       const elementDescr = elementDescriptions[i]

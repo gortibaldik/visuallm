@@ -35,6 +35,13 @@ import {
 } from './subelements_selector/CheckBox.vue'
 import CheckBoxSubElement from './subelements_selector/CheckBox.vue'
 
+
+import {
+  subtype as textInputSubtype,
+  processSubElementConfiguration as textInputProcessSubElementConfig
+} from './subelements_selector/TextInput.vue'
+import TextInputSubElement from './subelements_selector/TextInput.vue'
+
 let component = defineComponent({
   props: {
     name: {
@@ -71,6 +78,7 @@ let component = defineComponent({
     MinMaxSubElement,
     ChoicesSubElement,
     CheckBoxSubElement,
+    TextInputSubElement,
     DesignLoading,
   },
   methods: {
@@ -124,6 +132,10 @@ let subElementProcessors = {
   [checkboxSubtype]: {
     process: checkboxProcessSubElementConfig,
     component: nameof({ CheckBoxSubElement })
+  },
+  [textInputSubtype]: {
+    process: textInputProcessSubElementConfig,
+    component: nameof({ TextInputSubElement })
   }
 }
 

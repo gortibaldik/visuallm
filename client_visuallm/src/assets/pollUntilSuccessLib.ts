@@ -29,7 +29,7 @@ abstract class PollingBase {
   async _fetchFromBackend() {
     try {
       const response = await this._fetchMethod()
-      if (response.result == 'success') {
+      if (response.result === 'success' || response.result === 'exception') {
         this.responseCallback(response)
         this.clear()
         return
@@ -88,14 +88,15 @@ export class PollUntilSuccessPOST extends PollingBase {
     }).then((response) => response.json())
   }
 
-  static async startPoll(instance: any, name: string, address: string, lambda: any, data: any) {
+  static async startPoll(instance: any, name: string, address: string, responseCallback: any, data: any) {
     if (instance[name] == undefined) {
-      instance[name] = new this(address, lambda, 500, data)
+      instance[name] = new this(address, responseCallback, 500, data)
     } else if (!instance[name].isPending()) {
       instance[name].body = data
     } else {
       return
     }
+    // instance[name] is a PollUntilSuccessPost
     await instance[name].newRequest()
   }
 }

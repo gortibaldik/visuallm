@@ -25,3 +25,5 @@ This allows any element in the component to change any other element in the same
  <!-- TODO: add an image of the backend communication for better visualization -->
 
 ![schema of the frontend](../readme_images/posterINLGSchema.png)
+
+## Callbacks Documentation [LINK](./callbacks_documentation.md)

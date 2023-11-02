@@ -1,14 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import (  # noqa
+from collections.abc import Callable, KeysView, Sequence
+from typing import (
     Any,
-    Callable,
-    Dict,
-    KeysView,
-    List,
-    Optional,
     Protocol,
-    Sequence,
-    Union,
 )
 
 from visuallm.elements.element_base import ElementBase
@@ -28,23 +22,19 @@ class DatasetProtocol(Protocol):
         ...
 
 
-DATASET_TYPE = Union[DatasetProtocol, Callable[[], DatasetProtocol]]
-DATASETS_TYPE = Union[
-    Dict[str, DatasetProtocol],
-    Dict[str, Callable[[], DatasetProtocol]],
-]
+DATASET_TYPE = DatasetProtocol | Callable[[], DatasetProtocol]
+DATASETS_TYPE = dict[str, DatasetProtocol] | dict[str, Callable[[], DatasetProtocol]]
 
 
 class DataPreparationMixin(ABC):
     def __init__(
         self,
-        dataset: Optional[DATASET_TYPE] = None,
-        dataset_choices: Optional[DATASETS_TYPE] = None,
+        dataset: DATASET_TYPE | None = None,
+        dataset_choices: DATASETS_TYPE | None = None,
         keep_datasets_in_memory: bool = True,
         update_on_data_config_sent: bool = True,
     ):
-        """
-        This mixin implements dataset handling server methods. Each time the new sample
+        """Mixin that implements dataset handling server methods. Each time the new sample
         is selected the mixin automatically loads a sample from the dataset according
         to the configuration send from the frontend.
 
@@ -55,9 +45,11 @@ class DataPreparationMixin(ABC):
         - if multiple dataset were provided, a selector for specific dataset
 
         Warning:
+        -------
             You should either provide the dataset or dataset choices, not both at once.
 
         Args:
+        ----
             dataset (Optional[DATASET_TYPE], optional): Dataset or a function that loads
                 the dataset. Defaults to None.
             dataset_choices (Optional[DATASETS_TYPE], optional): Dictionary of datasets, or
@@ -74,12 +66,13 @@ class DataPreparationMixin(ABC):
         self.initialize_data_button()
 
         if keep_datasets_in_memory:
-            self._dataset_cache: Optional[Dict[str, DatasetProtocol]] = {}
+            self._dataset_cache: dict[str, DatasetProtocol] | None = {}
         else:
             self._dataset_cache = None
 
         if dataset_choices is not None:
-            assert len(dataset_choices) != 0
+            if len(dataset_choices) == 0:
+                raise ValueError("Cannot specify dataset_choices with zero length!")
             self._dataset_choices = dataset_choices
             keys = dataset_choices.keys()
             default_dataset_key = next(iter(keys))
@@ -92,18 +85,20 @@ class DataPreparationMixin(ABC):
             )
 
         if dataset is not None:
-            assert dataset_choices is None
+            if dataset_choices is not None:
+                raise ValueError("Cannot specify both dataset and dataset_choices!")
             self._dataset_choices = None
             self.load_cached_dataset(lambda: self.load_dataset(dataset))
 
         self._loaded_sample: Any = self.get_split()[
-            int(self.sample_selector_element.selected)
+            int(self.sample_selector_element.value_on_backend)
         ]
         self._update_on_data_config_sent = update_on_data_config_sent
 
     def force_set_dataset_selector_updated(self):
         """Set all the components to "updated" state, so that the dataset
-        is reloaded, and the samples are reloaded on next `dataset_callback`"""
+        is reloaded, and the samples are reloaded on next `dataset_callback`
+        """
         self.dataset_split_selector_element.force_set_updated()
         self.sample_selector_element.force_set_updated()
         if self.dataset_selector_element is not None:
@@ -111,15 +106,17 @@ class DataPreparationMixin(ABC):
 
     @staticmethod
     def load_dataset(
-        dataset_constructor: Union[DatasetProtocol, Callable[[], DatasetProtocol]]
+        dataset_constructor: DatasetProtocol | Callable[[], DatasetProtocol]
     ) -> DatasetProtocol:
         """Load the dataset using the provided `dataset_constructor`
 
         Args:
+        ----
             dataset_constructor (Union[DatasetProtocol, Callable[[], DatasetProtocol]]): either the dataset
                 or a function that loads the dataset.
 
         Returns:
+        -------
             DatasetProtocol: loaded dataset
         """
         if callable(dataset_constructor):
@@ -128,7 +125,7 @@ class DataPreparationMixin(ABC):
             return dataset_constructor
 
     def load_cached_dataset(
-        self, load_dataset_fn: Callable[[], DatasetProtocol], name: Optional[str] = None
+        self, load_dataset_fn: Callable[[], DatasetProtocol], name: str | None = None
     ):
         """The behavior of this function depends on whether the caching is set or unset.
 
@@ -139,9 +136,11 @@ class DataPreparationMixin(ABC):
         If unset, the function just loads the dataset and returns it.
 
         Important:
+        ---------
             The loaded dataset is stored in the property: `self.dataset`
 
         Args:
+        ----
             name (str): name of the dataset, the dataset will be stored in the cache under
                 this name.
             load_dataset_fn (Callable[[], DatasetProtocol]): function that loads the dataset.
@@ -167,7 +166,7 @@ class DataPreparationMixin(ABC):
         return self._loaded_sample
 
     @property
-    def dataset_elements(self) -> List[ElementBase]:
+    def dataset_elements(self) -> list[ElementBase]:
         """All the elements that should be displayed on the frontend."""
         return [self.dataset_selector_heading, self.dataset_button]
 
@@ -179,9 +178,9 @@ class DataPreparationMixin(ABC):
         reset selected sample number)
         """
         self.sample_selector_element._max = len(self.get_split()) - 1
-        self.sample_selector_element.selected = min(
+        self.sample_selector_element.value_on_backend = min(
             self.sample_selector_element._max,
-            self.sample_selector_element.selected,
+            self.sample_selector_element.value_on_backend,
         )
         self.sample_selector_element.force_set_updated()
 
@@ -189,9 +188,11 @@ class DataPreparationMixin(ABC):
         """Return splits of the currently loaded dataset.
 
         Note:
+        ----
             if the dataset is not set yet, returns dummy values
 
         Returns:
+        -------
             List[str]: split names
         """
         if self.dataset is None:
@@ -239,33 +240,40 @@ class DataPreparationMixin(ABC):
     def get_split(self) -> Sequence[Any]:
         """Get all the samples in the currently selected split of the dataset.
 
-        Returns:
+        Returns
+        -------
             List[Any]: list of samples in the currently selected split of the dataset
         """
         if self.dataset is None:
             return ["dummy_sample", "dummy_sample_2"]
-        return self.dataset[self.dataset_split_selector_element.selected]
+        return self.dataset[self.dataset_split_selector_element.value_on_backend]
 
     def on_dataset_change_callback(self):
-        """
-        This method is called each time when a request from frontend comes to
+        """Callback that is called each time when a request from frontend comes to
         load a new dataset sample.
         """
-        assert self.dataset is not None
-        if self.dataset_selector_element is not None:
-            if self.dataset_selector_element.updated:
-                assert self._dataset_choices is not None
-                key = self.dataset_selector_element.selected
-                dataset_constructor = self._dataset_choices[key]
-                self.load_cached_dataset(
-                    load_dataset_fn=lambda: self.load_dataset(dataset_constructor),
-                    name=key,
+        if self.dataset is None:
+            raise RuntimeError(
+                "`self.dataset` is None, cannot load any new dataset sample!"
+            )
+        if (self.dataset_selector_element is not None) and (
+            self.dataset_selector_element.updated
+        ):
+            if self._dataset_choices is None:
+                raise RuntimeError(
+                    "Dataset selector callback called even when no dataset choices are provided!"
                 )
+            key = self.dataset_selector_element.value_on_backend
+            dataset_constructor = self._dataset_choices[key]
+            self.load_cached_dataset(
+                load_dataset_fn=lambda: self.load_dataset(dataset_constructor),
+                name=key,
+            )
         if self.dataset_split_selector_element.updated:
             self._update_after_split_change()
         if self.sample_selector_element.updated:
             self._loaded_sample = self.get_split()[
-                int(self.sample_selector_element.selected)
+                int(self.sample_selector_element.value_on_backend)
             ]
             self.after_on_dataset_change_callback()
         elif self._update_on_data_config_sent:
@@ -273,7 +281,7 @@ class DataPreparationMixin(ABC):
 
     @abstractmethod
     def after_on_dataset_change_callback(self) -> None:
-        """This callback is called right after the dataset sample selectors
+        """Callback that is called right after the dataset sample selectors
         are updated and a new sample / dataset is loaded into the
         `self.dataset` and `self.loaded_sample` properties
         """

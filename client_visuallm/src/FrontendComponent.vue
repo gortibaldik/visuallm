@@ -7,7 +7,7 @@
 <script lang="ts" scoped>
 import { defineComponent } from 'vue'
 import type { PollUntilSuccessGET } from '@/assets/pollUntilSuccessLib'
-import type { ProcessedContext, ElementDescription } from '@/assets/elementRegistry'
+import type { ProcessedContext, ElementDescription, ResponseFormat } from '@/assets/elementRegistry'
 import PlainText from './elements/PlainText.vue'
 import BarChartSelect from './elements/BarChartSelect.vue'
 import Selector from './elements/Selector.vue'
@@ -56,7 +56,7 @@ export default defineComponent({
      * extract all the elements from the response and populate the component
      * @param response
      */
-    setUpElements(response: { elementDescriptions: ElementDescription[] }) {
+    setUpElements(response: ResponseFormat) {
       this.$elementRegistry.retrieveElementsFromResponse(response, dataSharedInComponent, this.elements)
     },
   }

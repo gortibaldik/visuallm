@@ -3,13 +3,19 @@ from __future__ import annotations
 import re
 from collections import Counter
 from dataclasses import dataclass
-from typing import List
 
-import torch
+try:
+    import torch
+except ImportError:
+    _has_torch = False
+else:
+    _has_torch = True
 
 
 class Perplexity:
     def __call__(self, preds: torch.Tensor, labels: torch.Tensor):
+        if not _has_torch:
+            raise RuntimeError("Cannot run perplexity, torch not defined!")
         preds = preds.reshape((-1, preds.size(-1)))
         labels = labels.reshape((-1,))
 
@@ -25,7 +31,8 @@ class F1Score:
 
 @dataclass
 class F1Measurement:
-    """This is a cumulative F1 measurement, hence the values can be greater
+
+    """Cumulative F1 measurement, hence the values can be greater
     than 1, and have to be divided by `self.Total` in order to compute macro F1
     score.
 
@@ -56,11 +63,12 @@ class F1Measurement:
         )
 
 
-def normalized_f1_measurement(expected: str, generated: List[str]):
+def normalized_f1_measurement(expected: str, generated: list[str]):
     """Measure F1 on standardized word-level tokenization of generated and
     expected strings.
 
-    Returns:
+    Returns
+    -------
         Tuple[float, float, float]: Precision, Recall, F1-Score
     """
     expected_tokenized = normalize_answer(expected).split()
@@ -72,9 +80,10 @@ def normalized_f1_measurement(expected: str, generated: List[str]):
     return F1Measurement(p, r, f, len(generated))
 
 
-def calculate_f1_on_lists(gold: List[str], predicted: List[str]):
+def calculate_f1_on_lists(gold: list[str], predicted: list[str]):
     """From a list of words calculate word level precision and recall, and
-    finaly an F1 score."""
+    finaly an F1 score.
+    """
     common = Counter(gold) & Counter(predicted)
     num_same = sum(common.values())
     if num_same == 0:

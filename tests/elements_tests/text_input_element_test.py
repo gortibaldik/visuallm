@@ -4,9 +4,8 @@ from visuallm.elements import TextInputElement
 
 
 class TextInputElementStub(CustomRequestMixin, TextInputElement):
-    """
-    Stub that instead of real request json returns something that test user specifies
-    """
+
+    """Stub that instead of real request json returns something that test user specifies"""
 
 
 def test_on_text_input_change():
@@ -18,6 +17,7 @@ def test_on_text_input_change():
         returned_response={"text_input": "Something"},
         processing_callback=lambda: processing_callback(text_input_element),
         button_text="Select",
+        blank_text_after_send=False,
     )
     parent_component = ComponentBase(name="base", title="base")
     parent_component.add_element(text_input_element)
@@ -27,7 +27,6 @@ def test_on_text_input_change():
     assert len(returned_value["elementDescriptions"]) == 1
     assert returned_value["elementDescriptions"][0]["text_input"] == ""
 
-    # TODO: end asserts
     returned_value = text_input_element.endpoint_callback()
     assert returned_value["elementDescriptions"][0]["text_input"] == "Something"
 

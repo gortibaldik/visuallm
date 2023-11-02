@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from visuallm.elements.element_base import ElementBase
 from visuallm.elements.plain_text_element import PlainTextElement
@@ -20,44 +20,44 @@ class CheckBoxSelectorType:
 
 @dataclass
 class MinMaxSelectorType:
-    min: Union[int, float]
-    max: Union[int, float]
-    default_value: Optional[Union[int, float]] = None
-    step_size: Union[int, float] = 1
+    min: int | float
+    max: int | float
+    default_value: int | float | None = None
+    step_size: int | float = 1
 
 
 @dataclass
 class ChoicesSelectorType:
-    values: List[str]
+    values: list[str]
 
 
-SELECTORS_TYPE = Dict[
+SELECTORS_TYPE = dict[
     str,
-    Union[
-        MinMaxSelectorType,
-        ChoicesSelectorType,
-        CheckBoxSelectorType,
-    ],
+    MinMaxSelectorType | ChoicesSelectorType | CheckBoxSelectorType,
 ]
 
 
 class GenerationSelectorsMixin(ABC):
     def __init__(
         self,
-        selectors: SELECTORS_TYPE,
+        selectors: SELECTORS_TYPE | None,
     ):
-        """This mixin adds Selectors of one of specified types into the frontend.
+        """Add Selectors of one of specified types into the frontend.
         The selected attributes are made available in
         `self.selected_generation_parameters`, with keys being the same as the
         ones in the `selectors` argument.
 
 
         Args:
+        ----
             selectors (SELECTORS_TYPE): dictionary of all the selectors which should
                 be displayed on the frontend.
         """
-        self.generation_selectors: List[SelectorSubElement] = []
-        self.name_generation_selector_mapping: Dict[str, SelectorSubElement] = {}
+        self.generation_selectors: list[SelectorSubElement] = []
+        self.name_generation_selector_mapping: dict[str, SelectorSubElement] = {}
+
+        if selectors is None:
+            selectors = {}
 
         for selector_name, val in selectors.items():
             selector_text = str(selector_name)
@@ -76,10 +76,10 @@ class GenerationSelectorsMixin(ABC):
             elif isinstance(val, ChoicesSelectorType):
                 selector = ChoicesSubElement(val.values, selector_text)
             else:
-                raise ValueError(
+                raise TypeError(
                     "Only ChoicesSelectorType, MinMaxSelectorType and "
-                    + "CheckBoxSelectorType are valid types for the "
-                    + "selectors dictionary"
+                    "CheckBoxSelectorType are valid types for the "
+                    "selectors dictionary"
                 )
             self.generation_selectors.append(selector)
             self.name_generation_selector_mapping[selector_name] = selector
@@ -94,7 +94,7 @@ class GenerationSelectorsMixin(ABC):
         )
 
     @property
-    def generation_elements(self) -> List[ElementBase]:
+    def generation_elements(self) -> list[ElementBase]:
         """Elements which change the generation hyperparameters."""
         if len(self.generation_selectors) != 0:
             return [self.generation_heading, self.generation_selector_button]
@@ -102,12 +102,12 @@ class GenerationSelectorsMixin(ABC):
             return []
 
     @property
-    def selected_generation_parameters(self) -> Dict[str, Any]:
+    def selected_generation_parameters(self) -> dict[str, Any]:
         """Currently selected generation parameters, with the keys being the
         same as in the `selectors` argument to the `__init__` method.
         """
         return {
-            name: value.selected
+            name: value.value_on_backend
             for name, value in self.name_generation_selector_mapping.items()
         }
 

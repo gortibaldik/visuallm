@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Union
+from typing import Any
 
 from .element_base import ElementBase
 
 
 class Colors(Enum):
+
     """Colors Enumeration
 
     TODO NOTES:
@@ -22,6 +23,7 @@ class Colors(Enum):
 
 @dataclass
 class LinkBetweenRows:
+
     """Class representing all the values needed for the display of links
     between table rows in the frontend.
     """
@@ -42,10 +44,10 @@ class LinkBetweenRows:
         EndRow: int,
         Importance: int = 3,
         Label: str = "",
-        Color: Union[Colors, str] = Colors.ORANGE,
+        Color: Colors | str = Colors.ORANGE,
     ):
-        """
-        Args:
+        """Args:
+        ----
             StartTable (str): name of the table where the link should start
             StartRow (int): row of the start table where the link should start
             EndTable (str): name of the table where the link should end
@@ -68,10 +70,18 @@ class LinkBetweenRows:
         elif isinstance(color, str):
             self.Color = color
         else:
-            raise ValueError(
+            raise TypeError(
                 "Only str and Colors enum are supported for the value of "
-                + f"Color. ({type(color)})"
+                f"Color. ({type(color)})"
             )
+
+
+class TableNameNotRegisteredError(ValueError):
+    def __init__(self, start_table: str, end_table: str, tables_keys: list[str]):
+        super().__init__(
+            f"Invalid table name: one, or both of [{start_table},"
+            f"{end_table}] not in {tables_keys}"
+        )
 
 
 class TableElement(ElementBase):
@@ -81,17 +91,14 @@ class TableElement(ElementBase):
 
     def clear(self):
         self._changed = True
-        self._tables: Dict[str, Any] = {}
+        self._tables: dict[str, Any] = {}
         self.tables = []
         self.links = []
 
-    def check_rows(self, headers: List[str], rows: List[List[str]]):
-        for row in rows:
-            if len(row) != len(headers):
-                return False
-        return True
+    def check_rows(self, headers: list[str], rows: list[list[str]]):
+        return all(len(row) == len(headers) for row in rows)
 
-    def add_table(self, title: str, headers: List[str], rows: List[List[str]]):
+    def add_table(self, title: str, headers: list[str], rows: list[list[str]]):
         if not self.check_rows(headers, rows):
             raise ValueError(
                 "The length of some row doesn't match the lenght of headers."
@@ -99,24 +106,24 @@ class TableElement(ElementBase):
         if title in self._tables:
             raise ValueError("Cannot add two tables with the same name!")
         self._changed = True
-        self._tables[title] = dict(headers=headers, rows=rows, title=title)
+        self._tables[title] = {"headers": headers, "rows": rows, "title": title}
         self.tables.append(self._tables[title])
 
     def add_link_between_rows(self, link: LinkBetweenRows):
         if (link.StartTable not in self._tables) or (link.EndTable not in self._tables):
-            raise ValueError(
-                f"Invalid table name: one, or both of [{link.StartTable},"
-                + f"{link.EndTable}] not in {self._tables.keys()}"
+            raise TableNameNotRegisteredError(
+                link.StartTable, link.EndTable, list(self._tables.keys())
             )
+
         if (len(self._tables[link.StartTable]["rows"]) <= link.StartRow) or (
             len(self._tables[link.EndTable]["rows"]) <= link.EndRow
         ):
             raise ValueError(
                 f"{len(self._tables[link.StartTable]['rows']), link.StartRow}"
-                + f"{len(self._tables[link.EndTable]['rows']), link.EndRow}"
+                f"{len(self._tables[link.EndTable]['rows']), link.EndRow}"
             )
         self._changed = True
         self.links.append(link)
 
     def construct_element_configuration(self):
-        return dict(tables=self.tables, links=self.links)
+        return {"tables": self.tables, "links": self.links}

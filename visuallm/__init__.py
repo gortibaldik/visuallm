@@ -1,3 +1,5 @@
+import logging
+
 from visuallm.component_base import ComponentBase
 
 try:
@@ -17,4 +19,4 @@ try:
         NextTokenPredictionComponent,
     )
 except:  # noqa: E722
-    pass
+    logging.exception("Import exception during the initialization of the library.")

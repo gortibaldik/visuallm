@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-import os
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Callable, List, Set
+from pathlib import Path
+from typing import TYPE_CHECKING
 
-from flask import Flask, jsonify, redirect
+from flask import Flask, redirect
 from flask_cors import CORS
 
 if TYPE_CHECKING:
@@ -20,16 +21,16 @@ class ComponentInfo:
 
 
 class Server:
-    def __init__(self, name, components: List[ComponentBase]):
+    def __init__(self, name, components: list[ComponentBase]):
         self.app = Flask(
             name,
             static_url_path="",
             static_folder=self._retrieve_static_files_path(),
         )
 
-        self.components: List[ComponentBase] = components
-        self.registered_urls: Set[str] = set(["/", "/fetch_component_infos"])
-        self.registered_component_names: Set[str] = set()
+        self.components: list[ComponentBase] = components
+        self.registered_urls: set[str] = {"/", "/fetch_component_infos"}
+        self.registered_component_names: set[str] = set()
         for component in self.components:
             component.register_to_server(self)
 
@@ -44,9 +45,7 @@ class Server:
         print(f"Server initialized with following endpoints: {self.registered_urls}")
 
     def on_fetch_component_infos(self):
-        """
-        Callback that enables the frontend to create components (i.e. tabs in your application)
-        """
+        """Send to the FE which components will be parts of the app."""
         component_infos = []
         for component in self.components:
             component_infos.append(
@@ -56,18 +55,19 @@ class Server:
                     default_fetch_path=component.default_url.removeprefix("/"),
                 )
             )
-        return jsonify(dict(result="success", component_infos=component_infos))
+        return {"result": "success", "component_infos": component_infos}
 
     def run(self, **kwargs):
         self.app.run(**kwargs)
 
-    def add_endpoint(self, url_name: str, api_method: Callable, methods: List[str]):
+    def add_endpoint(self, url_name: str, api_method: Callable, methods: list[str]):
         """Add API endpoint with name `url_name`, which will on invocation
         call method `api_method`. The `api_method` is invoked each time when
         the frontend makes request to `url_name` with any of specified
         `methods`, e.g. "GET", "POST" or others.
 
         Args:
+        ----
             url_name (str): name of the endpoint
             api_method (Callable): method invoked when a request to `url_name`
                 is made
@@ -79,7 +79,7 @@ class Server:
         )
 
     def _retrieve_static_files_path(self):
-        dirname = os.path.dirname(__file__)
-        static_path = os.path.join(dirname, "dist")
+        dirname = Path(__file__).parent
+        static_path = dirname / "dist"
         print(f"Serving static files from {static_path}", file=sys.stderr)
         return static_path
