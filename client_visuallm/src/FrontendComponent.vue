@@ -1,6 +1,6 @@
 <template>
   <div class="horizontal rounded">
-    <component v-for="(element, name) in elements" :key="name" :is="element.component" :name="element.name"></component>
+    <component v-for="(element, idx) in elements" :key="idx" :is="element.component" :name="element.name"></component>
   </div>
 </template>
 
@@ -18,7 +18,7 @@ import { dataSharedInComponent } from '@/assets/reactiveData'
 export default defineComponent({
   data() {
     return {
-      elements: {} as { [name: string]: ProcessedContext },
+      elements: [] as ProcessedContext[],
       defaultPoll: undefined as PollUntilSuccessGET | undefined
     }
   },

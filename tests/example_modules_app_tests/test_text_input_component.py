@@ -83,6 +83,19 @@ def test_text_shown_in_wrap_element_after_form_submission(
     assert wrap_elems[1].text == test_text_value
 
 
+def test_special_text_shown_correctly_escaped(app, firefox_driver: Firefox, link):
+    firefox_driver.get(link)
+
+    test_text_value = "<div>Very Special Text</div>"
+    form = firefox_driver.find_element(By.TAG_NAME, "form")
+    textarea = form.find_element(By.TAG_NAME, "textarea")
+    textarea.send_keys(test_text_value)
+    button = form.find_element(By.TAG_NAME, "button")
+    button.click()
+    wrap_elems = firefox_driver.find_elements(By.CLASS_NAME, "wrapElement")
+    assert wrap_elems[1].text == test_text_value
+
+
 # TODO add test where the shift enter is pressed as a mean of using enter in the text input
 def test_enter_can_be_used_to_send_text(app, firefox_driver: Firefox, link):
     firefox_driver.get(link)

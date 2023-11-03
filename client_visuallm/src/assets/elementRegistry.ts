@@ -72,7 +72,7 @@ export default class ElementRegistry {
   retrieveElementsFromResponse(
     response: ResponseFormat,
     reactiveStore: { [name: string]: any },
-    elements: { [name: string]: any } | undefined = undefined
+    elements: any[] | undefined = undefined
   ) {
     if (response.result === "exception") {
       alert(`Exception: ${response.reason}`)
@@ -83,10 +83,10 @@ export default class ElementRegistry {
       const elementDescr = elementDescriptions[i]
       const elementData = this.createElementDataFromDescription(elementDescr)
       if (elements !== undefined) {
-        elements[elementDescr.name] = {
+        elements.push({
           component: elementData.component,
           name: elementDescr.name
-        }
+        })
       }
       for (const [key, data] of entries(elementData.data)) {
         reactiveStore[getSharedDataUniqueName(elementDescr.name, key)] = data

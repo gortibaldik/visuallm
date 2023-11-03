@@ -1,6 +1,6 @@
 from typing import Any
 
-from .element_base import ElementBase
+from visuallm.elements.element_base import ElementBase
 
 
 class PlainTextElement(ElementBase):
@@ -31,7 +31,8 @@ class PlainTextElement(ElementBase):
     def content(self, value: str):
         value = self._convert_brackets(value)
         value = self._convert_newline_to_br_tags(value)
-        self._changed = self._changed or value != self._content
+        if value != self._content:
+            self.set_changed()
         self._content = value
 
     def construct_element_configuration(self) -> dict[str, Any]:

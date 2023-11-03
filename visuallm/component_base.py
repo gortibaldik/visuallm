@@ -68,9 +68,14 @@ class ComponentBase(Named, metaclass=ComponentMetaclass):
         return order
 
     def add_element(self, element: ElementBase, order: float | None = None):
+        if element.is_registered_to_component:
+            raise RuntimeError(
+                f"Element with name: {element.name} is already registered to some component!"
+            )
         order = self._get_order(order)
         element.register_to_component(self)
         element.order = order
+        element._is_registered_to_component = True
 
     def add_elements(self, elements: list[ElementBase], order: float | None = None):
         order = self._get_order(order)
