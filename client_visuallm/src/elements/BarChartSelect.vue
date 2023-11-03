@@ -14,12 +14,10 @@
 </template>
 
 <script lang="ts" scoped>
-import { shallowRef } from 'vue'
 import { defineComponent } from 'vue'
 import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiveData'
-import type Formatter from '@/assets/elementRegistry'
-import { ElementDescription } from '@/assets/elementRegistry'
-import { valuesRequiredInConfiguration } from '@/assets/elementRegistry'
+import type ElementRegistry from '@/assets/elementRegistry'
+import { registerElementBase } from '@/assets/elementRegistry'
 import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib'
 import DisplayPercentageComponent from './subelements_barchart/Bar.vue'
 import type { PieceInfo } from './subelements_barchart/Bar.vue'
@@ -121,30 +119,17 @@ let component = defineComponent({
 
 export default component
 
-export function registerElement(formatter: Formatter) {
-  formatter.registeredElements['softmax'] = {
-    component: shallowRef(component),
-    process: processElementDescr
-  }
+let FEBEMapping: { [key: string]: string } = {
+  "address": "address",
+  "piece_infos": "barInfos",
+  "long_contexts": "longContexts",
+  "selectable": "selectable"
 }
 
-class ElementConfiguration extends ElementDescription {
-  address!: string
-  piece_infos!: any
-  long_contexts!: any
-  selectable!: boolean
+export function registerElement(elementRegistry: ElementRegistry) {
+  registerElementBase(elementRegistry, "softmax", component, FEBEMapping)
 }
 
-function processElementDescr(elementDescr: ElementConfiguration) {
-  valuesRequiredInConfiguration(elementDescr, ['address', 'piece_infos', 'long_contexts', 'selectable'])
-
-  return {
-    address: elementDescr.address,
-    barInfos: elementDescr.piece_infos,
-    longContexts: elementDescr.long_contexts,
-    selectable: elementDescr.selectable,
-  }
-}
 </script>
 
 <style scoped>

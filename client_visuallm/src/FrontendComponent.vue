@@ -7,12 +7,11 @@
 <script lang="ts" scoped>
 import { defineComponent } from 'vue'
 import type { PollUntilSuccessGET } from '@/assets/pollUntilSuccessLib'
-import type { ProcessedContext, ElementDescription, ResponseFormat } from '@/assets/elementRegistry'
+import type { ProcessedContext, ResponseFormat } from '@/assets/elementRegistry'
 import PlainText from './elements/PlainText.vue'
 import BarChartSelect from './elements/BarChartSelect.vue'
 import Selector from './elements/Selector.vue'
 import Tables from './elements/Tables.vue'
-import TextInput from './elements/TextInput.vue'
 import { fetchDefault } from '@/assets/fetchPathsResolver'
 import { dataSharedInComponent } from '@/assets/reactiveData'
 
@@ -40,8 +39,7 @@ export default defineComponent({
     PlainText,
     BarChartSelect,
     Selector,
-    Tables,
-    TextInput
+    Tables
   },
   methods: {
     /**

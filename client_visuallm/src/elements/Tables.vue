@@ -23,10 +23,9 @@
 <script lang="ts" scoped>
 import { defineComponent } from 'vue'
 import LeaderLine from 'leader-line-new'
-import { shallowRef } from 'vue'
 import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiveData'
 import type ElementRegistry from '@/assets/elementRegistry'
-import { ElementDescription, configurationRequired, valuesRequiredInConfiguration } from '@/assets/elementRegistry'
+import { registerElementBase } from '@/assets/elementRegistry'
 
 export type LoadedTable = {
   title: string
@@ -223,25 +222,14 @@ let component = defineComponent({
 })
 
 export default component
-export function registerElement(formatter: ElementRegistry) {
-  formatter.registeredElements['connected_tables'] = {
-    component: shallowRef(component),
-    process: processElementDescr
-  }
+
+let FEBEMapping: { [key: string]: string } = {
+  "tables": "loadedTables",
+  "links": "links"
 }
 
-class ElementConfiguration extends ElementDescription {
-  tables!: any
-  links!: any
-}
-
-function processElementDescr(elementDescr: ElementConfiguration) {
-  valuesRequiredInConfiguration(elementDescr, ['tables', 'links'])
-
-  return {
-    loadedTables: elementDescr.tables,
-    links: elementDescr.links
-  }
+export function registerElement(elementRegistry: ElementRegistry) {
+  registerElementBase(elementRegistry, "connected_tables", component, FEBEMapping)
 }
 </script>
 
