@@ -119,6 +119,7 @@ def test_exception_raised(
 
     # send message
     elem.send_keys(Keys.ENTER)
+    time.sleep(0.2)
 
     text_elems = firefox_driver.find_elements(By.CLASS_NAME, "plainText")
     assert text_elems[0].text == sent_message
