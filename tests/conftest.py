@@ -1,3 +1,5 @@
+import subprocess
+
 import pytest
 from selenium import webdriver
 
@@ -14,7 +16,8 @@ def firefox_driver():
     """
     opts = webdriver.FirefoxOptions()
     opts.add_argument("--headless")
-    driver = webdriver.Firefox(options=opts)
+    service = webdriver.FirefoxService(log_output=subprocess.DEVNULL)
+    driver = webdriver.Firefox(options=opts, service=service)
     driver.implicitly_wait(2)
 
     yield driver
