@@ -4,13 +4,23 @@ import flask
 import pytest
 
 from examples_py.example_modules.app import create_app
+from tests.port_utils import get_unused_port
+
+APP_PORT: int | None = None
 
 
-def app_run(app: flask.app.Flask):
-    app.run(debug=True, use_reloader=False, host="localhost", port=5000)
+def app_run(app: flask.app.Flask, app_port: int):
+    print(f"RUNNING ON PORT {app_port}")
+    app.run(debug=True, use_reloader=False, host="localhost", port=app_port)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
+def port():
+    global APP_PORT
+    return APP_PORT
+
+
+@pytest.fixture(scope="session")
 def app():
     """Fixture that creates and runs the flask application.
     Beware, this fixture is held during the whole lifetime of tests in a single
@@ -24,10 +34,12 @@ def app():
     ------
         app: process in which the Flask application is running
     """
-    flask_app = create_app()
+    global APP_PORT
 
+    flask_app = create_app()
+    APP_PORT = get_unused_port()
     process = multiprocessing.Process(
-        target=app_run, daemon=True, kwargs={"app": flask_app}
+        target=app_run, daemon=True, kwargs={"app": flask_app, "app_port": APP_PORT}
     )
     process.start()
 

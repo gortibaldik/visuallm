@@ -8,8 +8,8 @@ from selenium.webdriver.common.keys import Keys
 
 
 @pytest.fixture()
-def link():
-    return "http://localhost:5000/index.html#/text_input_component"
+def link(port: int):
+    return f"http://localhost:{port}/index.html#/text_input_component"
 
 
 def test_insert_text_in_textarea(app, firefox_driver: Firefox, link):

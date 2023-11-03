@@ -5,8 +5,8 @@ from selenium.webdriver.common.by import By
 
 
 @pytest.fixture()
-def link():
-    return "http://127.0.0.1:5000/index.html#/table_component"
+def link(port: int):
+    return f"http://127.0.0.1:{port}/index.html#/table_component"
 
 
 def test_table_is_present(app, firefox_driver: Firefox, link: str):

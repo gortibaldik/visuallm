@@ -5,8 +5,8 @@ from selenium.webdriver.common.keys import Keys
 
 
 @pytest.fixture()
-def link():
-    return "http://localhost:5000/index.html#/chat_component"
+def link(port: int):
+    return f"http://localhost:{port}/index.html#/chat_component"
 
 
 def test_after_send_message_should_stay(app, firefox_driver: Firefox, link: str):

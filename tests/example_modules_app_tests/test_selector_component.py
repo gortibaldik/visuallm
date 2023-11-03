@@ -8,8 +8,8 @@ from selenium.webdriver.common.keys import Keys
 
 
 @pytest.fixture()
-def link():
-    return "http://127.0.0.1:5000/index.html#/selector_component"
+def link(port: int):
+    return f"http://127.0.0.1:{port}/index.html#/selector_component"
 
 
 def test_text_before_any_input(app, firefox_driver: Firefox, link: str):

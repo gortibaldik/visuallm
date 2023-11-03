@@ -4,7 +4,7 @@ import pytest
 from selenium import webdriver
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def firefox_driver():
     """Create a selenium webdriver with firefox
     and runs it for the duration of whole module, and closes it after

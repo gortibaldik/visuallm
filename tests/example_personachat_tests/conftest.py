@@ -6,7 +6,16 @@ import pytest
 
 from examples_py.persona_chat_example.create_app import create_app
 from tests.example_modules_app_tests.conftest import app_run
+from tests.port_utils import get_unused_port
 from visuallm.components.generators.base import GeneratedOutput, Generator
+
+APP_PORT: int | None = None
+
+
+@pytest.fixture(autouse=True)
+def port():
+    global APP_PORT
+    return APP_PORT
 
 
 def get_persona_traits():
@@ -95,7 +104,8 @@ class Dataset:
         return _dataset_data.keys()
 
 
-@pytest.fixture(scope="module")
+# 35.59
+@pytest.fixture(scope="session")
 def app():
     """Fixture that creates and runs the flask application.
     Beware, this fixture is held during the whole lifetime of tests in a single
@@ -109,6 +119,7 @@ def app():
     ------
         app: process in which the Flask application is running
     """
+    global APP_PORT
     flask_app = create_app(
         dataset=Dataset(),  # type: ignore
         get_persona_traits=get_persona_traits,
@@ -116,8 +127,9 @@ def app():
         next_token_generator_choices={},
     )
 
+    APP_PORT = get_unused_port()
     process = multiprocessing.Process(
-        target=app_run, daemon=True, kwargs={"app": flask_app}
+        target=app_run, daemon=True, kwargs={"app": flask_app, "app_port": APP_PORT}
     )
     process.start()
 
