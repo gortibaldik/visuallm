@@ -12,6 +12,7 @@ import PlainText from './elements/PlainText.vue'
 import BarChartSelect from './elements/BarChartSelect.vue'
 import Selector from './elements/Selector.vue'
 import Tables from './elements/Tables.vue'
+import CollapsibleElement from './elements/CollapsibleElement.vue'
 import { fetchDefault } from '@/assets/fetchPathsResolver'
 import { dataSharedInComponent } from '@/assets/reactiveData'
 
@@ -39,7 +40,8 @@ export default defineComponent({
     PlainText,
     BarChartSelect,
     Selector,
-    Tables
+    Tables,
+    CollapsibleElement
   },
   methods: {
     /**

@@ -431,6 +431,7 @@ class TextInputSubElement(SelectorSubElement[str]):
     def placeholder_text(self):
         return self._placeholder_text
 
+    # TODO: make force set updated on change a decorator
     @placeholder_text.setter
     def placeholder_text(self, value: str):
         if value != self._placeholder_text:
