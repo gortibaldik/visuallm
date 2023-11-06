@@ -88,10 +88,10 @@ let component = defineComponent({
       for (let key in Object.keys(this.subElementConfigurationsFE)) {
         let config = this.subElementConfigurationsFE[key]
         let subElementValueName = getSharedDataUniqueName(config.name, "selected")
-        let elementName = getSharedDataElementName(config.name)
+        let subelementName = getSharedDataElementName(config.name)
         let elementValue = dataSharedInComponent[subElementValueName]
 
-        dataToSend[elementName] = elementValue
+        dataToSend[subelementName] = elementValue
       }
 
       this.loadingInProgress = true

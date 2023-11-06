@@ -74,9 +74,11 @@ let component = defineComponent({
         }
     },
     methods: {
-        resizeContent() {
+        resizeContent(open: boolean) {
             let content = this.$refs.content as HTMLElement
-            if (!this.isOpened) {
+            if (!open) {
+                // @ts-ignore
+                content.style.maxHeight = null
                 return
             }
             content.style.maxHeight = content.scrollHeight + "px"
@@ -84,9 +86,10 @@ let component = defineComponent({
         clickedCollapsible() {
             if (!this.isOpened) {
                 this.isOpened = true
-                this.$nextTick(this.resizeContent.bind(this))
+                this.$nextTick(this.resizeContent.bind(this, true))
             } else {
-                this.isOpened = false
+                this.resizeContent(false)
+                setTimeout(() => this.isOpened = false, 200)
             }
 
         }
@@ -111,7 +114,10 @@ export default component
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.2s ease-out;
-    background-color: white;
+    background-color: rgb(246, 244, 244);
+    border-bottom: 0.2px solid grey;
+    border-left: 0.2px solid grey;
+    border-right: 0.2px solid grey;
 }
 
 .active,
@@ -127,7 +133,9 @@ export default component
     display: block;
     left: 0;
     right: 0;
-    width: calc(100% - 10px);
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
     border: none;
     text-align: center;
     /* outline: none; */

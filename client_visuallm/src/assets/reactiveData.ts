@@ -24,10 +24,7 @@ export function getSharedDataUniqueName(elementName: string, configName: string)
 
 export function getSharedDataElementName(name: string) {
   let names = name.split('>>')
-  if (names.length > 2) {
-    return names[1].concat(...names.slice(2))
-  }
-  return names[1]
+  return names[names.length - 1]
 }
 
 export function assignRequiredValuesToSharedData(

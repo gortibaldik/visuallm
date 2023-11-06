@@ -18,7 +18,7 @@ from visuallm.components.mixins.model_selection_mixin import (
     GENERATOR_CHOICES,
     ModelSelectionMixin,
 )
-from visuallm.elements import HeadingElement, PlainTextElement
+from visuallm.elements import CollapsibleElement, HeadingElement, PlainTextElement
 from visuallm.elements.element_base import ElementBase
 
 
@@ -82,11 +82,17 @@ class GenerationComponent(
         )
         input_display_elements = self.init_model_input_display()
         self.add_element(self.main_heading_element)
-        self.add_elements(self.dataset_elements)
-        self.add_elements(self.generator_selection_elements)
-        self.add_elements(self.generation_elements)
-        self.add_elements(self.metrics_selection_elements)
-        self.add_elements(input_display_elements)
+        collapsible_element = CollapsibleElement(title="Configuration")
+        collapsible_element.add_subelements(self.dataset_elements)
+        collapsible_element.add_subelements(self.generator_selection_elements)
+        collapsible_element.add_subelements(self.generation_elements)
+        collapsible_element.add_subelements(self.metrics_selection_elements)
+        self.add_element(collapsible_element)
+
+        # naming everything the same because I lack originality
+        collapsible_element = CollapsibleElement(title="Inputs to Model")
+        collapsible_element.add_subelements(input_display_elements)
+        self.add_element(collapsible_element)
         self.add_elements(self.metrics_display_elements)
 
     def __post_init__(self, *args, **kwargs):

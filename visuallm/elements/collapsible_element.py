@@ -1,6 +1,7 @@
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from visuallm.component_base import ComponentBase
+if TYPE_CHECKING:
+    from visuallm.component_base import ComponentBase
 from visuallm.elements.element_base import ElementBase, ElementWithEndpoint
 from visuallm.elements.utils import register_named
 from visuallm.named import NamedWrapper
@@ -35,6 +36,10 @@ class CollapsibleElement(ElementWithEndpoint):
             self.set_changed()
         self._title = value
 
+    def add_subelements(self, subelements: list[ElementBase]):
+        for e in subelements:
+            self.add_subelement(e)
+
     def add_subelement(self, subelement: ElementBase):
         if subelement.is_registered_to_component:
             raise RuntimeError(
@@ -47,7 +52,6 @@ class CollapsibleElement(ElementWithEndpoint):
                 " after the collapsible element is already registered to a"
                 " component"
             )
-        subelement.set_name(f"{self.name}>>{subelement.name}")
         if subelement._order is None:
             if len(self.subelements) == 0:
                 subelement.order = 1
@@ -63,7 +67,7 @@ class CollapsibleElement(ElementWithEndpoint):
     def _on_subelement_changed(self):
         self.set_changed()
 
-    def register_to_component(self, component: ComponentBase):
+    def register_to_component(self, component: "ComponentBase"):
         ElementBase.register_to_component(self, component)
         # subelement shouldn't be stored in the component, therefore
         # only the clashes in "endpoint_url" are checked
@@ -83,12 +87,19 @@ class CollapsibleElement(ElementWithEndpoint):
             subelement.register_to_server(server)
 
     def construct_element_configuration(self) -> dict[str, Any]:
+        subelements: list[dict[str, Any]] = []
+        for subelement in sorted(self.subelements, key=lambda e: e.order):
+            descr = subelement.construct_element_description()
+            descr["name"] = self.name + ">>" + descr["name"]
+            if "subelement_configs" not in descr:
+                subelements.append(descr)
+                continue
+            for config in descr["subelement_configs"]:
+                config.parent_name = descr["name"]
+            subelements.append(descr)
         return {
             "title": self.title,
-            "subelements": [
-                subelement.construct_element_description()
-                for subelement in sorted(self.subelements, key=lambda e: e.order)
-            ],
+            "subelements": subelements,
         }
 
     def endpoint_callback(self):
