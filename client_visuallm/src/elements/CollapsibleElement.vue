@@ -1,7 +1,8 @@
 <template>
+    <!-- TODO: better styling of the button -->
     <button :class="{ collapsible: true, active: isOpened, wrapElement: true }" @click="clickedCollapsible">{{ title
     }}</button>
-    <div class="subcomponent content" ref="content">
+    <div class="subcomponent content" ref="content" v-if="isOpened">
         <component v-for="(element, idx) in elements" :key="idx" :is="element.component" :name="element.name" />
     </div>
 </template>
@@ -73,16 +74,21 @@ let component = defineComponent({
         }
     },
     methods: {
-        clickedCollapsible() {
-            this.isOpened = !this.isOpened
-
+        resizeContent() {
             let content = this.$refs.content as HTMLElement
             if (!this.isOpened) {
-                // @ts-ignore
-                content.style.maxHeight = null;
                 return
             }
-            content.style.maxHeight = content.scrollHeight + "px";
+            content.style.maxHeight = content.scrollHeight + "px"
+        },
+        clickedCollapsible() {
+            if (!this.isOpened) {
+                this.isOpened = true
+                this.$nextTick(this.resizeContent.bind(this))
+            } else {
+                this.isOpened = false
+            }
+
         }
     }
 })

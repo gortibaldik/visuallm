@@ -18,7 +18,7 @@ def firefox_driver():
     opts.add_argument("--headless")
     service = webdriver.FirefoxService(log_output=subprocess.DEVNULL)
     driver = webdriver.Firefox(options=opts, service=service)
-    driver.implicitly_wait(2)
+    driver.implicitly_wait(4.0)
 
     yield driver
 
