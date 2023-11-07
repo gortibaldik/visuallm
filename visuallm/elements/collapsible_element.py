@@ -15,6 +15,21 @@ class CollapsibleElement(ElementWithEndpoint):
         title="COLLAPSIBLE TITLE",
         subelements: list[ElementBase] | None = None,
     ):
+        """Element that serves as a parent element of its child subelements. On the frontend it is displayed as a button
+        with text `title` that after click expands and shows all the other child subelements.
+
+        This class is an instance of ElementWithEndpoint so that all the endpoints of the subelements could be added
+        to the server. However it doesn't have any API endpoint itself.
+
+        Args:
+        ----
+            name (str): name of the element, unique identifier of the element
+                in the component. If you name multiple components the same, the library appends number after the element.
+            title (str, optional): Title that is displayed on the button that expands the collapsible. Defaults to "COLLAPSIBLE TITLE".
+                (dummy default should notify you on the page that it should be updated)
+            subelements (list[ElementBase] | None, optional): Subelements that will be displayed in the expanded section of the
+                collapsible. Defaults to None.
+        """
         super().__init__(
             name=name, type="collapsible-subcomponent", endpoint_url="dummy"
         )
@@ -23,11 +38,11 @@ class CollapsibleElement(ElementWithEndpoint):
         self.registered_subelement_names = set()
 
         if subelements is not None:
-            for e in subelements:
-                self.add_subelement(e)
+            self.add_subelements(subelements)
 
     @property
     def title(self):
+        """Title that is displayed on the button which expands the collapsible."""
         return self._title
 
     @title.setter
@@ -36,11 +51,30 @@ class CollapsibleElement(ElementWithEndpoint):
             self.set_changed()
         self._title = value
 
-    def add_subelements(self, subelements: list[ElementBase]):
-        for e in subelements:
-            self.add_subelement(e)
+    def add_subelements(self, subelements: list[ElementBase], order: int | None = None):
+        """Add subelements. Each ElementBase can be a subelement of at most one element.
+        Each added subelement will have the same order.
 
-    def add_subelement(self, subelement: ElementBase):
+        Args:
+        ----
+            subelements (ElementBase): elements that will be displayed in the expandable
+                section of this element on the frontend
+            order (int, optional): order in which the elements occurs in the collapsible,
+                lower value means higher position on the page
+        """
+        for e in subelements:
+            self.add_subelement(e, order=order)
+
+    def add_subelement(self, subelement: ElementBase, order: int | None = None):
+        """Add subelement. Each ElementBase can be a subelement of at most one element.
+
+        Args:
+        ----
+            subelement (ElementBase): element that will be displayed in the expandable
+                section of this element on the frontend
+            order (int, optional): order in which the element occurs in the collapsible,
+                lower value means higher position on the page
+        """
         if subelement.is_registered_to_component:
             raise RuntimeError(
                 "The subelement should be registered to subcomponent and"
@@ -52,11 +86,15 @@ class CollapsibleElement(ElementWithEndpoint):
                 " after the collapsible element is already registered to a"
                 " component"
             )
-        if subelement._order is None:
+        if order is not None and order <= 0:
+            raise ValueError(f"Order should be positive (current value: {order})")
+        if order is None:
             if len(self.subelements) == 0:
                 subelement.order = 1
             else:
                 subelement.order = 1 + max(e.order for e in self.subelements)
+        else:
+            subelement.order = order
         register_named(
             subelement,
             self.registered_subelement_names,
