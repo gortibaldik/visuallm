@@ -18,9 +18,6 @@ from visuallm.elements import (
 )
 from visuallm.elements.selector_elements import ButtonElement, TextInputSubElement
 
-# TODO: it would be great to add sections (which are expandable, e.g. only
-# title is shown when collapsed, everything is shown when expanded)
-
 # TODO: other than top to down linear organization
 
 

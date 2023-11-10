@@ -65,14 +65,12 @@ class NextTokenPredictionInterface(ABC):
 
     @abstractmethod
     def one_step_prediction(self, text_to_tokenizer: str) -> list[tuple[float, str]]:
+        """Return k tokens with highest probabilities along with their probabilities."""
         ...
 
     @abstractmethod
     def convert_token_to_string(self, token: str) -> str:
-        ...
-
-    @abstractmethod
-    def init_word_vocab(self) -> list[str]:
+        """Convert token to string that can be appended to already predicted text."""
         ...
 
     @property

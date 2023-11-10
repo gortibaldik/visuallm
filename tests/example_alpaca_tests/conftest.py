@@ -1,62 +1,25 @@
 import multiprocessing
 from collections.abc import Sequence
-from typing import Any, TypedDict
+from typing import Any
 
 import pytest
 
-from examples_py.persona_chat_example.create_app import create_app
+from examples_py.alpaca_example.create_app import create_app
 from tests.example_modules_app_tests.conftest import app_run
 from tests.port_utils import get_unused_port
-from tests.stubs.generator_stub import EXCEPTION_MESSAGE, GeneratorStub
+from tests.stubs.generator_stub import GeneratorStub
 
-APP_PORT: int | None = None
-
-
-@pytest.fixture(autouse=True)
-def port():
-    global APP_PORT
-    return APP_PORT
-
-
-def get_persona_traits():
-    return [f"trait_{i}" for i in range(250)]
-
-
-class TestSample(TypedDict):
-    text: str
-    target: str
-    history: list[str]
-    candidates: list[str]
-    personality: list[str]
-
-
-@pytest.fixture()
-def exception_message():
-    return EXCEPTION_MESSAGE
-
-
-_history = [f"history{i}" for i in range(4)]
-_candidates = ["history4"]
-_personality = [f"personality{i}" for i in range(4)]
-_dataset_data: dict[str, Sequence[dict[str, Any]]] = {  # type: ignore
+_dataset_data = {
     f"split_{six}": [
-        TestSample(
-            text="s{six}text{tix}",
-            target="s{six}target{tix}",
-            history=_history,
-            candidates=_candidates,
-            personality=_personality,
-        )
-        for tix in range(20)
+        {"text": f"Some text {i}", "target": f"Some target {i}, {six}"}
+        for i in range(10)
     ]
-    for six in range(5)
+    for six in range(3)
 }
 
 
 class Dataset:
     def __getitem__(self, selected_split: str) -> Sequence[dict[str, Any]]:
-        if selected_split not in _dataset_data:
-            raise KeyError(f"{selected_split} not in dataset data!")
         return _dataset_data[selected_split]
 
     def keys(self):
@@ -80,9 +43,8 @@ def app():
     global APP_PORT
     flask_app = create_app(
         dataset=Dataset(),  # type: ignore
-        get_persona_traits=get_persona_traits,
         generator_choices={"generator1": GeneratorStub()},
-        next_token_generator_choices={},
+        next_token_generator_choices={"generator1": GeneratorStub()},
     )
 
     APP_PORT = get_unused_port()

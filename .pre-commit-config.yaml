@@ -39,17 +39,17 @@ repos:
     hooks:
       - id: ruff
         args: ["--fix"]
-  - repo: local
-    hooks:
-      - id: pytests
-        name: pytests
-        entry: pytest
-        language: python
-        "types": [python]
-        pass_filenames: false
-        always_run: true
-        verbose: true
-        additional_dependencies: ["datasets"]
+  # - repo: local
+  #   hooks:
+  #     - id: pytests
+  #       name: pytests
+  #       entry: pytest
+  #       language: python
+  #       "types": [python]
+  #       pass_filenames: false
+  #       always_run: true
+  #       verbose: true
+  #       additional_dependencies: ["datasets"]
 # TODO: set up mypy https://jaredkhan.com/blog/mypy-pre-commit
 # - repo: local
 #   hooks:

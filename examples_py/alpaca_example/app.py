@@ -1,13 +1,9 @@
 from datasets import DatasetDict, load_dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from visuallm import (
-    DatasetVisualizationComponent,
-    GenerationComponent,
-    NextTokenPredictionComponent,
-)
-from visuallm.components.mixins.generator import HuggingFaceGenerator
-from visuallm.server import Server
+from visuallm.components.generators.huggingface import HuggingFaceGenerator
+
+from .create_app import create_app
 
 dataset = load_dataset("yahma/alpaca-cleaned")
 if not isinstance(dataset, DatasetDict):
@@ -24,7 +20,7 @@ def create_text_to_tokenizer(loaded_sample, target: str | None = None) -> str:
     return text_to_tokenizer
 
 
-def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: list[str]):
+def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: list[str]) -> str:
     # one step prediction means that the model is used to predict tokens one per one
     # received_tokens list contains already selected tokens
 
@@ -47,9 +43,4 @@ generator = HuggingFaceGenerator(
     retrieve_target_str=retrieve_target_str,
 )
 
-visualize = DatasetVisualizationComponent(generator=generator, dataset=dataset)
-generate = GenerationComponent(generator=generator, dataset=dataset)
-next_token = NextTokenPredictionComponent(generator=generator, dataset=dataset)
-
-server = Server(__name__, [next_token, visualize, generate])
-app = server.app
+app = create_app(dataset=dataset, generator_choices={"gpt2": generator})

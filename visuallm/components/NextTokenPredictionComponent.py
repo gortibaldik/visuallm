@@ -79,7 +79,7 @@ class NextTokenPredictionComponent(
         self.add_elements(expected_output_elements)
         self.add_elements(token_probs_display_elements)
 
-    def __post_init__(self):
+    def __post_init__(self, *args, **kwargs):
         self.on_dataset_change_callback()
 
     def init_token_probs_display_elements(self) -> list[ElementBase]:
