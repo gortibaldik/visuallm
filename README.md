@@ -43,10 +43,10 @@ We'll use `alpaca` dataset and `gpt2` model as those are reasonably small to run
 <!-- The below code snippet is automatically added from ./examples_py/alpaca_example/app.py -->
 ```py
 # ./examples_py/alpaca_example/app.py lines 14-19
-    raise TypeError("Only dataset dict is supported now")
-
-tokenizer = AutoTokenizer.from_pretrained("gpt2")
-model = AutoModelForCausalLM.from_pretrained("gpt2")
+def create_text_to_tokenizer(loaded_sample, target: str | None = None) -> str:
+    text_to_tokenizer = f"Instruction: {loaded_sample['instruction']} Answer:"
+    if target is not None:
+        text_to_tokenizer += " " + target
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -58,12 +58,7 @@ is constructed, and how the target text is constructed.
 <!-- The below code snippet is automatically added from ./examples_py/alpaca_example/app.py -->
 ```py
 # ./examples_py/alpaca_example/app.py lines 22-41
-    if target is not None:
-        text_to_tokenizer += " " + target
-    return text_to_tokenizer
-
-
-def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: list[str]):
+def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: list[str]) -> str:
     # one step prediction means that the model is used to predict tokens one per one
     # received_tokens list contains already selected tokens
 
@@ -76,6 +71,12 @@ def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: list[str])
 
 def retrieve_target_str(loaded_sample):
     return loaded_sample["output"]
+
+
+generator = HuggingFaceGenerator(
+    model=model,
+    tokenizer=tokenizer,
+    create_text_to_tokenizer=create_text_to_tokenizer,
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -85,18 +86,9 @@ Instantiate all the components from the library and run the server
 <!-- The below code snippet is automatically added from ./examples_py/alpaca_example/app.py -->
 ```py
 # ./examples_py/alpaca_example/app.py lines 44-57
-    tokenizer=tokenizer,
-    create_text_to_tokenizer=create_text_to_tokenizer,
-    create_text_to_tokenizer_one_step=create_text_to_tokenizer_one_step,
-    retrieve_target_str=retrieve_target_str,
 )
 
-visualize = DatasetVisualizationComponent(generator=generator, dataset=dataset)
-generate = GenerationComponent(generator=generator, dataset=dataset)
-next_token = NextTokenPredictionComponent(generator=generator, dataset=dataset)
-
-server = Server(__name__, [next_token, visualize, generate])
-app = server.app
+app = create_app(dataset=dataset, generator_choices={"gpt2": generator})
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
