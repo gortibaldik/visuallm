@@ -1,5 +1,6 @@
 import pytest
 from selenium.webdriver import Firefox
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
@@ -124,3 +125,42 @@ def test_exception_raised(
     text_elems = firefox_driver.find_elements(By.CLASS_NAME, "plainText")
     assert text_elems[0].text == sent_message
     assert text_elems[1].text == f"generated text: '{sent_message}'"
+
+
+def test_change_traits_traits_changed_text_cleared(
+    app, firefox_driver: Firefox, link: str
+):
+    # time.sleep(400)
+    firefox_driver.get(link)
+
+    textarea = firefox_driver.find_element(By.TAG_NAME, "textarea")
+    textarea.clear()
+    textarea.send_keys("Some Message")
+    textarea.send_keys(Keys.ENTER)
+
+    # assert correct starting position
+    table = firefox_driver.find_element(By.TAG_NAME, "table")
+    tbody = table.find_element(By.TAG_NAME, "tbody")
+    val = tbody.find_element(By.TAG_NAME, "td")
+    assert val.text == "trait_0"
+
+    wrapper = firefox_driver.find_elements(By.TAG_NAME, "form")[1]
+    subselector_wrapper = wrapper.find_element(By.CLASS_NAME, "subSelectorsWrapper")
+    selector = subselector_wrapper.find_element(By.CLASS_NAME, "multiselect")
+    selector.click()
+    ActionChains(firefox_driver).send_keys(Keys.DOWN).perform()
+    ActionChains(firefox_driver).send_keys(Keys.ENTER).perform()
+
+    button = wrapper.find_element(By.TAG_NAME, "button")
+
+    assert button.text == "Update Bot's Characteristics"
+    button.click()
+
+    table = firefox_driver.find_element(By.TAG_NAME, "table")
+    tbody = table.find_element(By.TAG_NAME, "tbody")
+    val = tbody.find_element(By.TAG_NAME, "td")
+    assert val.text == "trait_1"
+
+    # assert text cleared
+    textarea = firefox_driver.find_element(By.TAG_NAME, "textarea")
+    assert textarea.get_attribute("value") == ""

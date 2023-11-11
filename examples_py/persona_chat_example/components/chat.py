@@ -35,7 +35,7 @@ class ChatComponent(ChatComponentBase, PersonaChatVisualization):
             "history": [],
         }
         self.text_to_tokenizer_element.content = ""
-        self.chat_text_input_element.predefined_text_input = ""
+        self.chat_text_input_element.value_on_backend = ""
         self.model_output_display_element.content = ""
         self.update_dialogue_structure_display(add_target=False)
 
