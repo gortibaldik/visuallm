@@ -2,7 +2,7 @@ import math
 import secrets
 from typing import Any
 
-from visuallm.components.generators.base import GeneratedOutput, Generator
+from visuallm.components.generators.base import GeneratedOutput, Generator, LoadedSample
 from visuallm.components.NextTokenPredictionComponent import (
     NextTokenPredictionInterface,
 )
@@ -22,6 +22,13 @@ class GeneratorStub(Generator, NextTokenPredictionInterface):
     def __init__(self):
         self.token_step = 0
 
+    def create_text_to_tokenizer_chat(self, loaded_sample: LoadedSample) -> str:
+        text = loaded_sample["user_message"]
+        if text == EXCEPTION_MESSAGE:
+            raise ValueError("Exception raised during generation!")
+
+        return text
+
     def create_text_to_tokenizer(
         self, loaded_sample: dict[str, Any], target: Any | None = None
     ) -> str:
@@ -31,8 +38,6 @@ class GeneratorStub(Generator, NextTokenPredictionInterface):
         text = None
         if "text" in loaded_sample:
             text = loaded_sample["text"]
-        elif "user_message" in loaded_sample:
-            text = loaded_sample["user_message"]
 
         if text is None:
             raise TypeError()

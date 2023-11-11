@@ -1,3 +1,5 @@
+import logging
+
 from visuallm.component_base import ComponentBase
 from visuallm.components.generators.base import Generator, NextTokenPredictionInterface
 from visuallm.components.mixins.data_preparation_mixin import (
@@ -14,10 +16,24 @@ from visuallm.elements.barchart_element import BarChartElement, PieceInfo
 from visuallm.elements.element_base import ElementBase
 
 
-class GeneratorDoesNotSupportNextTokenPredictionError(TypeError):
+class GeneratorDoesNotSupportNextTokenPredictionError(Exception):
     def __init__(self) -> None:
         super().__init__(
             "If you are using NextTokenPredictionComponent, the generator must be of type NextTokenPredictionInterface"
+        )
+
+
+class CreateTextToTokenizerOneStepIsNoneError(Exception):
+    def __init__(self) -> None:
+        super().__init__(
+            "generator.create_text_to_tokenizer_one_step must not be None for NextTokenPredictionComponent"
+        )
+
+
+class CreateTextToTokenizerIsNoneError(Exception):
+    def __init__(self) -> None:
+        super().__init__(
+            "generator.create_text_to_tokenizer must not be None for NextTokenPredictionComponent"
         )
 
 
@@ -56,6 +72,7 @@ class NextTokenPredictionComponent(
             generator_choices=generator_choices,
             generator=generator,
         )
+        self._check_generators(self.generator, generator_choices)
         DataPreparationMixin.__init__(
             self,
             dataset=dataset,
@@ -121,6 +138,8 @@ class NextTokenPredictionComponent(
         In this method the elements that display the model's input elements should be updated
         according to the self.loaded_sample.
         """
+        if self.generator.create_text_to_tokenizer is None:
+            raise CreateTextToTokenizerIsNoneError()
         self.text_to_tokenizer_element.content = (
             self.generator.create_text_to_tokenizer(self.loaded_sample)
         )
@@ -131,6 +150,11 @@ class NextTokenPredictionComponent(
         In this method the elements that display the expected output elements should be
         updated according to the self.loaded_sample
         """
+        if self.generator.retrieve_target_str is None:
+            raise ValueError(
+                "Retrieve_target_str is None, cannot use generator for NextTokenPredictionComponent"
+            )
+
         self.expected_output_element.content = self.generator.retrieve_target_str(
             self.loaded_sample
         )
@@ -147,6 +171,8 @@ class NextTokenPredictionComponent(
         """
         if not isinstance(self.generator, NextTokenPredictionInterface):
             raise GeneratorDoesNotSupportNextTokenPredictionError()
+        if self.generator.create_text_to_tokenizer_one_step is None:
+            raise CreateTextToTokenizerOneStepIsNoneError()
         text_to_tokenizer = self.generator.create_text_to_tokenizer_one_step(
             self.loaded_sample, self._received_tokens
         )
@@ -195,3 +221,27 @@ class NextTokenPredictionComponent(
         # a new dataset sample is loaded which forces the prediction of the next step
         self.force_set_dataset_selector_updated()
         self.on_dataset_change_callback()
+
+    def _check_generators(
+        self,
+        generator: Generator | None,
+        generator_choices: GENERATOR_CHOICES | None,
+    ):
+        if generator_choices is None:
+            if generator is None:
+                raise ValueError(
+                    "Either generator_choices or generator should not be None"
+                )
+            generator_choices = {"default": generator}
+
+        for _name, _generator in generator_choices.items():
+            if callable(_generator):
+                logging.info(f"Not checking generator '{_name}' because it is callable")
+                continue
+
+            if not isinstance(_generator, NextTokenPredictionInterface):
+                raise GeneratorDoesNotSupportNextTokenPredictionError()
+            if _generator.create_text_to_tokenizer_one_step is None:
+                raise CreateTextToTokenizerOneStepIsNoneError()
+            if _generator.create_text_to_tokenizer is None:
+                raise CreateTextToTokenizerIsNoneError()

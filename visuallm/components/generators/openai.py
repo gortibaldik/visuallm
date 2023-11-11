@@ -1,7 +1,9 @@
+import dataclasses
 import json
 
 from visuallm.components.generators.base import (
     CreateTextToTokenizer,
+    CreateTextToTokenizerChat,
     GeneratedOutput,
     Generator,
     RetrieveTargetStr,
@@ -17,11 +19,30 @@ else:
 import os
 
 
+@dataclasses.dataclass
+class OpenAIMessage:
+    system_message: str = ""
+    messages: list[str] = dataclasses.field(default_factory=list)
+    model: str = ""
+
+    def construct_message(self):
+        roles = ["user", "assistant"]
+        messages = []
+        if len(self.system_message.strip()) != 0:
+            messages = [{"role": "system", "content": self.system_message}]
+        messages += [
+            {"role": roles[i % 2], "content": message}
+            for i, message in enumerate(self.messages)
+        ]
+        return json.dumps({"model": self.model, "messages": messages})
+
+
 class OpenAIGenerator(Generator):
     def __init__(
         self,
-        create_text_to_tokenizer: CreateTextToTokenizer,
-        retrieve_target_str: RetrieveTargetStr,
+        create_text_to_tokenizer: CreateTextToTokenizer | None = None,
+        create_text_to_tokenizer_chat: CreateTextToTokenizerChat | None = None,
+        retrieve_target_str: RetrieveTargetStr | None = None,
     ):
         if not _has_openai:
             raise RuntimeError(
@@ -32,6 +53,7 @@ class OpenAIGenerator(Generator):
             raise ValueError("OPENAI_API_KEY not set!")
 
         self.create_text_to_tokenizer = create_text_to_tokenizer
+        self.create_text_to_tokenizer_chat = create_text_to_tokenizer_chat
         self.retrieve_target_str = retrieve_target_str
         openai.api_key = self._api_key
 

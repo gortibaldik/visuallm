@@ -1,7 +1,7 @@
-from typing import Any
+import logging
 
 from visuallm.component_base import ComponentBase
-from visuallm.components.generators.base import Generator
+from visuallm.components.generators.base import Generator, LoadedSample
 from visuallm.components.mixins.generation_selectors_mixin import (
     SELECTORS_TYPE,
     GenerationSelectorsMixin,
@@ -21,6 +21,13 @@ from visuallm.elements.selector_elements import ButtonElement, TextInputSubEleme
 # TODO: other than top to down linear organization
 
 
+class CreateTextToTokenizerChatIsNoneError(Exception):
+    def __init__(self) -> None:
+        super().__init__(
+            "Cannot use generator for chat because create_text_to_tokenizer_chat is None!"
+        )
+
+
 class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin):
     def __init__(
         self,
@@ -37,11 +44,12 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
             generator_choices=generator_choices,
             generator=generator,
         )
+        self._check_generators(self.generator, generator_choices)
         GenerationSelectorsMixin.__init__(self, selectors=selectors)
         chat_elements = self.init_chat_elements()
         text_to_tokenizer_elements = self.init_text_to_tokenizer_elements()
         model_outputs_elements = self.init_model_outputs_elements()
-        self.loaded_sample: dict[str, Any] = {"history": [], "user_message": ""}
+        self.loaded_sample: LoadedSample = LoadedSample(user_message="", history=[])
 
         self.add_element(main_heading_element)
         self.add_elements(self.generator_selection_elements)
@@ -66,8 +74,13 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         """Event that is fired when a send message button is pressed."""
         self.before_on_message_sent_callback()
 
+        if self.generator.create_text_to_tokenizer_chat is None:
+            raise CreateTextToTokenizerChatIsNoneError()
+
         # generate with the model
-        text_to_tokenizer = self.generator.create_text_to_tokenizer(self.loaded_sample)
+        text_to_tokenizer = self.generator.create_text_to_tokenizer_chat(
+            self.loaded_sample
+        )
         output = self.generator.generate_output(
             text_to_tokenizer, **self.selected_generation_parameters
         )
@@ -139,3 +152,23 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         text_to_tokenizer_heading = HeadingElement("Text to Tokenizer")
         self.text_to_tokenizer_element = PlainTextElement()
         return [text_to_tokenizer_heading, self.text_to_tokenizer_element]
+
+    def _check_generators(
+        self,
+        generator: Generator | None,
+        generator_choices: GENERATOR_CHOICES | None,
+    ):
+        if generator_choices is None:
+            if generator is None:
+                raise ValueError(
+                    "Either generator_choices or generator should not be None"
+                )
+            generator_choices = {"default": generator}
+
+        for _name, _generator in generator_choices.items():
+            if callable(_generator):
+                logging.info(f"Not checking generator '{_name}' because it is callable")
+                continue
+
+            if _generator.create_text_to_tokenizer_chat is None:
+                raise CreateTextToTokenizerChatIsNoneError()

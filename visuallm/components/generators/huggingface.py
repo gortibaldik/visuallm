@@ -6,6 +6,7 @@ from transformers.generation.utils import GenerateOutput
 
 from visuallm.components.generators.base import (
     CreateTextToTokenizer,
+    CreateTextToTokenizerChat,
     GeneratedOutput,
     Generator,
     NextTokenPredictionInterface,
@@ -43,10 +44,12 @@ class HuggingFaceGenerator(
         self,
         model: "PreTrainedModel",
         tokenizer: "TOKENIZER_TYPE",
-        create_text_to_tokenizer: CreateTextToTokenizer,
-        create_text_to_tokenizer_one_step: Callable[[Any, list[str]], str],
         retrieve_target_str: RetrieveTargetStr,
         n_largest_tokens_to_return: int = 10,
+        create_text_to_tokenizer: CreateTextToTokenizer | None = None,
+        create_text_to_tokenizer_chat: CreateTextToTokenizerChat | None = None,
+        create_text_to_tokenizer_one_step: Callable[[Any, list[str]], str]
+        | None = None,
     ):
         if not _has_torch:
             raise RuntimeError(
@@ -55,6 +58,7 @@ class HuggingFaceGenerator(
         self._model = model
         self._tokenizer = tokenizer
         self.create_text_to_tokenizer = create_text_to_tokenizer
+        self.create_text_to_tokenizer_chat = create_text_to_tokenizer_chat
         self.create_text_to_tokenizer_one_step = create_text_to_tokenizer_one_step
         self.retrieve_target_str = retrieve_target_str
         self._n_largest_tokens_to_return = n_largest_tokens_to_return
