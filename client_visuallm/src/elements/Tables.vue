@@ -12,7 +12,7 @@
           <tr v-for="(row, r) in table.rows" :id="`${table.id}_${r}`" :class="{
             active: displayedLinksRowID == `${table.id}_${r}`
           }">
-            <td v-for="col in row">{{ col }}</td>
+            <td v-for="col in row" v-html="col"></td>
           </tr>
         </tbody>
       </table>
@@ -26,6 +26,7 @@ import LeaderLine from 'leader-line-new'
 import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiveData'
 import type ElementRegistry from '@/assets/elementRegistry'
 import { registerElementBase } from '@/assets/elementRegistry'
+import { replaceAll } from '@/assets/stringMethods'
 
 export type LoadedTable = {
   title: string
@@ -68,7 +69,15 @@ let component = defineComponent({
       return dataSharedInComponent[getSharedDataUniqueName(this.name, 'links')]
     },
     tables(): LoadedTable[] {
-      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'loadedTables')]
+      let tables = dataSharedInComponent[getSharedDataUniqueName(this.name, 'loadedTables')] as LoadedTable[]
+      for (const table of tables) {
+        for (const row of table.rows) {
+          for (let i = 0; i < row.length; i++) {
+            this.checkDataHtml(row[i])
+          }
+        }
+      }
+      return tables
     }
   },
   watch: {
@@ -86,6 +95,12 @@ let component = defineComponent({
     this.unregisterLinks()
   },
   methods: {
+    checkDataHtml(candidateValue: string) {
+      let checkedValue = replaceAll(candidateValue, "<br />", "")
+      if (checkedValue.includes("<") || checkedValue.includes(">")) {
+        throw Error("Invalid value arrived from backend")
+      }
+    },
     table_title_to_id(title: string) {
       return title.replace(/\s/g, '')
     },
@@ -234,6 +249,10 @@ export function registerElement(elementRegistry: ElementRegistry) {
 </script>
 
 <style scoped>
+.table-style-0 td+td {
+  border-left: 0.5px solid rgb(106, 106, 106);
+}
+
 .table-wrapper h3 {
   text-align: center;
   margin-top: 0px;
@@ -245,6 +264,7 @@ export function registerElement(elementRegistry: ElementRegistry) {
   align-items: center;
   flex-direction: column;
   width: fit-content;
+  max-width: 100%;
   background-color: rgba(0, 0, 0, 0.127);
   border-style: dashed;
   border-width: 1px;
@@ -257,11 +277,10 @@ export function registerElement(elementRegistry: ElementRegistry) {
   border-radius: 5px;
   font-size: 12px;
   font-weight: normal;
-  border: none;
   border-collapse: collapse;
-  max-width: 100%;
-  white-space: nowrap;
+  width: 100%;
   background-color: white;
+  table-layout: auto;
 }
 
 .table-style-0 td,
@@ -271,7 +290,6 @@ export function registerElement(elementRegistry: ElementRegistry) {
 }
 
 .table-style-0 td {
-  border-right: 1px solid #f8f8f8;
   font-size: 12px;
 }
 
@@ -294,6 +312,10 @@ export function registerElement(elementRegistry: ElementRegistry) {
   padding-right: 10px;
   padding-left: 10px;
 }
+
+/* .table-style-0 td {
+  display: inline-block
+} */
 
 .table-style-0 .active {
   background: #fbd0d0 !important;

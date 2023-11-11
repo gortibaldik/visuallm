@@ -130,7 +130,6 @@ def test_exception_raised(
 def test_change_traits_traits_changed_text_cleared(
     app, firefox_driver: Firefox, link: str
 ):
-    # time.sleep(400)
     firefox_driver.get(link)
 
     textarea = firefox_driver.find_element(By.TAG_NAME, "textarea")

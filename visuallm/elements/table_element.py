@@ -90,6 +90,7 @@ class TableElement(ElementBase):
         self.clear()
 
     def clear(self):
+        """Set all the tables, and links between rows to empty lists."""
         self.set_changed()
         self._tables: dict[str, Any] = {}
         self.tables = []
@@ -98,7 +99,13 @@ class TableElement(ElementBase):
     def check_rows(self, headers: list[str], rows: list[list[str]]):
         return all(len(row) == len(headers) for row in rows)
 
-    def add_table(self, title: str, headers: list[str], rows: list[list[str]]):
+    def add_table(
+        self,
+        title: str,
+        headers: list[str],
+        rows: list[list[str]],
+        prepend: bool = False,
+    ):
         if not self.check_rows(headers, rows):
             raise ValueError(
                 "The length of some row doesn't match the lenght of headers."
@@ -107,7 +114,10 @@ class TableElement(ElementBase):
             raise ValueError("Cannot add two tables with the same name!")
         self.set_changed()
         self._tables[title] = {"headers": headers, "rows": rows, "title": title}
-        self.tables.append(self._tables[title])
+        if prepend:
+            self.tables = [self._tables[title]] + self.tables
+        else:
+            self.tables.append(self._tables[title])
 
     def add_link_between_rows(self, link: LinkBetweenRows):
         if (link.StartTable not in self._tables) or (link.EndTable not in self._tables):

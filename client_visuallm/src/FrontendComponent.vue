@@ -25,6 +25,7 @@ export default defineComponent({
   },
   inject: ['backendAddress'],
   async created() {
+    /** TODO: Add some message during loading */
     await fetchDefault(
       this,
       this.backendAddress as string,

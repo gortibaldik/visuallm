@@ -15,6 +15,7 @@ from visuallm.elements import (
     HeadingElement,
     MainHeadingElement,
     PlainTextElement,
+    TableElement,
 )
 from visuallm.elements.selector_elements import ButtonElement, TextInputSubElement
 
@@ -49,11 +50,13 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         chat_elements = self.init_chat_elements()
         text_to_tokenizer_elements = self.init_text_to_tokenizer_elements()
         model_outputs_elements = self.init_model_outputs_elements()
+        chat_history_elements = self.init_chat_history_elements()
         self.loaded_sample: LoadedSample = LoadedSample(user_message="", history=[])
 
         self.add_element(main_heading_element)
         self.add_elements(self.generator_selection_elements)
         self.add_elements(self.generation_elements)
+        self.add_elements(chat_history_elements)
         self.add_elements(chat_elements)
         self.add_elements(text_to_tokenizer_elements)
         self.add_elements(model_outputs_elements)
@@ -96,16 +99,27 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         self.button_accept_generation.disabled = False
 
     def before_on_accept_generation_callback(self):
-        """Callback called just before all the common elements are changed"""
+        """Callback called just before all the common elements are changed.
+        The accepted generation is added to history and chat history table is updated.
+        """
         self.loaded_sample["history"].extend(
             [
                 self.loaded_sample["user_message"],
                 self.model_output_display_element.content,
             ]
         )
+        self.update_chat_history_elements()
 
     def on_accept_generation_callback(self):
-        """After the generation is accepted, the messages in TODO: complete docstring"""
+        """After the generation is accepted, several elements are set to empty:
+        - display of the text that goes to tokenizer
+        - textarea which serves for the user to input text
+        - model output to accept
+
+        Accept generation button is disabled and the sendbutton text is set to "Send Message".
+
+        Before any action, `before_on_accept_generation_callback()` is called.
+        """
         self.before_on_accept_generation_callback()
 
         # after accepting:
@@ -132,6 +146,11 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         )
         return [self.chat_heading_element, self.chat_button_element]
 
+    def init_chat_history_elements(self) -> list[ElementBase]:
+        chat_history_heading = HeadingElement(content="Chat History")
+        self.chat_history_table = TableElement()
+        return [chat_history_heading, self.chat_history_table]
+
     def init_model_outputs_elements(self) -> list[ElementBase]:
         """Init elements which show the outputs of the model."""
         model_output_display_heading = HeadingElement(content="Model Output")
@@ -152,6 +171,17 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         text_to_tokenizer_heading = HeadingElement("Text to Tokenizer")
         self.text_to_tokenizer_element = PlainTextElement()
         return [text_to_tokenizer_heading, self.text_to_tokenizer_element]
+
+    def update_chat_history_elements(self):
+        self.chat_history_table.clear()
+        who = ["You", "Bot"]
+        if len(self.loaded_sample["history"]) == 0:
+            return
+        self.chat_history_table.add_table(
+            title="CHAT HISTORY",
+            headers=["Who", "Utterance"],
+            rows=[[who[i % 2], u] for i, u in enumerate(self.loaded_sample["history"])],
+        )
 
     def _check_generators(
         self,

@@ -4,31 +4,37 @@ from visuallm.components.ChatComponent import ChatComponent as ChatComponentBase
 from visuallm.elements import HeadingElement
 from visuallm.elements.selector_elements import ButtonElement, ChoicesSubElement
 
-from .input_display import PersonaChatVisualization
-
 # TODO: it would be great to add sections (which are expandable, e.g. only
 # title is shown when collapsed, everything is shown when expanded)
 
 # TODO: other than top to down linear organization
 
 
-class ChatComponent(ChatComponentBase, PersonaChatVisualization):
+class ChatComponent(ChatComponentBase):
     def __post_init__(
         self, *args, get_persona_traits: Callable[[], list[str]], **kwargs
     ):
         select_traits_elements = self.init_select_persona_traits_elements(
             get_persona_traits
         )
-        dialogue_vis_elements = self.init_dialogue_vis_elements()
-        self.add_elements(select_traits_elements + dialogue_vis_elements, order=2.5)
+        self.add_elements(select_traits_elements, order=3.5)
         self.on_change_selected_traits()
+
+    def update_chat_history_elements(self):
+        super().update_chat_history_elements()
+        self.chat_history_table.add_table(
+            "BOT PERSONA",
+            headers=["Trait"],
+            rows=[[t] for t in self.loaded_sample["personality"]],  # type: ignore
+            prepend=True,
+        )
 
     def on_change_selected_traits(self):
         """Fired when a select persona traits button is pressed."""
         if not self.button_select_persona_traits.changed:
             return
         self.loaded_sample = {
-            "personality": [
+            "personality": [  # type: ignore
                 element.value_on_backend
                 for element in self.button_select_persona_traits.subelements_iter
             ],
@@ -37,11 +43,7 @@ class ChatComponent(ChatComponentBase, PersonaChatVisualization):
         self.text_to_tokenizer_element.content = ""
         self.chat_text_input_element.value_on_backend = ""
         self.model_output_display_element.content = ""
-        self.update_dialogue_structure_display(add_target=False)
-
-    def before_on_accept_generation_callback(self):
-        super().before_on_accept_generation_callback()
-        self.update_dialogue_structure_display(add_target=False)
+        self.update_chat_history_elements()
 
     def init_select_persona_traits_elements(
         self, get_persona_traits: Callable[[], list[str]]
