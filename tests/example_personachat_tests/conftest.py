@@ -97,3 +97,22 @@ def app():
     yield None
 
     process.terminate()
+
+
+@pytest.fixture()
+def full_app():
+    global APP_PORT
+    from examples_py.persona_chat_example.app import app
+
+    APP_PORT = get_unused_port()
+    process = multiprocessing.Process(
+        target=app_run, daemon=True, kwargs={"app": app, "app_port": APP_PORT}
+    )
+    process.start()
+
+    # by yielding None, fixture ensures that some result is returned from the
+    # method but also ensures that some action can be taken after the end of the
+    # test
+    yield None
+
+    process.terminate()

@@ -59,6 +59,9 @@ testpaths = [
     "tests"
 ]
 pythonpath = "."
+markers = [
+    "full_app_tests: mark test which needs torch, huggingface, opeani dependencies"
+]
 
 [tool.ruff]
 target-version = 'py310'
