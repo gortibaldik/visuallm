@@ -90,7 +90,9 @@ class NextTokenPredictionComponent(
         collapsible_element.add_subelements(self.generator_selection_elements)
         self.add_element(collapsible_element)
 
-        collapsible_element = CollapsibleElement(title="Inputs to Model")
+        collapsible_element = CollapsibleElement(
+            title="Inputs to Model", is_collapsed=False
+        )
         collapsible_element.add_subelements(input_display_elements)
         self.add_element(collapsible_element)
         self.add_elements(expected_output_elements)

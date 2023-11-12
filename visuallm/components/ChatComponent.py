@@ -59,7 +59,9 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         collapsible_element.add_subelements(self.generator_selection_elements)
         collapsible_element.add_subelements(self.generation_elements)
         self.add_element(collapsible_element)
-        collapsible_element = CollapsibleElement(title="Chat History")
+        collapsible_element = CollapsibleElement(
+            title="Chat History", is_collapsed=False
+        )
         collapsible_element.add_subelements(chat_history_elements)
         self.add_element(collapsible_element)
         self.add_elements(chat_elements)

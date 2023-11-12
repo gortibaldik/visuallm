@@ -69,6 +69,7 @@ let component = defineComponent({
                 })
                 reactiveElements.push(obj)
             }
+            setTimeout(() => this.resizeContent(this.isOpened), 100)
             return reactiveElements
         },
         title(): string {

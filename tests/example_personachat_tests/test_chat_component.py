@@ -79,16 +79,11 @@ def test_after_accept_generation_table_should_be_extended(
 ):
     firefox_driver.get(link)
 
-    collapsible_element = firefox_driver.find_elements(By.CLASS_NAME, "collapsible")[-1]
-    collapsible_element.click()
-    time.sleep(0.2)
     spaced_tables = firefox_driver.find_element(By.CLASS_NAME, "spacedTables")
     history_table = spaced_tables.find_elements(By.CLASS_NAME, "table-wrapper")[-1]
     tbody = history_table.find_element(By.TAG_NAME, "tbody")
     rows = tbody.find_elements(By.TAG_NAME, "tr")
     cells = [[d.text for d in r.find_elements(By.TAG_NAME, "td")] for r in rows]
-    # print(cells)
-    # time.sleep(400)
 
     assert ";".join(cells[-1]) == "Bot;generated text: 'test message'"
     assert ";".join(cells[-2]) == "You;test message"

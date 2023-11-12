@@ -107,7 +107,9 @@ class GenerationComponent(
         self.add_element(collapsible_element)
 
         # naming everything the same because I lack originality
-        collapsible_element = CollapsibleElement(title="Inputs to Model")
+        collapsible_element = CollapsibleElement(
+            title="Inputs to Model", is_collapsed=False
+        )
         collapsible_element.add_subelements(input_display_elements)
         self.add_element(collapsible_element)
         self.add_elements(self.metrics_display_elements)
