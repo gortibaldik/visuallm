@@ -11,6 +11,7 @@ from visuallm.components.mixins.model_selection_mixin import (
     ModelSelectionMixin,
 )
 from visuallm.elements import (
+    CollapsibleElement,
     ElementBase,
     HeadingElement,
     MainHeadingElement,
@@ -54,9 +55,13 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         self.loaded_sample: LoadedSample = LoadedSample(user_message="", history=[])
 
         self.add_element(main_heading_element)
-        self.add_elements(self.generator_selection_elements)
-        self.add_elements(self.generation_elements)
-        self.add_elements(chat_history_elements)
+        collapsible_element = CollapsibleElement(title="Generation Settings")
+        collapsible_element.add_subelements(self.generator_selection_elements)
+        collapsible_element.add_subelements(self.generation_elements)
+        self.add_element(collapsible_element)
+        collapsible_element = CollapsibleElement(title="Chat History")
+        collapsible_element.add_subelements(chat_history_elements)
+        self.add_element(collapsible_element)
         self.add_elements(chat_elements)
         self.add_elements(text_to_tokenizer_elements)
         self.add_elements(model_outputs_elements)

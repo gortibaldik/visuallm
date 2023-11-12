@@ -1,7 +1,7 @@
 from collections.abc import Callable
 
 from visuallm.components.ChatComponent import ChatComponent as ChatComponentBase
-from visuallm.elements import HeadingElement
+from visuallm.elements import CollapsibleElement, ElementBase
 from visuallm.elements.selector_elements import ButtonElement, ChoicesSubElement
 
 # TODO: it would be great to add sections (which are expandable, e.g. only
@@ -17,7 +17,7 @@ class ChatComponent(ChatComponentBase):
         select_traits_elements = self.init_select_persona_traits_elements(
             get_persona_traits
         )
-        self.add_elements(select_traits_elements, order=3.5)
+        self.add_elements(select_traits_elements, order=2.5)
         self.on_change_selected_traits()
 
     def update_chat_history_elements(self):
@@ -47,12 +47,10 @@ class ChatComponent(ChatComponentBase):
 
     def init_select_persona_traits_elements(
         self, get_persona_traits: Callable[[], list[str]]
-    ):
+    ) -> list[ElementBase]:
         """Init selectors of persona traits that the bot should have."""
         traits = get_persona_traits()
-        selection_heading_element = HeadingElement(
-            content="Select Bot's Persona Traits"
-        )
+        collapsible_element = CollapsibleElement(title="Select Bot's Persona Traits")
         self.button_select_persona_traits = ButtonElement(
             self.on_change_selected_traits,
             subelements=[
@@ -63,7 +61,8 @@ class ChatComponent(ChatComponentBase):
             ],
             button_text="Update Bot's Characteristics",
         )
-        return [selection_heading_element, self.button_select_persona_traits]
+        collapsible_element.add_subelement(self.button_select_persona_traits)
+        return [collapsible_element]
 
 
 def get_persona_traits() -> list[str]:
