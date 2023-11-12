@@ -63,7 +63,7 @@ class DataPreparationMixin(ABC):
                 Defaults to True.
         """
         self._dataset_choices: DATASETS_TYPE | None = None
-        self._dataset: DATASET_TYPE | None = None
+        self._dataset: DatasetProtocol | None = None
 
         self.initialize_data_button()
 
