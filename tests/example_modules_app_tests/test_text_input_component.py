@@ -8,8 +8,8 @@ from selenium.webdriver.common.keys import Keys
 
 
 @pytest.fixture()
-def link():
-    return "http://localhost:5000/index.html#/text_input_component"
+def link(port: int):
+    return f"http://localhost:{port}/index.html#/text_input_component"
 
 
 def test_insert_text_in_textarea(app, firefox_driver: Firefox, link):
@@ -83,16 +83,30 @@ def test_text_shown_in_wrap_element_after_form_submission(
     assert wrap_elems[1].text == test_text_value
 
 
-# TODO add test where the shift enter is pressed as a mean of using enter in the text input
+def test_special_text_shown_correctly_escaped(app, firefox_driver: Firefox, link):
+    firefox_driver.get(link)
+
+    test_text_value = "<div>Very Special Text</div>"
+    form = firefox_driver.find_element(By.TAG_NAME, "form")
+    textarea = form.find_element(By.TAG_NAME, "textarea")
+    textarea.send_keys(test_text_value)
+    button = form.find_element(By.TAG_NAME, "button")
+    button.click()
+    wrap_elems = firefox_driver.find_elements(By.CLASS_NAME, "wrapElement")
+    assert wrap_elems[1].text == test_text_value
+
+
 def test_enter_can_be_used_to_send_text(app, firefox_driver: Firefox, link):
     firefox_driver.get(link)
 
     expected_value = "Some short text."
     form = firefox_driver.find_element(By.TAG_NAME, "form")
     textarea = form.find_element(By.TAG_NAME, "textarea")
+    textarea.clear()
     textarea.send_keys(expected_value)
     textarea.send_keys(Keys.ENTER)
 
+    time.sleep(0.05)
     wrap_elems = firefox_driver.find_elements(By.CLASS_NAME, "wrapElement")
     assert wrap_elems[1].text == expected_value
 

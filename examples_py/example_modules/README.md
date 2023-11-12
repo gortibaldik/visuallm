@@ -36,6 +36,7 @@ from visuallm.server import Server
 
 from .components.bar_chart_component_advanced import BarChartComponentAdvanced
 from .components.bar_chart_component_simple import BarChartComponentSimple
+from .components.collapsible_subcomponent import ComponentWithSubcomponents
 from .components.selector_component import SelectorComponent
 from .components.selector_failing_component import SelectorFailingComponent
 from .components.table_component import TableComponent
@@ -47,6 +48,7 @@ def create_app() -> flask.Flask:
     flask_app = Server(
         __name__,
         [
+            ComponentWithSubcomponents(),
             BarChartComponentAdvanced(),
             BarChartComponentSimple(),
             BarChartComponentSimple(long_contexts=True, title="Long Contexts BarChart"),
@@ -388,7 +390,7 @@ class BarChartComponentAdvanced(ComponentBase):
         self.add_element(self.barchart_element)
         self.init_barchart_element()
 
-    def init_barchart_element(self):
+    def init_barchart_element(self) -> None:
         distributions: list[list[float]] = []
         size_of_distro = 5
         for _ in range(len(self._names_of_bars)):

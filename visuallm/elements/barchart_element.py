@@ -111,7 +111,7 @@ class BarChartElement(ElementWithEndpoint):
     def set_piece_infos(self, piece_infos: list[PieceInfo]):
         # changed is a property that is checked to include every change
         # in the message from BE to FE, essential for the app to function
-        self._changed = True
+        self.set_changed()
         self._piece_infos = piece_infos
 
     def construct_element_configuration(self):
@@ -137,7 +137,7 @@ class BarChartElement(ElementWithEndpoint):
 
         # changed is simply set to True as we do not have any means of testing whether
         # the user simply didn't selected the same value multiple times
-        self._changed = True
+        self.set_changed()
         self._selected = request.json.get("selected")
         if self.processing_callback is None:
             raise RuntimeError(

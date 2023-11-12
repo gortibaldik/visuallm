@@ -3,19 +3,6 @@ repos:
     rev: 23.3.0
     hooks:
       - id: black
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
-    hooks:
-      - id: flake8
-        args:
-          [
-            "--exclude",
-            "old/**",
-            "--ignore",
-            "E203,W503,E501",
-            "--per-file-ignores",
-            "__init__.py:F401",
-          ]
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: "v2.7.1"
     hooks:
@@ -39,24 +26,25 @@ repos:
     hooks:
       - id: ruff
         args: ["--fix"]
+  # - repo: local
+  #   hooks:
+  #     - id: pytests
+  #       name: pytests
+  #       entry: pytest
+  #       language: python
+  #       "types": [python]
+  #       pass_filenames: false
+  #       always_run: true
+  #       verbose: true
+  #       additional_dependencies: ["datasets"]
+  # TODO: set up mypy https://jaredkhan.com/blog/mypy-pre-commit
   - repo: local
     hooks:
-      - id: pytests
-        name: pytests
-        entry: pytest
+      - id: mypy
+        name: mypy
+        entry: mypy
         language: python
-        "types": [python]
-        pass_filenames: false
-        always_run: true
+        language_version: python3.10
+        types: [python]
         verbose: true
-        additional_dependencies: ["datasets"]
-# TODO: set up mypy https://jaredkhan.com/blog/mypy-pre-commit
-# - repo: local
-#   hooks:
-#     - id: mypy
-#       name: mypy
-#       entry: mypy
-#       language: python
-#       language_version: python3.10
-#       types: [python]
-#       verbose: true
+        always_run: true

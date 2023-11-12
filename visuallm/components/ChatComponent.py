@@ -1,7 +1,7 @@
-from typing import Any
+import logging
 
 from visuallm.component_base import ComponentBase
-from visuallm.components.generators.base import Generator
+from visuallm.components.generators.base import Generator, LoadedSample
 from visuallm.components.mixins.generation_selectors_mixin import (
     SELECTORS_TYPE,
     GenerationSelectorsMixin,
@@ -11,17 +11,23 @@ from visuallm.components.mixins.model_selection_mixin import (
     ModelSelectionMixin,
 )
 from visuallm.elements import (
+    CollapsibleElement,
     ElementBase,
     HeadingElement,
     MainHeadingElement,
     PlainTextElement,
+    TableElement,
 )
 from visuallm.elements.selector_elements import ButtonElement, TextInputSubElement
 
-# TODO: it would be great to add sections (which are expandable, e.g. only
-# title is shown when collapsed, everything is shown when expanded)
-
 # TODO: other than top to down linear organization
+
+
+class CreateTextToTokenizerChatIsNoneError(Exception):
+    def __init__(self) -> None:
+        super().__init__(
+            "Cannot use generator for chat because create_text_to_tokenizer_chat is None!"
+        )
 
 
 class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin):
@@ -40,15 +46,24 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
             generator_choices=generator_choices,
             generator=generator,
         )
+        self._check_generators(self.generator, generator_choices)
         GenerationSelectorsMixin.__init__(self, selectors=selectors)
         chat_elements = self.init_chat_elements()
         text_to_tokenizer_elements = self.init_text_to_tokenizer_elements()
         model_outputs_elements = self.init_model_outputs_elements()
-        self.loaded_sample: dict[str, Any] = {"history": [], "user_message": ""}
+        chat_history_elements = self.init_chat_history_elements()
+        self.loaded_sample: LoadedSample = LoadedSample(user_message="", history=[])
 
         self.add_element(main_heading_element)
-        self.add_elements(self.generator_selection_elements)
-        self.add_elements(self.generation_elements)
+        collapsible_element = CollapsibleElement(title="Generation Settings")
+        collapsible_element.add_subelements(self.generator_selection_elements)
+        collapsible_element.add_subelements(self.generation_elements)
+        self.add_element(collapsible_element)
+        collapsible_element = CollapsibleElement(
+            title="Chat History", is_collapsed=False
+        )
+        collapsible_element.add_subelements(chat_history_elements)
+        self.add_element(collapsible_element)
         self.add_elements(chat_elements)
         self.add_elements(text_to_tokenizer_elements)
         self.add_elements(model_outputs_elements)
@@ -69,8 +84,13 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         """Event that is fired when a send message button is pressed."""
         self.before_on_message_sent_callback()
 
+        if self.generator.create_text_to_tokenizer_chat is None:
+            raise CreateTextToTokenizerChatIsNoneError()
+
         # generate with the model
-        text_to_tokenizer = self.generator.create_text_to_tokenizer(self.loaded_sample)
+        text_to_tokenizer = self.generator.create_text_to_tokenizer_chat(
+            self.loaded_sample
+        )
         output = self.generator.generate_output(
             text_to_tokenizer, **self.selected_generation_parameters
         )
@@ -86,16 +106,27 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         self.button_accept_generation.disabled = False
 
     def before_on_accept_generation_callback(self):
-        """Callback called just before all the common elements are changed"""
+        """Callback called just before all the common elements are changed.
+        The accepted generation is added to history and chat history table is updated.
+        """
         self.loaded_sample["history"].extend(
             [
                 self.loaded_sample["user_message"],
                 self.model_output_display_element.content,
             ]
         )
+        self.update_chat_history_elements()
 
     def on_accept_generation_callback(self):
-        """After the generation is accepted, the messages in TODO: complete docstring"""
+        """After the generation is accepted, several elements are set to empty:
+        - display of the text that goes to tokenizer
+        - textarea which serves for the user to input text
+        - model output to accept
+
+        Accept generation button is disabled and the sendbutton text is set to "Send Message".
+
+        Before any action, `before_on_accept_generation_callback()` is called.
+        """
         self.before_on_accept_generation_callback()
 
         # after accepting:
@@ -122,6 +153,11 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         )
         return [self.chat_heading_element, self.chat_button_element]
 
+    def init_chat_history_elements(self) -> list[ElementBase]:
+        chat_history_heading = HeadingElement(content="Chat History")
+        self.chat_history_table = TableElement()
+        return [chat_history_heading, self.chat_history_table]
+
     def init_model_outputs_elements(self) -> list[ElementBase]:
         """Init elements which show the outputs of the model."""
         model_output_display_heading = HeadingElement(content="Model Output")
@@ -142,3 +178,34 @@ class ChatComponent(ComponentBase, ModelSelectionMixin, GenerationSelectorsMixin
         text_to_tokenizer_heading = HeadingElement("Text to Tokenizer")
         self.text_to_tokenizer_element = PlainTextElement()
         return [text_to_tokenizer_heading, self.text_to_tokenizer_element]
+
+    def update_chat_history_elements(self):
+        self.chat_history_table.clear()
+        who = ["You", "Bot"]
+        if len(self.loaded_sample["history"]) == 0:
+            return
+        self.chat_history_table.add_table(
+            title="CHAT HISTORY",
+            headers=["Who", "Utterance"],
+            rows=[[who[i % 2], u] for i, u in enumerate(self.loaded_sample["history"])],
+        )
+
+    def _check_generators(
+        self,
+        generator: Generator | None,
+        generator_choices: GENERATOR_CHOICES | None,
+    ):
+        if generator_choices is None:
+            if generator is None:
+                raise ValueError(
+                    "Either generator_choices or generator should not be None"
+                )
+            generator_choices = {"default": generator}
+
+        for _name, _generator in generator_choices.items():
+            if callable(_generator):
+                logging.info(f"Not checking generator '{_name}' because it is callable")
+                continue
+
+            if _generator.create_text_to_tokenizer_chat is None:
+                raise CreateTextToTokenizerChatIsNoneError()

@@ -1,30 +1,31 @@
 <template>
   <div class="horizontal rounded">
-    <component v-for="(element, name) in elements" :key="name" :is="element.component" :name="element.name"></component>
+    <component v-for="(element, idx) in elements" :key="idx" :is="element.component" :name="element.name"></component>
   </div>
 </template>
 
 <script lang="ts" scoped>
 import { defineComponent } from 'vue'
 import type { PollUntilSuccessGET } from '@/assets/pollUntilSuccessLib'
-import type { ProcessedContext, ElementDescription, ResponseFormat } from '@/assets/elementRegistry'
+import type { ProcessedContext, ResponseFormat } from '@/assets/elementRegistry'
 import PlainText from './elements/PlainText.vue'
 import BarChartSelect from './elements/BarChartSelect.vue'
 import Selector from './elements/Selector.vue'
 import Tables from './elements/Tables.vue'
-import TextInput from './elements/TextInput.vue'
+import CollapsibleElement from './elements/CollapsibleElement.vue'
 import { fetchDefault } from '@/assets/fetchPathsResolver'
 import { dataSharedInComponent } from '@/assets/reactiveData'
 
 export default defineComponent({
   data() {
     return {
-      elements: {} as { [name: string]: ProcessedContext },
+      elements: [] as ProcessedContext[],
       defaultPoll: undefined as PollUntilSuccessGET | undefined
     }
   },
   inject: ['backendAddress'],
   async created() {
+    /** TODO: Add some message during loading */
     await fetchDefault(
       this,
       this.backendAddress as string,
@@ -41,7 +42,7 @@ export default defineComponent({
     BarChartSelect,
     Selector,
     Tables,
-    TextInput
+    CollapsibleElement
   },
   methods: {
     /**

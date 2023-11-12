@@ -11,11 +11,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, shallowRef } from 'vue'
+import { defineComponent } from 'vue'
 import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiveData'
 import type ElementRegistry from '@/assets/elementRegistry'
-import { ElementDescription } from '@/assets/elementRegistry'
-import { valuesRequiredInConfiguration } from '@/assets/elementRegistry'
+import { registerElementBase } from '@/assets/elementRegistry'
 import { replaceAll } from '@/assets/stringMethods'
 
 // TODO: allow custom html in the plain text element
@@ -46,25 +45,19 @@ let component = defineComponent({
 })
 
 export default component
-export function registerElement(formatter: ElementRegistry) {
-  formatter.registeredElements['plain'] = {
-    component: shallowRef(component),
-    process: processElementDescr
-  }
+/**
+ * FEBEMapping is an object where key is the name of the config
+ * on the backend side and value is the name of the config on the
+ * frontend side.
+ */
+let FEBEMapping: { [key: string]: string } = {
+  value: "value",
+  heading: "heading",
+  heading_level: "headingLevel"
 }
 
-class ElementConfiguration extends ElementDescription {
-  value!: string
-  heading!: any
-  heading_level!: any
+export function registerElement(elementRegistry: ElementRegistry) {
+  registerElementBase(elementRegistry, "plain", component, FEBEMapping)
 }
 
-function processElementDescr(elementDescr: ElementConfiguration) {
-  valuesRequiredInConfiguration(elementDescr, ['value', 'heading', 'heading_level'])
-  return {
-    value: elementDescr.value,
-    heading: elementDescr.heading,
-    headingLevel: elementDescr.heading_level
-  }
-}
 </script>

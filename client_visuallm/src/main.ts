@@ -5,7 +5,7 @@ import { registerElement as registerPlain } from './elements/PlainText.vue'
 import { registerElement as registerBarChartSelect } from './elements/BarChartSelect.vue'
 import { registerElement as registerTables } from './elements/Tables.vue'
 import { registerElement as registerSampleSelector } from './elements/Selector.vue'
-import { registerElement as registerTextInput } from './elements/TextInput.vue'
+import { registerElement as registerCollapsibleSubComponent } from "./elements/CollapsibleElement.vue"
 import ElementRegistry from './assets/elementRegistry'
 import FetchPathsResolver from './assets/fetchPathsResolver'
 
@@ -16,7 +16,7 @@ registerPlain(elementRegistry)
 registerBarChartSelect(elementRegistry)
 registerTables(elementRegistry)
 registerSampleSelector(elementRegistry)
-registerTextInput(elementRegistry)
+registerCollapsibleSubComponent(elementRegistry)
 
 const router = createRouter({
   history: createWebHashHistory(),

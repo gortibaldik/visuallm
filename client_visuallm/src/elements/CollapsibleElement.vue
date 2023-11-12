@@ -1,0 +1,151 @@
+<template>
+    <!-- TODO: better styling of the button -->
+    <button :class="{ collapsible: true, active: isOpened, wrapElement: true }" @click="clickedCollapsible">{{ title
+    }}</button>
+    <div class="subcomponent content" ref="content" v-if="isOpened">
+        <component v-for="(element, idx) in elements" :key="idx" :is="element.component" :name="element.name" />
+    </div>
+</template>
+
+<script lang="ts" scoped>
+import ElementRegistry, { registerElementBase, type ProcessedContext } from '@/assets/elementRegistry';
+import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiveData';
+import { defineComponent, type Ref } from 'vue';
+import PlainText from '@/elements/PlainText.vue'
+import BarChartSelect from '@/elements/BarChartSelect.vue'
+import Selector from '@/elements/Selector.vue'
+import Tables from '@/elements/Tables.vue'
+import { reactive } from 'vue';
+
+interface SubComponentElement {
+    type: string
+    name: string
+}
+
+let component = defineComponent({
+    props: {
+        name: {
+            type: String,
+            required: true
+        }
+    },
+    data() {
+        return {
+            isOpened: false,
+        }
+    },
+    created() {
+        if (!this.isCollapsed) {
+            this.clickedCollapsible()
+        }
+    },
+    components: {
+        PlainText,
+        BarChartSelect,
+        Selector,
+        Tables
+    },
+    computed: {
+        elemDescrs(): SubComponentElement[] {
+            return dataSharedInComponent[getSharedDataUniqueName(this.name, 'subelements')] as SubComponentElement[]
+        },
+        elements(): ProcessedContext[] {
+            let subResponse = {
+                result: "success",
+                reason: undefined,
+                elementDescriptions: this.elemDescrs
+            }
+
+            let elements = [] as ProcessedContext[]
+            this.$elementRegistry.retrieveElementsFromResponse(subResponse, dataSharedInComponent, elements)
+
+            let reactiveElements = [] as ProcessedContext[]
+            // if the displayed object isn't marked as reactive, then for some reason
+            // it isn't displayed (vue component is not rendered)
+            for (let i = 0; i < elements.length; i++) {
+                let obj = reactive({
+                    component: this.$elementRegistry.registeredElements[this.elemDescrs[i].type].component,
+                    name: elements[i].name
+                })
+                reactiveElements.push(obj)
+            }
+            setTimeout(() => this.resizeContent(this.isOpened), 100)
+            return reactiveElements
+        },
+        title(): string {
+            return dataSharedInComponent[getSharedDataUniqueName(this.name, 'title')]
+        },
+        isCollapsed(): boolean {
+            return dataSharedInComponent[getSharedDataUniqueName(this.name, "isCollapsed")]
+        }
+    },
+    methods: {
+        resizeContent(open: boolean) {
+            let content = this.$refs.content as HTMLElement
+            if (!open) {
+                // @ts-ignore
+                content.style.maxHeight = null
+                return
+            }
+            content.style.maxHeight = content.scrollHeight + "px"
+        },
+        clickedCollapsible() {
+            if (!this.isOpened) {
+                this.isOpened = true
+                this.$nextTick(this.resizeContent.bind(this, true))
+            } else {
+                this.resizeContent(false)
+                setTimeout(() => this.isOpened = false, 200)
+            }
+
+        }
+    }
+})
+
+let FEBEMapping: { [key: string]: string } = {
+    "subelements": "subelements",
+    "title": "title",
+    "is_collapsed": "isCollapsed",
+}
+
+export function registerElement(elementRegistry: ElementRegistry) {
+    registerElementBase(elementRegistry, "collapsible-element", component, FEBEMapping)
+}
+
+export default component
+</script>
+
+<style scoped>
+.content {
+    /* padding: 0 18px; */
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+    background-color: rgb(246, 244, 244);
+    border-bottom: 0.2px solid grey;
+    border-left: 0.2px solid grey;
+    border-right: 0.2px solid grey;
+}
+
+.active,
+.collapsible:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.collapsible {
+    background-color: rgba(0, 0, 0, 0.409);
+    /* color: white; */
+    /* cursor: pointer; */
+    /* padding: 18px; */
+    display: block;
+    left: 0;
+    right: 0;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    border: none;
+    text-align: center;
+    /* outline: none; */
+    /* font-size: 15px; */
+}
+</style>

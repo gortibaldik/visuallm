@@ -1,3 +1,5 @@
+import logging
+
 from visuallm.component_base import ComponentBase
 from visuallm.components.generators.base import Generator, OutputProbabilityInterface
 from visuallm.components.mixins.data_preparation_mixin import (
@@ -18,8 +20,22 @@ from visuallm.components.mixins.model_selection_mixin import (
     GENERATOR_CHOICES,
     ModelSelectionMixin,
 )
-from visuallm.elements import HeadingElement, PlainTextElement
+from visuallm.elements import CollapsibleElement, HeadingElement, PlainTextElement
 from visuallm.elements.element_base import ElementBase
+
+
+class CreateTextToTokenizerIsNoneError(Exception):
+    def __init__(self) -> None:
+        super().__init__(
+            "self.generator.create_text_to_tokenizer cannot be None in GenerationComponent"
+        )
+
+
+class RetrieveTargetStrIsNoneError(Exception):
+    def __init__(self) -> None:
+        super().__init__(
+            "Retrieve_target_str is None, generator cannot be used for GenerationComponent"
+        )
 
 
 class GenerationComponent(
@@ -71,6 +87,7 @@ class GenerationComponent(
             generator_choices=generator_choices,
             generator=generator,
         )
+        self._check_generators(self.generator, generator_choices)
         DataPreparationMixin.__init__(
             self, dataset=dataset, dataset_choices=dataset_choices
         )
@@ -82,11 +99,19 @@ class GenerationComponent(
         )
         input_display_elements = self.init_model_input_display()
         self.add_element(self.main_heading_element)
-        self.add_elements(self.dataset_elements)
-        self.add_elements(self.generator_selection_elements)
-        self.add_elements(self.generation_elements)
-        self.add_elements(self.metrics_selection_elements)
-        self.add_elements(input_display_elements)
+        collapsible_element = CollapsibleElement(title="Configuration")
+        collapsible_element.add_subelements(self.dataset_elements)
+        collapsible_element.add_subelements(self.generator_selection_elements)
+        collapsible_element.add_subelements(self.generation_elements)
+        collapsible_element.add_subelements(self.metrics_selection_elements)
+        self.add_element(collapsible_element)
+
+        # naming everything the same because I lack originality
+        collapsible_element = CollapsibleElement(
+            title="Inputs to Model", is_collapsed=False
+        )
+        collapsible_element.add_subelements(input_display_elements)
+        self.add_element(collapsible_element)
         self.add_elements(self.metrics_display_elements)
 
     def __post_init__(self, *args, **kwargs):
@@ -110,6 +135,8 @@ class GenerationComponent(
         This method is called each time a new dataset sample is loaded,
         and the loaded dataset sample is stored in `self.loaded_sample`
         """
+        if self.generator.create_text_to_tokenizer is None:
+            raise CreateTextToTokenizerIsNoneError()
         self.text_to_tokenizer_element.content = (
             self.generator.create_text_to_tokenizer(self.loaded_sample)
         )
@@ -118,6 +145,8 @@ class GenerationComponent(
         """Generate outputs with the model, measure probabilities, compute all the
         metrics and update metrics display elements.
         """
+        if self.generator.retrieve_target_str is None:
+            raise RetrieveTargetStrIsNoneError()
         text_to_tokenizer = self.text_to_tokenizer_element.content
         output = self.generator.generate_output(
             text_to_tokenizer, **self.selected_generation_parameters
@@ -130,6 +159,8 @@ class GenerationComponent(
             isinstance(self.generator, OutputProbabilityInterface)
             and output.input_length is not None
         ):
+            if self.generator.create_text_to_tokenizer is None:
+                raise CreateTextToTokenizerIsNoneError()
             full_generated_texts = [
                 self.generator.create_text_to_tokenizer(self.loaded_sample, generated)
                 for generated in output.decoded_outputs
@@ -153,6 +184,8 @@ class GenerationComponent(
             isinstance(self.generator, OutputProbabilityInterface)
             and output.input_length is not None
         ):
+            if self.generator.create_text_to_tokenizer is None:
+                raise CreateTextToTokenizerIsNoneError()
             probs, output_sequences = self.generator.measure_output_probability(
                 [
                     self.generator.create_text_to_tokenizer(
@@ -183,3 +216,27 @@ class GenerationComponent(
 
     def metrics_processing_callback(self):
         return self.after_on_dataset_change_callback()
+
+    def _check_generators(
+        self,
+        generator: Generator | None,
+        generator_choices: GENERATOR_CHOICES | None,
+    ):
+        if generator_choices is None:
+            if generator is None:
+                raise ValueError(
+                    "Either generator_choices or generator should not be None"
+                )
+            generator_choices = {"default": generator}
+
+        for _name, _generator in generator_choices.items():
+            if callable(_generator):
+                logging.info(f"Not checking generator '{_name}' because it is callable")
+                continue
+            if (
+                isinstance(_generator, OutputProbabilityInterface)
+                and _generator.create_text_to_tokenizer is None
+            ):
+                raise CreateTextToTokenizerIsNoneError()
+            if _generator.retrieve_target_str is None:
+                raise RetrieveTargetStrIsNoneError()

@@ -21,6 +21,7 @@ class MetricDescription:
     """Whether the bar is also scalable, or should be kept at 100 for the
     metric number to be better visible
     """
+    metric_calculation: Callable[[Any, Any], Any]
 
 
 @dataclass
@@ -181,7 +182,9 @@ class MetricsMixin(ABC):
                 bar_names.append(name)
 
                 if name in self._metrics_on_generated_text:
-                    metric_description = self._metrics_on_generated_text[name]
+                    metric_description: MetricDescription = (
+                        self._metrics_on_generated_text[name]
+                    )
                     result = metric_description.metric_calculation(
                         generated_text, label_text
                     )

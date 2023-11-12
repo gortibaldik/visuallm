@@ -1,19 +1,23 @@
 import copy
-import json
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from datasets import DatasetDict
 
-
-import nltk
+try:
+    import nltk
+except ImportError:
+    _has_nltk = False
+else:
+    _has_nltk = True
 
 from visuallm import ComponentBase
 from visuallm.components.GenerationComponent import GeneratedTextMetric, ProbsMetric
 from visuallm.components.generators.base import (
     Generator,
 )
+from visuallm.components.generators.openai import OpenAIMessage
 from visuallm.components.mixins.generation_selectors_mixin import (
     CheckBoxSelectorType,
     MinMaxSelectorType,
@@ -53,10 +57,12 @@ def switch_persona_from_first_to_second_word(word: str):
 
 
 def switch_persona_from_first_to_second_sentence(sentence: str):
+    if not _has_nltk:
+        raise ImportError("Cannot execute switching personas without nltk.")
     return " ".join(
         [
             switch_persona_from_first_to_second_word(word)
-            for word in nltk.wordpunct_tokenize(sentence)
+            for word in nltk.wordpunct_tokenize(sentence)  # type: ignore
         ]
     )
 
@@ -80,6 +86,10 @@ def create_text_to_tokenizer(loaded_sample, target: str | None = None) -> str:
     return text_to_tokenizer
 
 
+def create_text_to_tokenizer_chat(loaded_sample) -> str:
+    return create_text_to_tokenizer(loaded_sample)
+
+
 def create_text_to_tokenizer_one_step(loaded_sample, received_tokens: list[str]):
     sample = copy.deepcopy(loaded_sample)
     if len(received_tokens) > 0:
@@ -93,8 +103,7 @@ def retrieve_target_str(loaded_sample):
     return loaded_sample["candidates"][-1]
 
 
-def create_text_to_tokenizer_openai(loaded_sample, target: str | None = None) -> str:
-    model = "gpt-3.5-turbo-0613"
+def create_system_traits(loaded_sample):
     system_traits = "You are a chatbot for the task where you try to impersonate a human who identifies himself with the following traits: "
     system_traits += " ".join(
         [
@@ -103,17 +112,29 @@ def create_text_to_tokenizer_openai(loaded_sample, target: str | None = None) ->
         ]
     )
     system_traits += " Your answers should be about a sentence long."
-    history = copy.deepcopy(loaded_sample["history"])
-    if ("user_message" in loaded_sample) and (
-        len(loaded_sample["user_message"].strip()) != 0
-    ):
-        history.append(copy.deepcopy(loaded_sample["user_message"]))
-    messages = [{"role": "system", "content": system_traits}]
-    roles = ["user", "assistant"]
-    for i, message in enumerate(history):
-        messages.append({"role": roles[i % 2], "content": message})
+    return system_traits
 
-    return json.dumps({"model": model, "messages": messages})
+
+def create_text_to_tokenizer_openai(loaded_sample, target: str | None = None) -> str:
+    api_message = OpenAIMessage(
+        system_message=create_system_traits(loaded_sample),
+        messages=copy.deepcopy(loaded_sample["history"]),
+        model="gpt-3.5-turbo-0613",
+    )
+    return api_message.construct_message()
+
+
+def create_text_to_tokenizer_chat_openai(loaded_sample) -> str:
+    history = copy.deepcopy(loaded_sample["history"])
+    if len(loaded_sample["user_message"].strip()) != 0:
+        history.append(copy.deepcopy(loaded_sample["user_message"]))
+
+    api_message = OpenAIMessage(
+        system_message=create_system_traits(loaded_sample),
+        messages=history,
+        model="gpt-3.5-turbo-0613",
+    )
+    return api_message.construct_message()
 
 
 def create_app(

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Protocol
 
 from flask import request
 
@@ -14,6 +14,11 @@ if TYPE_CHECKING:
     from visuallm.server import Server
 
 
+class OnElementChanged(Protocol):
+    def __call__(self):
+        ...
+
+
 class ElementBase(Named, ABC):
 
     """Base class for all elements in a single component. Element is a basic
@@ -21,7 +26,12 @@ class ElementBase(Named, ABC):
     element...
     """
 
-    def __init__(self, name: str, type: str):
+    def __init__(
+        self,
+        name: str,
+        type: str,
+        on_element_changed_callback: OnElementChanged | None = None,
+    ):
         """Base class for all elements with counterparts in the frontend.
 
         Args:
@@ -31,15 +41,28 @@ class ElementBase(Named, ABC):
                 the library appends number after the element.
             type (str): string that matches the backend element to the
                 frontend element.
+            on_element_changed_callback (OnElementChanged, optional): callback
+                called anytime a change in the element's value is detected
         """
         super().__init__(name)
         self._type = type
         self._order: float | None = None
         self._changed = True
+        self._is_registered_to_component: bool = False
+        self.on_element_changed_callback = on_element_changed_callback
+
+    @property
+    def is_registered_to_component(self):
+        return self._is_registered_to_component
 
     @property
     def changed(self):
         return self._changed
+
+    def set_changed(self):
+        self._changed = True
+        if self.on_element_changed_callback is not None:
+            self.on_element_changed_callback()
 
     @property
     def order(self) -> float:

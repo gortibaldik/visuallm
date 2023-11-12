@@ -64,7 +64,9 @@ class GenerationSelectorsMixin(ABC):
             if not selector_text.rstrip().endswith(":"):
                 selector_text = selector_text.rstrip() + ":"
             if isinstance(val, CheckBoxSelectorType):
-                selector = CheckBoxSubElement(selector_text, val.default_value)
+                selector: SelectorSubElement = CheckBoxSubElement(
+                    selector_text, val.default_value
+                )
             elif isinstance(val, MinMaxSelectorType):
                 selector = MinMaxSubElement(
                     sample_min=val.min,

@@ -1,6 +1,6 @@
+import dataclasses
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
 
 from .element_base import ElementBase
 
@@ -64,7 +64,7 @@ class LinkBetweenRows:
         self.Label = Label
         self._set_color(Color)
 
-    def _set_color(self, color):
+    def _set_color(self, color: Colors | str) -> None:
         if isinstance(color, Colors):
             self.Color: str = color.value
         elif isinstance(color, str):
@@ -84,30 +84,57 @@ class TableNameNotRegisteredError(ValueError):
         )
 
 
+@dataclasses.dataclass()
+class Table:
+    headers: list[str]
+    rows: list[list[str]]
+    title: str
+
+    def construct_table_description(self):
+        """Transform all the fields in the table to strings."""
+        for i in range(len(self.headers)):
+            self.headers[i] = str(self.headers[i])
+        for rix in range(len(self.rows)):
+            for cix in range(len(self.rows[rix])):
+                self.rows[rix][cix] = str(self.rows[rix][cix])
+        self.title = str(self.title)
+        return {"headers": self.headers, "rows": self.rows, "title": self.title}
+
+
 class TableElement(ElementBase):
     def __init__(self, name="table"):
         super().__init__(name=name, type="connected_tables")
         self.clear()
 
-    def clear(self):
-        self._changed = True
-        self._tables: dict[str, Any] = {}
-        self.tables = []
-        self.links = []
+    def clear(self) -> None:
+        """Set all the tables, and links between rows to empty lists."""
+        self.set_changed()
+        self._tables: dict[str, Table] = {}
+        self.tables: list[Table] = []
+        self.links: list[LinkBetweenRows] = []
 
     def check_rows(self, headers: list[str], rows: list[list[str]]):
         return all(len(row) == len(headers) for row in rows)
 
-    def add_table(self, title: str, headers: list[str], rows: list[list[str]]):
+    def add_table(
+        self,
+        title: str,
+        headers: list[str],
+        rows: list[list[str]],
+        prepend: bool = False,
+    ):
         if not self.check_rows(headers, rows):
             raise ValueError(
                 "The length of some row doesn't match the lenght of headers."
             )
         if title in self._tables:
             raise ValueError("Cannot add two tables with the same name!")
-        self._changed = True
-        self._tables[title] = {"headers": headers, "rows": rows, "title": title}
-        self.tables.append(self._tables[title])
+        self.set_changed()
+        self._tables[title] = Table(headers=headers, rows=rows, title=title)
+        if prepend:
+            self.tables = [self._tables[title]] + self.tables
+        else:
+            self.tables.append(self._tables[title])
 
     def add_link_between_rows(self, link: LinkBetweenRows):
         if (link.StartTable not in self._tables) or (link.EndTable not in self._tables):
@@ -115,15 +142,18 @@ class TableElement(ElementBase):
                 link.StartTable, link.EndTable, list(self._tables.keys())
             )
 
-        if (len(self._tables[link.StartTable]["rows"]) <= link.StartRow) or (
-            len(self._tables[link.EndTable]["rows"]) <= link.EndRow
+        if (len(self._tables[link.StartTable].rows) <= link.StartRow) or (
+            len(self._tables[link.EndTable].rows) <= link.EndRow
         ):
             raise ValueError(
-                f"{len(self._tables[link.StartTable]['rows']), link.StartRow}"
-                f"{len(self._tables[link.EndTable]['rows']), link.EndRow}"
+                f"{len(self._tables[link.StartTable].rows), link.StartRow}"
+                f"{len(self._tables[link.EndTable].rows), link.EndRow}"
             )
-        self._changed = True
+        self.set_changed()
         self.links.append(link)
 
     def construct_element_configuration(self):
-        return {"tables": self.tables, "links": self.links}
+        return {
+            "tables": [t.construct_table_description() for t in self.tables],
+            "links": self.links,
+        }

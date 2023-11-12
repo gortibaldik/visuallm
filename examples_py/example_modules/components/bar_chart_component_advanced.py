@@ -13,7 +13,7 @@ class BarChartComponentAdvanced(ComponentBase):
         self.add_element(self.barchart_element)
         self.init_barchart_element()
 
-    def init_barchart_element(self):
+    def init_barchart_element(self) -> None:
         distributions: list[list[float]] = []
         size_of_distro = 5
         for _ in range(len(self._names_of_bars)):

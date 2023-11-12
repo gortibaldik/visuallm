@@ -1,12 +1,15 @@
+import time
+
 import pytest
 from selenium.webdriver import Firefox
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 
 @pytest.fixture()
-def link():
-    return "http://localhost:5000/index.html#/chat_component"
+def link(port: int):
+    return f"http://localhost:{port}/index.html#/chat_component"
 
 
 def test_after_send_message_should_stay(app, firefox_driver: Firefox, link: str):
@@ -78,11 +81,17 @@ def test_after_accept_generation_table_should_be_extended(
 
     spaced_tables = firefox_driver.find_element(By.CLASS_NAME, "spacedTables")
     history_table = spaced_tables.find_elements(By.CLASS_NAME, "table-wrapper")[-1]
-    rows = history_table.find_elements(By.TAG_NAME, "tr")
+    tbody = history_table.find_element(By.TAG_NAME, "tbody")
+    rows = tbody.find_elements(By.TAG_NAME, "tr")
     cells = [[d.text for d in r.find_elements(By.TAG_NAME, "td")] for r in rows]
 
-    assert ";".join(cells[-1]) == "OTHER;generated text: 'test message'"
-    assert ";".join(cells[-2]) == "BOT;test message"
+    assert ";".join(cells[-1]) == "Bot;generated text: 'test message'"
+    assert ";".join(cells[-2]) == "You;test message"
+
+    # clean-up
+    collapsible_element = firefox_driver.find_elements(By.CLASS_NAME, "collapsible")[-1]
+    collapsible_element.click()
+    time.sleep(0.2)
 
 
 def test_exception_raised(
@@ -119,7 +128,69 @@ def test_exception_raised(
 
     # send message
     elem.send_keys(Keys.ENTER)
+    time.sleep(0.2)
 
     text_elems = firefox_driver.find_elements(By.CLASS_NAME, "plainText")
     assert text_elems[0].text == sent_message
     assert text_elems[1].text == f"generated text: '{sent_message}'"
+
+
+def test_change_traits_traits_changed_text_cleared(
+    app, firefox_driver: Firefox, link: str
+):
+    firefox_driver.get(link)
+
+    textarea = firefox_driver.find_element(By.TAG_NAME, "textarea")
+    textarea.clear()
+    textarea.send_keys("Some Message")
+    textarea.send_keys(Keys.ENTER)
+
+    # assert correct starting position
+    # expand collapsible with history
+    collapsible_element = firefox_driver.find_elements(By.CLASS_NAME, "collapsible")[-1]
+    collapsible_element.click()
+    time.sleep(0.2)
+
+    table = firefox_driver.find_element(By.TAG_NAME, "table")
+    tbody = table.find_element(By.TAG_NAME, "tbody")
+    val = tbody.find_element(By.TAG_NAME, "td")
+    assert val.text == "trait_0"
+
+    # collapse collapsible with history
+    collapsible_element = firefox_driver.find_elements(By.CLASS_NAME, "collapsible")[-1]
+    collapsible_element.click()
+
+    # expand collapsible with select persona traits
+    collapsible_element = firefox_driver.find_elements(By.CLASS_NAME, "collapsible")[-2]
+    collapsible_element.click()
+    time.sleep(0.2)
+
+    wrapper = firefox_driver.find_element(By.TAG_NAME, "form")
+    subselector_wrapper = wrapper.find_element(By.CLASS_NAME, "subSelectorsWrapper")
+    selector = subselector_wrapper.find_element(By.CLASS_NAME, "multiselect")
+    selector.click()
+    ActionChains(firefox_driver).send_keys(Keys.DOWN).perform()
+    ActionChains(firefox_driver).send_keys(Keys.ENTER).perform()
+
+    button = wrapper.find_element(By.TAG_NAME, "button")
+
+    assert button.text == "Update Bot's Characteristics"
+    button.click()
+
+    # collapse collapsible with persona traits
+    collapsible_element = firefox_driver.find_elements(By.CLASS_NAME, "collapsible")[-2]
+    collapsible_element.click()
+
+    # expand collapsible with history
+    collapsible_element = firefox_driver.find_elements(By.CLASS_NAME, "collapsible")[-1]
+    collapsible_element.click()
+    time.sleep(0.2)
+
+    table = firefox_driver.find_element(By.TAG_NAME, "table")
+    tbody = table.find_element(By.TAG_NAME, "tbody")
+    val = tbody.find_element(By.TAG_NAME, "td")
+    assert val.text == "trait_1"
+
+    # assert text cleared
+    textarea = firefox_driver.find_element(By.TAG_NAME, "textarea")
+    assert textarea.get_attribute("value") == ""

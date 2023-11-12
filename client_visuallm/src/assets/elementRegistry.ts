@@ -1,4 +1,4 @@
-import type { Component, App } from 'vue'
+import { type Component, type App, shallowRef } from 'vue'
 import { getSharedDataUniqueName } from './reactiveData'
 
 export type ProcessedContext = {
@@ -72,7 +72,7 @@ export default class ElementRegistry {
   retrieveElementsFromResponse(
     response: ResponseFormat,
     reactiveStore: { [name: string]: any },
-    elements: { [name: string]: any } | undefined = undefined
+    elements: any[] | undefined = undefined
   ) {
     if (response.result === "exception") {
       alert(`Exception: ${response.reason}`)
@@ -83,10 +83,10 @@ export default class ElementRegistry {
       const elementDescr = elementDescriptions[i]
       const elementData = this.createElementDataFromDescription(elementDescr)
       if (elements !== undefined) {
-        elements[elementDescr.name] = {
+        elements.push({
           component: elementData.component,
           name: elementDescr.name
-        }
+        })
       }
       for (const [key, data] of entries(elementData.data)) {
         reactiveStore[getSharedDataUniqueName(elementDescr.name, key)] = data
@@ -116,4 +116,38 @@ export function valuesRequiredInConfiguration(configuration: any, vals: string[]
       throw RangeError(`Invalid configuration! ('${val}' not in configuration)`)
     }
   }
+}
+
+/**
+ * @param febeMapping an object where key is the name of the config
+ *  on the backend side and value is the name of the config on the
+ *  frontend side.
+ */
+export function registerElementBase(
+  elementRegistry: ElementRegistry,
+  nameOfComponent: string,
+  component: Component,
+  febeMapping: {[key: string]: string}
+) {
+  elementRegistry.registeredElements[nameOfComponent] = {
+    component: shallowRef(component),
+    process: (elementDescr: {[key: string]: any}) => processElementDescrBase(elementDescr, febeMapping)
+  }
+}
+
+/**
+ *
+ * @param elementDescr
+ * @param mappingFrontendBackend  an object where key is the name of the config
+ *  on the backend side and value is the name of the config on the
+ *  frontend side.
+ * @returns object that is parsed by ElementRegistry to shared component data
+ */
+export function processElementDescrBase(elementDescr: { [key: string]: any }, mappingFrontendBackend: {[key: string]: string}) {
+  valuesRequiredInConfiguration(elementDescr, Object.keys(mappingFrontendBackend))
+  let returnObject: { [key: string]: any } = {}
+  for (const key of Object.keys(mappingFrontendBackend)) {
+    returnObject[mappingFrontendBackend[key]] = elementDescr[key]
+  }
+  return returnObject
 }

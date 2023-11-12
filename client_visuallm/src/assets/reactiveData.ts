@@ -23,7 +23,8 @@ export function getSharedDataUniqueName(elementName: string, configName: string)
 }
 
 export function getSharedDataElementName(name: string) {
-  return name.split('>>')[1]
+  let names = name.split('>>')
+  return names[names.length - 1]
 }
 
 export function assignRequiredValuesToSharedData(

@@ -83,7 +83,7 @@ class ButtonElement(ElementWithEndpoint):
     @disabled.setter
     def disabled(self, value: bool):
         if value != self._disabled:
-            self._changed = True
+            self.set_changed()
         self._disabled = value
 
     @property
@@ -93,7 +93,7 @@ class ButtonElement(ElementWithEndpoint):
     @button_text.setter
     def button_text(self, value: str):
         if value != self._button_text:
-            self._changed = True
+            self.set_changed()
         self._button_text = value
 
     def construct_element_configuration(self):
@@ -254,7 +254,7 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
                 "Cannot set the element to the updated state without "
                 "atributing the element to the parent component"
             )
-        self.parent_element._changed = True
+        self.parent_element.set_changed()
         self._updated = True
 
     def unset_updated(self):
@@ -431,6 +431,7 @@ class TextInputSubElement(SelectorSubElement[str]):
     def placeholder_text(self):
         return self._placeholder_text
 
+    # TODO: make force set updated on change a decorator
     @placeholder_text.setter
     def placeholder_text(self, value: str):
         if value != self._placeholder_text:

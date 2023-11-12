@@ -15,7 +15,7 @@
 import DesignLoading from './Design_Loading.vue'
 import { defineComponent, shallowRef } from 'vue'
 import { dataSharedInComponent, getSharedDataUniqueName, getSharedDataElementName } from '@/assets/reactiveData'
-import type Formatter from '@/assets/elementRegistry'
+import type ElementRegistry from '@/assets/elementRegistry'
 import { ElementDescription, valuesRequiredInConfiguration, entries } from '@/assets/elementRegistry'
 import { PollUntilSuccessPOST } from '@/assets/pollUntilSuccessLib'
 import {
@@ -88,10 +88,10 @@ let component = defineComponent({
       for (let key in Object.keys(this.subElementConfigurationsFE)) {
         let config = this.subElementConfigurationsFE[key]
         let subElementValueName = getSharedDataUniqueName(config.name, "selected")
-        let elementName = getSharedDataElementName(config.name)
+        let subelementName = getSharedDataElementName(config.name)
         let elementValue = dataSharedInComponent[subElementValueName]
 
-        dataToSend[elementName] = elementValue
+        dataToSend[subelementName] = elementValue
       }
 
       this.loadingInProgress = true
@@ -158,15 +158,15 @@ class ElementConfiguration extends ElementDescription {
   disabled!: boolean
 }
 
-export function registerElement(formatter: Formatter) {
-  formatter.registeredElements['button'] = {
+export function registerElement(elementRegistry: ElementRegistry) {
+  elementRegistry.registeredElements['button'] = {
     component: shallowRef(component),
     process: processElementDescr
   }
 }
 
 function processElementDescr(configuration: ElementConfiguration) {
-  valuesRequiredInConfiguration(configuration, ['subelement_configs', 'address', 'button_text', 'disabled'])
+  valuesRequiredInConfiguration(configuration, Object.keys(ElementConfiguration))
 
   let data = {
     address: configuration.address,
