@@ -14,26 +14,31 @@ def test_both_collapsibles_work(app, firefox_driver: Firefox, link: str):
     firefox_driver.get(link)
 
     collapsible_buttons = firefox_driver.find_elements(By.CLASS_NAME, "collapsible")
-    assert len(collapsible_buttons) == 2
+    assert len(collapsible_buttons) == 3
 
-    first_collapsible, second_collapsible = collapsible_buttons
-    collapsible_contents = firefox_driver.find_elements(By.CLASS_NAME, "subcomponent")
-    assert len(collapsible_contents) == 0
-
-    first_collapsible.click()
+    first_collapsible, second_collapsible, third_collapsible = collapsible_buttons
     collapsible_contents = firefox_driver.find_elements(By.CLASS_NAME, "subcomponent")
     assert len(collapsible_contents) == 1
 
-    second_collapsible.click()
+    first_collapsible.click()
     collapsible_contents = firefox_driver.find_elements(By.CLASS_NAME, "subcomponent")
     assert len(collapsible_contents) == 2
+
+    second_collapsible.click()
+    collapsible_contents = firefox_driver.find_elements(By.CLASS_NAME, "subcomponent")
+    assert len(collapsible_contents) == 3
 
     first_collapsible.click()
     time.sleep(0.2)
     collapsible_contents = firefox_driver.find_elements(By.CLASS_NAME, "subcomponent")
-    assert len(collapsible_contents) == 1
+    assert len(collapsible_contents) == 2
 
     second_collapsible.click()
+    time.sleep(0.2)
+    collapsible_contents = firefox_driver.find_elements(By.CLASS_NAME, "subcomponent")
+    assert len(collapsible_contents) == 1
+
+    third_collapsible.click()
     time.sleep(0.2)
     collapsible_contents = firefox_driver.find_elements(By.CLASS_NAME, "subcomponent")
     assert len(collapsible_contents) == 0
@@ -43,9 +48,9 @@ def test_button_in_collapsible_works(app, firefox_driver: Firefox, link: str):
     firefox_driver.get(link)
 
     collapsible_buttons = firefox_driver.find_elements(By.CLASS_NAME, "collapsible")
-    assert len(collapsible_buttons) == 2
+    assert len(collapsible_buttons) == 3
 
-    first_collapsible, second_collapsible = collapsible_buttons
+    first_collapsible, second_collapsible, third_collapsible = collapsible_buttons
 
     # open second collapsible in order to read the text
     second_collapsible.click()
@@ -86,9 +91,9 @@ def test_selector_has_the_correct_value(app, firefox_driver: Firefox, link: str)
     firefox_driver.get(link)
 
     collapsible_buttons = firefox_driver.find_elements(By.CLASS_NAME, "collapsible")
-    assert len(collapsible_buttons) == 2
+    assert len(collapsible_buttons) == 3
 
-    first_collapsible, second_collapsible = collapsible_buttons
+    first_collapsible, second_collapsible, third_collapsible = collapsible_buttons
     first_collapsible.click()
 
     subcomponent = firefox_driver.find_element(By.CLASS_NAME, "subcomponent")
