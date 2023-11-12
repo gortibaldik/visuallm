@@ -32,6 +32,17 @@ class ComponentWithSubcomponents(ComponentBase):
         self.add_element(
             CollapsibleElement(title="Show Text", subelements=[self.plain_text_element])
         )
+        self.add_element(
+            CollapsibleElement(
+                title="This Element is by Default Expanded",
+                subelements=[
+                    PlainTextElement(
+                        "You can set the collapsible element to be expanded by default by setting `is_collapsible = True`"
+                    )
+                ],
+                is_collapsed=False,
+            )
+        )
 
     def increase_count(self):
         self._value += 1

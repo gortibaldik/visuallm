@@ -118,6 +118,11 @@ export function valuesRequiredInConfiguration(configuration: any, vals: string[]
   }
 }
 
+/**
+ * @param febeMapping an object where key is the name of the config
+ *  on the backend side and value is the name of the config on the
+ *  frontend side.
+ */
 export function registerElementBase(
   elementRegistry: ElementRegistry,
   nameOfComponent: string,

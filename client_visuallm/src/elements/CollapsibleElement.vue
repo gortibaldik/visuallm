@@ -35,7 +35,9 @@ let component = defineComponent({
         }
     },
     created() {
-        console.log("collapsible created!")
+        if (!this.isCollapsed) {
+            this.clickedCollapsible()
+        }
     },
     components: {
         PlainText,
@@ -71,6 +73,9 @@ let component = defineComponent({
         },
         title(): string {
             return dataSharedInComponent[getSharedDataUniqueName(this.name, 'title')]
+        },
+        isCollapsed(): boolean {
+            return dataSharedInComponent[getSharedDataUniqueName(this.name, "isCollapsed")]
         }
     },
     methods: {
@@ -98,7 +103,8 @@ let component = defineComponent({
 
 let FEBEMapping: { [key: string]: string } = {
     "subelements": "subelements",
-    "title": "title"
+    "title": "title",
+    "is_collapsed": "isCollapsed",
 }
 
 export function registerElement(elementRegistry: ElementRegistry) {

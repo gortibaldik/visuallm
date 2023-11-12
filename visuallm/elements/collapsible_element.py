@@ -12,8 +12,9 @@ class CollapsibleElement(ElementWithEndpoint):
     def __init__(
         self,
         name: str = "collapsible-element",
-        title="COLLAPSIBLE TITLE",
+        title: str = "COLLAPSIBLE TITLE",
         subelements: list[ElementBase] | None = None,
+        is_collapsed: bool = True,
     ):
         """Element that serves as a parent element of its child subelements. On the frontend it is displayed as a button
         with text `title` that after click expands and shows all the other child subelements.
@@ -29,14 +30,27 @@ class CollapsibleElement(ElementWithEndpoint):
                 (dummy default should notify you on the page that it should be updated)
             subelements (list[ElementBase] | None, optional): Subelements that will be displayed in the expanded section of the
                 collapsible. Defaults to None.
+            is_collapsed (bool, optional): Whether by default (on page load), this element is in collapsed or expanded state.
         """
         super().__init__(name=name, type="collapsible-element", endpoint_url="dummy")
         self._title = title
+        self._is_collapsed = is_collapsed
         self.subelements: list[ElementBase] = []
         self.registered_subelement_names = set()
 
         if subelements is not None:
             self.add_subelements(subelements)
+
+    @property
+    def is_collapsed(self):
+        """Whether by default (on page load), this element is in collapsed or expanded state."""
+        return self._is_collapsed
+
+    @is_collapsed.setter
+    def is_collapsed(self, value: bool):
+        if value != self._is_collapsed:
+            self.set_changed()
+        self._is_collapsed = value
 
     @property
     def title(self):
@@ -135,6 +149,7 @@ class CollapsibleElement(ElementWithEndpoint):
             subelements.append(descr)
         return {
             "title": self.title,
+            "is_collapsed": self.is_collapsed,
             "subelements": subelements,
         }
 
