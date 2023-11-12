@@ -41,8 +41,8 @@ _personality = [f"personality{i}" for i in range(4)]
 _dataset_data: dict[str, Sequence[dict[str, Any]]] = {  # type: ignore
     f"split_{six}": [
         TestSample(
-            text="s{six}text{tix}",
-            target="s{six}target{tix}",
+            text=f"s{six}text{tix}",
+            target=f"s{six}target{tix}",
             history=_history,
             candidates=_candidates,
             personality=_personality,

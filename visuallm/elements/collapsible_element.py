@@ -11,7 +11,7 @@ from visuallm.server import Server
 class CollapsibleElement(ElementWithEndpoint):
     def __init__(
         self,
-        name: str = "collapsible-subcomponent",
+        name: str = "collapsible-element",
         title="COLLAPSIBLE TITLE",
         subelements: list[ElementBase] | None = None,
     ):
@@ -30,9 +30,7 @@ class CollapsibleElement(ElementWithEndpoint):
             subelements (list[ElementBase] | None, optional): Subelements that will be displayed in the expanded section of the
                 collapsible. Defaults to None.
         """
-        super().__init__(
-            name=name, type="collapsible-subcomponent", endpoint_url="dummy"
-        )
+        super().__init__(name=name, type="collapsible-element", endpoint_url="dummy")
         self._title = title
         self.subelements: list[ElementBase] = []
         self.registered_subelement_names = set()

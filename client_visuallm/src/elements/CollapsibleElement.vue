@@ -102,7 +102,7 @@ let FEBEMapping: { [key: string]: string } = {
 }
 
 export function registerElement(elementRegistry: ElementRegistry) {
-    registerElementBase(elementRegistry, "collapsible-subcomponent", component, FEBEMapping)
+    registerElementBase(elementRegistry, "collapsible-element", component, FEBEMapping)
 }
 
 export default component
