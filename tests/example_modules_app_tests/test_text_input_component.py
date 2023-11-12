@@ -96,16 +96,17 @@ def test_special_text_shown_correctly_escaped(app, firefox_driver: Firefox, link
     assert wrap_elems[1].text == test_text_value
 
 
-# TODO add test where the shift enter is pressed as a mean of using enter in the text input
 def test_enter_can_be_used_to_send_text(app, firefox_driver: Firefox, link):
     firefox_driver.get(link)
 
     expected_value = "Some short text."
     form = firefox_driver.find_element(By.TAG_NAME, "form")
     textarea = form.find_element(By.TAG_NAME, "textarea")
+    textarea.clear()
     textarea.send_keys(expected_value)
     textarea.send_keys(Keys.ENTER)
 
+    time.sleep(0.05)
     wrap_elems = firefox_driver.find_elements(By.CLASS_NAME, "wrapElement")
     assert wrap_elems[1].text == expected_value
 
