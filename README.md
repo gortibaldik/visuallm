@@ -7,7 +7,7 @@
 
 ![example workflow](https://github.com/gortibaldik/visuallm/actions/workflows/python-test.yaml/badge.svg)
 
-## VERSION: `0.3.0` changelog
+## VERSION: `0.3.1` changelog
 
 - added exception handling
 - merged TextInputElement and ButtonElement (TextInputElement became a SubElement)
