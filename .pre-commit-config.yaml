@@ -42,7 +42,7 @@ repos:
     hooks:
       - id: mypy
         name: mypy
-        entry: mypy .
+        entry: "./run_mypy.sh"
         language: python
         language_version: python3.10
         types: [python]

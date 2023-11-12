@@ -41,7 +41,7 @@ class GeneratedOutput:
     """Length of the tokenized inputs"""
 
 
-class Generator(ABC):
+class Generator:
     create_text_to_tokenizer: CreateTextToTokenizer | None
     """The library enforces the following flow:
     1. a text to the tokenizer is created from the loaded sample and returned (handled by this method)
@@ -61,9 +61,8 @@ class Generator(ABC):
         """
         return False
 
-    @abstractmethod
     def generate_output(self, text_to_tokenizer: str, **kwargs) -> GeneratedOutput:
-        ...
+        raise NotImplementedError()
 
 
 class NextTokenPredictionInterface(ABC):
