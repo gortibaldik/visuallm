@@ -132,7 +132,7 @@ So we will add a `TableElement` which will display the two tables, one with bot'
 ```py
 # ./examples_py/persona_chat_example/components/input_display.py lines 9-55
 class PersonaChatVisualization:
-    def __init__(self):
+    def __init__(self) -> None:
         # just for the typechecker to not complain
         self.loaded_sample: Any = 1
 
