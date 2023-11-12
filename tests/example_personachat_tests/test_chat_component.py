@@ -82,8 +82,8 @@ def test_after_accept_generation_table_should_be_extended(
     rows = history_table.find_elements(By.TAG_NAME, "tr")
     cells = [[d.text for d in r.find_elements(By.TAG_NAME, "td")] for r in rows]
 
-    assert ";".join(cells[-1]) == "OTHER;generated text: 'test message'"
-    assert ";".join(cells[-2]) == "BOT;test message"
+    assert ";".join(cells[-1]) == "Bot;generated text: 'test message'"
+    assert ";".join(cells[-2]) == "You;test message"
 
 
 def test_exception_raised(
@@ -143,7 +143,7 @@ def test_change_traits_traits_changed_text_cleared(
     val = tbody.find_element(By.TAG_NAME, "td")
     assert val.text == "trait_0"
 
-    wrapper = firefox_driver.find_elements(By.TAG_NAME, "form")[1]
+    wrapper = firefox_driver.find_elements(By.TAG_NAME, "form")[2]
     subselector_wrapper = wrapper.find_element(By.CLASS_NAME, "subSelectorsWrapper")
     selector = subselector_wrapper.find_element(By.CLASS_NAME, "multiselect")
     selector.click()
