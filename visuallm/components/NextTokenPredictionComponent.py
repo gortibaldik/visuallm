@@ -180,7 +180,7 @@ class NextTokenPredictionComponent(
         )
         self.text_to_tokenizer_element.content = text_to_tokenizer
 
-    def run_generation_one_step(self):
+    def run_generation_one_step(self) -> None:
         """Run one step of the generation and populates the token probabilities component
         with the next token probabilities.
         """

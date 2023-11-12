@@ -36,7 +36,7 @@ class CollapsibleElement(ElementWithEndpoint):
         self._title = title
         self._is_collapsed = is_collapsed
         self.subelements: list[ElementBase] = []
-        self.registered_subelement_names = set()
+        self.registered_subelement_names: set[str] = set()
 
         if subelements is not None:
             self.add_subelements(subelements)

@@ -62,7 +62,9 @@ class DataPreparationMixin(ABC):
                 the same as what is already loaded. May be used for send as restart functionality,
                 Defaults to True.
         """
-        self._dataset, self._dataset_choices = None, None
+        self._dataset_choices: DATASETS_TYPE | None = None
+        self._dataset: DATASET_TYPE | None = None
+
         self.initialize_data_button()
 
         if keep_datasets_in_memory:
@@ -77,10 +79,13 @@ class DataPreparationMixin(ABC):
             keys = dataset_choices.keys()
             default_dataset_key = next(iter(keys))
 
+            def load_dataset_fn():
+                if dataset_choices is None:
+                    raise RuntimeError("Dataset choices became None!")
+                return self.load_dataset(dataset_choices[default_dataset_key])
+
             self.load_cached_dataset(
-                load_dataset_fn=lambda: self.load_dataset(
-                    dataset_choices[default_dataset_key]
-                ),
+                load_dataset_fn=load_dataset_fn,
                 name=default_dataset_key,
             )
 
@@ -88,7 +93,13 @@ class DataPreparationMixin(ABC):
             if dataset_choices is not None:
                 raise ValueError("Cannot specify both dataset and dataset_choices!")
             self._dataset_choices = None
-            self.load_cached_dataset(lambda: self.load_dataset(dataset))
+
+            def load_dataset_fn():
+                if dataset is None:
+                    raise RuntimeError("Dataset became None!")
+                return self.load_dataset(dataset)
+
+            self.load_cached_dataset(load_dataset_fn=load_dataset_fn)
 
         self._loaded_sample: Any = self.get_split()[
             int(self.sample_selector_element.value_on_backend)

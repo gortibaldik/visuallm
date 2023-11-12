@@ -64,7 +64,7 @@ class LinkBetweenRows:
         self.Label = Label
         self._set_color(Color)
 
-    def _set_color(self, color):
+    def _set_color(self, color: Colors | str) -> None:
         if isinstance(color, Colors):
             self.Color: str = color.value
         elif isinstance(color, str):
@@ -106,7 +106,7 @@ class TableElement(ElementBase):
         super().__init__(name=name, type="connected_tables")
         self.clear()
 
-    def clear(self):
+    def clear(self) -> None:
         """Set all the tables, and links between rows to empty lists."""
         self.set_changed()
         self._tables: dict[str, Table] = {}

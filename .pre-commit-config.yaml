@@ -37,13 +37,14 @@ repos:
   #       always_run: true
   #       verbose: true
   #       additional_dependencies: ["datasets"]
-# TODO: set up mypy https://jaredkhan.com/blog/mypy-pre-commit
-# - repo: local
-#   hooks:
-#     - id: mypy
-#       name: mypy
-#       entry: mypy
-#       language: python
-#       language_version: python3.10
-#       types: [python]
-#       verbose: true
+  # TODO: set up mypy https://jaredkhan.com/blog/mypy-pre-commit
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: mypy
+        language: python
+        language_version: python3.10
+        types: [python]
+        verbose: true
+        always_run: true

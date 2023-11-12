@@ -47,7 +47,7 @@ class ComponentBase(Named, metaclass=ComponentMetaclass):
         self.title = title
 
         # register all elements to component structures
-        self.registered_element_names = set()
+        self.registered_element_names: set[str] = set()
         self.registered_elements: list[ElementBase] = []
         self.registered_url_endpoints: MutableSet[str] = set()
 
@@ -56,10 +56,10 @@ class ComponentBase(Named, metaclass=ComponentMetaclass):
     def __post_init__(self, *args, **kwargs):
         pass
 
-    def _get_order(self, order: float | None):
+    def _get_order(self, order: float | None) -> float:
         if order is None:
             if len(self.registered_elements) == 0:
-                currently_biggest_priority = 0
+                currently_biggest_priority = 0.0
             else:
                 currently_biggest_priority = max(
                     e.order for e in self.registered_elements

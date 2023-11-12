@@ -7,7 +7,7 @@ from visuallm.elements.table_element import TableElement
 
 
 class PersonaChatVisualization:
-    def __init__(self):
+    def __init__(self) -> None:
         # just for the typechecker to not complain
         self.loaded_sample: Any = 1
 

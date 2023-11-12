@@ -22,14 +22,14 @@ class GeneratorStub(Generator, NextTokenPredictionInterface):
     def __init__(self):
         self.token_step = 0
 
-    def create_text_to_tokenizer_chat(self, loaded_sample: LoadedSample) -> str:
+    def create_text_to_tokenizer_chat(self, loaded_sample: LoadedSample) -> str:  # type: ignore[override]
         text = loaded_sample["user_message"]
         if text == EXCEPTION_MESSAGE:
             raise ValueError("Exception raised during generation!")
 
         return text
 
-    def create_text_to_tokenizer(
+    def create_text_to_tokenizer(  # type: ignore[override]
         self, loaded_sample: dict[str, Any], target: Any | None = None
     ) -> str:
         """The returned text is just the old text."""
@@ -58,12 +58,12 @@ class GeneratorStub(Generator, NextTokenPredictionInterface):
     def convert_token_to_string(self, token: str):
         return token
 
-    def create_text_to_tokenizer_one_step(
+    def create_text_to_tokenizer_one_step(  # type: ignore[override]
         self, loaded_sample: Any, received_tokens: list[str]
     ):
         return loaded_sample["text"] + "".join(received_tokens)
 
-    def retrieve_target_str(self, loaded_sample: dict[str, Any]) -> str:
+    def retrieve_target_str(self, loaded_sample: dict[str, Any]) -> str:  # type: ignore[override]
         if not isinstance(loaded_sample, dict):
             raise TypeError()
         if "target" not in loaded_sample:
