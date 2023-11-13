@@ -395,14 +395,18 @@ class TextInputSubElement(SelectorSubElement[str]):
         self,
         placeholder_text: str = "Type something here",
         blank_after_text_send: bool = True,
+        default_value: str = "",
     ):
         """Args:
         ----
             placeholder_text (str): Placeholder in the textarea. Defaults to "Type something here".
             blank_text_after_send (bool): Whether the text displayed in the text area should be blank after
                 sending to the backend. Defaults to True.
+            default_value (str): if the default value is set to "" then `placeholder_text` would be displayed
+                on the frontend, otherwise this default value would be displayed (not as placeholder but as a
+                first class text)
         """
-        super().__init__(subtype="text_input", text="", default_value="")
+        super().__init__(subtype="text_input", text="", default_value=default_value)
         self._placeholder_text = placeholder_text
         self.blank_after_text_send = blank_after_text_send
 
