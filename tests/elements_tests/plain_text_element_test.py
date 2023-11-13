@@ -11,6 +11,12 @@ def test_escaping_of_gt_lt():
     assert element.content == "&lt;br /&gt; &lt;div&gt; &lt;div/&gt;"
 
 
+def test_escaping_of_gt_lt_from_init():
+    element = PlainTextElement(content="<br /> <div> <div/>")
+
+    assert element.content == "&lt;br /&gt; &lt;div&gt; &lt;div/&gt;"
+
+
 def test_newline_conversion():
     element = PlainTextElement()
     element.content = """This is a text

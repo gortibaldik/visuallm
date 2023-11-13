@@ -19,7 +19,7 @@ class PlainTextElement(ElementBase):
         name="plain_text",
     ):
         super().__init__(name=name, type="plain")
-        self._content = content
+        self._content = self._sanitize(content)
         self.is_heading = is_heading
         self.heading_level = heading_level
 
@@ -29,8 +29,7 @@ class PlainTextElement(ElementBase):
 
     @content.setter
     def content(self, value: str):
-        value = self._convert_brackets(value)
-        value = self._convert_newline_to_br_tags(value)
+        value = self._sanitize(value)
         if value != self._content:
             self.set_changed()
         self._content = value
@@ -61,6 +60,12 @@ class PlainTextElement(ElementBase):
     def _is_sane(value: str):
         value = value.replace("<br />", "")
         return "<" not in value and ">" not in value
+
+    @staticmethod
+    def _sanitize(value: str):
+        value = PlainTextElement._convert_brackets(value)
+        value = PlainTextElement._convert_newline_to_br_tags(value)
+        return value
 
 
 class HeadingElement(PlainTextElement):
