@@ -1,4 +1,5 @@
 import multiprocessing
+import time
 from collections.abc import Sequence
 from typing import Any, TypedDict
 
@@ -90,6 +91,7 @@ def app():
         target=app_run, daemon=True, kwargs={"app": flask_app, "app_port": APP_PORT}
     )
     process.start()
+    time.sleep(3.0)
 
     # by yielding None, fixture ensures that some result is returned from the
     # method but also ensures that some action can be taken after the end of the
