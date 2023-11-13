@@ -4,11 +4,6 @@ from visuallm.components.chat_component import ChatComponent as ChatComponentBas
 from visuallm.elements import CollapsibleElement, ElementBase
 from visuallm.elements.selector_elements import ButtonElement, ChoicesSubElement
 
-# TODO: it would be great to add sections (which are expandable, e.g. only
-# title is shown when collapsed, everything is shown when expanded)
-
-# TODO: other than top to down linear organization
-
 
 class ChatComponent(ChatComponentBase):
     def __post_init__(
