@@ -1,6 +1,4 @@
-from visuallm.components.NextTokenPredictionComponent import (
-    NextTokenPredictionComponent,
-)
+from visuallm.components import NextTokenPredictionComponent
 
 from .input_display import PersonaChatVisualization
 

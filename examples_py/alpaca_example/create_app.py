@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from datasets import DatasetDict
+    from datasets import DatasetDict  # type: ignore[import]
 
 from visuallm import (
     DatasetVisualizationComponent,

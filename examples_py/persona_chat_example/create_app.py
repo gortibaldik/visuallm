@@ -13,7 +13,7 @@ else:
     _has_nltk = True
 
 from visuallm import ComponentBase
-from visuallm.components.GenerationComponent import GeneratedTextMetric, ProbsMetric
+from visuallm.components.generation_component import GeneratedTextMetric, ProbsMetric
 from visuallm.components.generators.base import (
     Generator,
 )

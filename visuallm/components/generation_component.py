@@ -100,7 +100,7 @@ class GenerationComponent(
         input_display_elements = self.init_model_input_display()
         self.add_element(self.main_heading_element)
         collapsible_element = CollapsibleElement(title="Configuration")
-        collapsible_element.add_subelements(self.dataset_elements)
+        collapsible_element.add_subelements(self.dataset_choice_elements)
         collapsible_element.add_subelements(self.generator_selection_elements)
         collapsible_element.add_subelements(self.generation_elements)
         collapsible_element.add_subelements(self.metrics_selection_elements)

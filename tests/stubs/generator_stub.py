@@ -3,7 +3,7 @@ import secrets
 from typing import Any
 
 from visuallm.components.generators.base import GeneratedOutput, Generator, LoadedSample
-from visuallm.components.NextTokenPredictionComponent import (
+from visuallm.components.next_token_prediction_component import (
     NextTokenPredictionInterface,
 )
 

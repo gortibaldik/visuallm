@@ -1,6 +1,6 @@
 from collections.abc import Callable
 
-from visuallm.components.ChatComponent import ChatComponent as ChatComponentBase
+from visuallm.components.chat_component import ChatComponent as ChatComponentBase
 from visuallm.elements import CollapsibleElement, ElementBase
 from visuallm.elements.selector_elements import ButtonElement, ChoicesSubElement
 

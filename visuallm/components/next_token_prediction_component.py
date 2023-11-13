@@ -86,7 +86,7 @@ class NextTokenPredictionComponent(
         self.add_element(self.main_heading_element)
 
         collapsible_element = CollapsibleElement(title="Configuration")
-        collapsible_element.add_subelements(self.dataset_elements)
+        collapsible_element.add_subelements(self.dataset_choice_elements)
         collapsible_element.add_subelements(self.generator_selection_elements)
         self.add_element(collapsible_element)
 

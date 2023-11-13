@@ -1,4 +1,4 @@
-from visuallm.components.GenerationComponent import GenerationComponent
+from visuallm.components import GenerationComponent
 from visuallm.elements.element_base import ElementBase
 
 from .input_display import PersonaChatVisualization

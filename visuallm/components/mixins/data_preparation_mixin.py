@@ -177,8 +177,8 @@ class DataPreparationMixin(ABC):
         return self._loaded_sample
 
     @property
-    def dataset_elements(self) -> list[ElementBase]:
-        """All the elements that should be displayed on the frontend."""
+    def dataset_choice_elements(self) -> list[ElementBase]:
+        """Elements that allow user to select dataset, dataset split, and dataset sample."""
         return [self.dataset_selector_heading, self.dataset_button]
 
     def _update_after_split_change(self):

@@ -1,6 +1,6 @@
 import copy
 
-from visuallm.components.ChatComponent import ChatComponent, LoadedSample
+from visuallm.components.chat_component import ChatComponent, LoadedSample
 from visuallm.components.generators.openai import OpenAIGenerator, OpenAIMessage
 from visuallm.components.mixins.generation_selectors_mixin import (
     SELECTORS_TYPE,

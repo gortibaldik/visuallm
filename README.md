@@ -183,7 +183,7 @@ Afterwards we need to implement the inheritors of components that should make us
 <!-- The below code snippet is automatically added from ./examples_py/persona_chat_example/components/generation.py -->
 ```py
 # ./examples_py/persona_chat_example/components/generation.py lines 1-23
-from visuallm.components.GenerationComponent import GenerationComponent
+from visuallm.components import GenerationComponent
 from visuallm.elements.element_base import ElementBase
 
 from .input_display import PersonaChatVisualization
