@@ -9,7 +9,7 @@ from selenium.webdriver.common.keys import Keys
 
 @pytest.fixture()
 def link(port: int):
-    return f"http://localhost:{port}/index.html#/chat_component"
+    return f"http://127.0.0.1:{port}/index.html#/chat_component"
 
 
 def test_after_send_message_should_stay(app, firefox_driver: Firefox, link: str):
