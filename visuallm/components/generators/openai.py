@@ -11,6 +11,7 @@ from visuallm.components.generators.base import (
 
 try:
     import openai
+    from openai.types.chat.chat_completion import ChatCompletion
 except ImportError:
     _has_openai = False
 else:
@@ -59,7 +60,7 @@ class OpenAIGenerator(Generator):
         self.create_text_to_tokenizer = create_text_to_tokenizer
         self.create_text_to_tokenizer_chat = create_text_to_tokenizer_chat
         self.retrieve_target_str = retrieve_target_str
-        openai.api_key = self._api_key
+        self.client = openai.Client(api_key=self._api_key)
 
     def generate_output(
         self, text_to_tokenizer: str, **generation_args
@@ -74,7 +75,7 @@ class OpenAIGenerator(Generator):
             params["max_tokens"] = generation_args["max_new_tokens"]
         if "temperature" in generation_args:
             params["temperature"] = generation_args["temperature"]
-        response = openai.ChatCompletion.create(**params)
+        response: ChatCompletion = self.client.chat.completions.create(**params)
         return GeneratedOutput(
-            decoded_outputs=[choice["message"]["content"] for choice in response["choices"]]  # type: ignore
+            decoded_outputs=[choice.message.content for choice in response.choices]  # type: ignore
         )
