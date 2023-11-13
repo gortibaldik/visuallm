@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 from visuallm.elements.element_base import ElementBase
@@ -5,11 +6,7 @@ from visuallm.elements.element_base import ElementBase
 
 class PlainTextElement(ElementBase):
 
-    """Display some plain text message to the user on the frontend.
-
-    Allows including newlines, throws exception if any "<" or ">" is
-    detected.
-    """
+    """Display some plain text message to the user on the frontend."""
 
     def __init__(
         self,
@@ -57,14 +54,22 @@ class PlainTextElement(ElementBase):
         return value
 
     @staticmethod
+    def _convert_backticks(value: str):
+        value = re.sub(r"`([^`]*)`", r"<code>\1</code>", value)
+        return value
+
+    @staticmethod
     def _is_sane(value: str):
         value = value.replace("<br />", "")
+        value = value.replace("<code>", "")
+        value = value.replace("</code>", "")
         return "<" not in value and ">" not in value
 
     @staticmethod
     def _sanitize(value: str):
         value = PlainTextElement._convert_brackets(value)
         value = PlainTextElement._convert_newline_to_br_tags(value)
+        value = PlainTextElement._convert_backticks(value)
         return value
 
 

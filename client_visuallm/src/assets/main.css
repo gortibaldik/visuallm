@@ -56,3 +56,13 @@ h4 {
 .focused {
   background-color: rgb(211, 208, 208);
 }
+
+code {
+  background-color: white;
+  padding: 2px;
+  margin-bottom: -2px;
+  border-color: rgb(217, 217, 217);
+  border-style: solid;
+  border-width: 0.05px;
+  border-radius: 5px;
+}

@@ -5,3 +5,10 @@ function escapeRegExp(value: string): string {
 export function replaceAll(wholeString: string, oldValue: string, newValue: string): string {
   return wholeString.replace(new RegExp(escapeRegExp(oldValue), 'g'), newValue);
 }
+
+export function isSane(value: string) {
+  let checkedValue = replaceAll(value, "<br />", "")
+    checkedValue = replaceAll(checkedValue, "<code>", "")
+    checkedValue = replaceAll(checkedValue, "</code>", "")
+    return !checkedValue.includes("<") && !checkedValue.includes(">")
+}

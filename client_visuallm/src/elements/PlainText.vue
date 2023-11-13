@@ -15,7 +15,7 @@ import { defineComponent } from 'vue'
 import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiveData'
 import type ElementRegistry from '@/assets/elementRegistry'
 import { registerElementBase } from '@/assets/elementRegistry'
-import { replaceAll } from '@/assets/stringMethods'
+import { isSane } from '@/assets/stringMethods'
 
 // TODO: allow custom html in the plain text element
 
@@ -35,8 +35,7 @@ let component = defineComponent({
     },
     value(): string {
       let candidateValue = dataSharedInComponent[getSharedDataUniqueName(this.name, 'value')] as string
-      let checkedValue = replaceAll(candidateValue, "<br />", "")
-      if (checkedValue.includes("<") || checkedValue.includes(">")) {
+      if (!isSane(candidateValue)) {
         throw Error("Invalid value arrived from backend")
       }
       return candidateValue

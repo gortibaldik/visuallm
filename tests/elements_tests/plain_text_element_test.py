@@ -53,3 +53,24 @@ def test_doesnt_throw_anything_on_fine_text():
         element_descriptions[0]["value"]
         == "&lt;script&gt;Good escaped string&lt;/script&gt;"
     )
+
+
+def test_convert_backticks_1():
+    element = PlainTextElement(content="`code`")
+
+    assert element.content == "<code>code</code>"
+
+
+def test_convert_backticks_2():
+    element = PlainTextElement(content="This is inside `longer` text.")
+
+    assert element.content == "This is inside <code>longer</code> text."
+
+
+def test_convert_backticks_3():
+    element = PlainTextElement(content="```madness` from code` perspective`")
+
+    assert (
+        element.content
+        == "<code></code><code>madness</code> from code<code> perspective</code>"
+    )

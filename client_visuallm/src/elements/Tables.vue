@@ -26,7 +26,7 @@ import LeaderLine from 'leader-line-new'
 import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiveData'
 import type ElementRegistry from '@/assets/elementRegistry'
 import { registerElementBase } from '@/assets/elementRegistry'
-import { replaceAll } from '@/assets/stringMethods'
+import { isSane } from '@/assets/stringMethods'
 
 export type LoadedTable = {
   title: string
@@ -73,7 +73,9 @@ let component = defineComponent({
       for (const table of tables) {
         for (const row of table.rows) {
           for (let i = 0; i < row.length; i++) {
-            this.checkDataHtml(row[i])
+            if (!isSane(row[i])) {
+              throw Error("Invalid value arrived from backend")
+            }
           }
         }
       }
@@ -95,12 +97,6 @@ let component = defineComponent({
     this.unregisterLinks()
   },
   methods: {
-    checkDataHtml(candidateValue: string) {
-      let checkedValue = replaceAll(candidateValue, "<br />", "")
-      if (checkedValue.includes("<") || checkedValue.includes(">")) {
-        throw Error("Invalid value arrived from backend")
-      }
-    },
     table_title_to_id(title: string) {
       return title.replace(/\s/g, '')
     },
