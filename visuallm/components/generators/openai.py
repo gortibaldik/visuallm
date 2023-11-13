@@ -30,8 +30,12 @@ class OpenAIMessage:
         messages = []
         if len(self.system_message.strip()) != 0:
             messages = [{"role": "system", "content": self.system_message}]
+
+        # ensure that the flow of messages ends with "user" message not
+        # with "assistant" message
+        addend = (len(self.messages) + 1) % 2
         messages += [
-            {"role": roles[i % 2], "content": message}
+            {"role": roles[(addend + i) % 2], "content": message}
             for i, message in enumerate(self.messages)
         ]
         return json.dumps({"model": self.model, "messages": messages})

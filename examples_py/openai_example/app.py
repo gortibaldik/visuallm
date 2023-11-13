@@ -22,7 +22,7 @@ generator = OpenAIGenerator(
 )
 selectors: SELECTORS_TYPE = {
     "top_p": MinMaxSelectorType(0, 1, default_value=1.0, step_size=0.05),
-    "max_new_tokens": MinMaxSelectorType(10, 100, default_value=30),
+    "max_new_tokens": MinMaxSelectorType(10, 1000, default_value=30),
     "temperature": MinMaxSelectorType(0, 2, default_value=1.0, step_size=0.1),
 }
 chat_component = ChatComponent(

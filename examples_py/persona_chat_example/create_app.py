@@ -67,13 +67,21 @@ def switch_persona_from_first_to_second_sentence(sentence: str):
     )
 
 
+def remove_silence_from_history(history: list[str]):
+    history = copy.deepcopy(history)
+    if history[0] == "__ SILENCE __.":
+        history = history[1:]
+    return history
+
+
 def create_text_to_tokenizer(loaded_sample, target: str | None = None) -> str:
+    history = remove_silence_from_history(loaded_sample["history"])
     text_to_tokenizer = " ".join(
         [
             s
             for part in [
                 loaded_sample["personality"],
-                loaded_sample["history"],
+                history,
                 [loaded_sample["user_message"]]
                 if ("user_message" in loaded_sample)
                 and (len(loaded_sample["user_message"].strip()) != 0)
@@ -118,7 +126,7 @@ def create_system_traits(loaded_sample):
 def create_text_to_tokenizer_openai(loaded_sample, target: str | None = None) -> str:
     api_message = OpenAIMessage(
         system_message=create_system_traits(loaded_sample),
-        messages=copy.deepcopy(loaded_sample["history"]),
+        messages=remove_silence_from_history(loaded_sample["history"]),
         model="gpt-3.5-turbo-0613",
     )
     return api_message.construct_message()
