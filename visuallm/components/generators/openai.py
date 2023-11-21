@@ -84,7 +84,11 @@ class OpenAIGenerator(Generator):
             params["temperature"] = generation_args["temperature"]
         response: ChatCompletion = self.client.chat.completions.create(**params)
         return GeneratedOutput(
-            decoded_outputs=[choice.message.content for choice in response.choices]  # type: ignore
+            decoded_outputs=[
+                choice.message.content
+                for choice in response.choices
+                if choice.message.content is not None
+            ]
         )
 
     async def generate_output_async(self, text_to_tokenizer: str, **generation_args):
@@ -101,5 +105,9 @@ class OpenAIGenerator(Generator):
             params["temperature"] = generation_args["temperature"]
         response: ChatCompletion = await self.client.chat.completions.create(**params)
         return GeneratedOutput(
-            decoded_outputs=[choice.message.content for choice in response.choices]
+            decoded_outputs=[
+                choice.message.content
+                for choice in response.choices
+                if choice.message.content is not None
+            ]
         )
