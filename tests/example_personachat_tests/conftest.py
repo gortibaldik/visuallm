@@ -1,6 +1,6 @@
 import multiprocessing
 import time
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any, TypedDict
 
 import pytest
@@ -39,29 +39,40 @@ def exception_message():
 _history = [f"history{i}" for i in range(4)]
 _candidates = ["history4"]
 _personality = [f"personality{i}" for i in range(4)]
-_dataset_data: dict[str, Sequence[dict[str, Any]]] = {  # type: ignore
-    f"split_{six}": [
-        TestSample(  # type: ignore[misc]
-            text=f"s{six}text{tix}",
-            target=f"s{six}target{tix}",
-            history=_history,
-            candidates=_candidates,
-            personality=_personality,
-        )
-        for tix in range(20)
-    ]
-    for six in range(5)
+_datasets_data: dict[str, dict[str, Sequence[dict[str, Any]]]] = {
+    f"dataset_{dix}": {  # type: ignore
+        f"split_{dix}_{six}": [
+            TestSample(  # type: ignore[misc]
+                text=f"d{dix}_s{six}_text{tix}",
+                target=f"s{six}target{tix}",
+                history=_history,
+                candidates=_candidates,
+                personality=_personality,
+            )
+            for tix in range(20)
+        ]
+        for six in range(dix + 1)
+    }
+    for dix in range(3)
 }
 
 
 class Dataset:
+    def __init__(self, name: str):
+        self.name = name
+
     def __getitem__(self, selected_split: str) -> Sequence[dict[str, Any]]:
-        if selected_split not in _dataset_data:
+        if selected_split not in _datasets_data[self.name]:
             raise KeyError(f"{selected_split} not in dataset data!")
-        return _dataset_data[selected_split]
+        return _datasets_data[self.name][selected_split]
 
     def keys(self):
-        return _dataset_data.keys()
+        return _datasets_data[self.name].keys()
+
+
+_datasets: Mapping[str, Dataset] = {
+    f"dataset_{dix}": Dataset(f"dataset_{dix}") for dix in range(3)
+}
 
 
 @pytest.fixture(scope="session")
@@ -80,7 +91,8 @@ def app():
     """
     global APP_PORT
     flask_app = create_app(
-        dataset=Dataset(),  # type: ignore
+        dataset=None,
+        dataset_choices=_datasets,
         get_persona_traits=get_persona_traits,
         generator_choices={"generator1": GeneratorStub()},
         next_token_generator_choices={},
