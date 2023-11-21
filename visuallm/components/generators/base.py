@@ -35,7 +35,7 @@ class RetrieveTargetStr(Protocol):
 
 @dataclasses.dataclass
 class GeneratedOutput:
-    decoded_outputs: list[str]
+    decoded_outputs: list[str | None]
     """Human readable outputs of the generator (generated texts)"""
     input_length: int | None = None
     """Length of the tokenized inputs"""
