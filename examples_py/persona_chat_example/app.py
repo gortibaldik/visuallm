@@ -46,8 +46,9 @@ if "OPENAI_API_KEY" in os.environ:
     _generator_choices["gpt-3.5-turbo-0613"] = open_ai_generator
 
 app = create_app(
-    _dataset,
-    _generator_choices,
+    dataset=_dataset,
+    dataset_choices=None,
+    generator_choices=_generator_choices,
     get_persona_traits=get_persona_traits,
     next_token_generator_choices={"gpt2": _generator_choices["gpt2"]},
 )

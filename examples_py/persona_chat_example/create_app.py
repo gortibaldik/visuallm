@@ -1,9 +1,7 @@
 import copy
-from collections.abc import Callable
-from typing import TYPE_CHECKING
+from collections.abc import Callable, Mapping
 
-if TYPE_CHECKING:
-    from datasets import DatasetDict
+from visuallm.components.mixins.data_preparation_mixin import DatasetProtocol
 
 try:
     import nltk
@@ -146,7 +144,8 @@ def create_text_to_tokenizer_chat_openai(loaded_sample) -> str:
 
 
 def create_app(
-    dataset: "DatasetDict",
+    dataset: DatasetProtocol | None,
+    dataset_choices: Mapping[str, DatasetProtocol] | None,
     generator_choices: dict[str, Generator],
     next_token_generator_choices: dict[str, Generator],
     get_persona_traits: Callable[[], list[str]],
@@ -154,10 +153,12 @@ def create_app(
     # create components
     visualize = Visualization(
         dataset=dataset,
+        dataset_choices=dataset_choices,
         generator_choices=generator_choices,
     )
     generate = Generation(
         dataset=dataset,
+        dataset_choices=dataset_choices,
         generator_choices=generator_choices,
         selectors={
             "do_sample": CheckBoxSelectorType(False),

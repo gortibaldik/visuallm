@@ -68,12 +68,25 @@ class ButtonElement(ElementWithEndpoint):
         if subelements is None:
             subelements = []
 
-        for subelement in subelements:
-            self.add_subelement(subelement)
+        self.add_subelements(subelements)
 
     @property
     def subelements_iter(self):
         return iter(self._subelements)
+
+    def set_subelements(self, subelements: list[SelectorSubElement]):
+        """In case when you want to display only some of the subelements of the ButtonElement,
+        you can set them here. However only the already added subelements can be set.
+        """
+        for s in subelements:
+            if s.parent_element != self:
+                raise RuntimeError(
+                    "Only elements which have already been added to this element through"
+                    " add_subelement, can be set."
+                )
+
+        self._subelements = subelements
+        self.set_changed()
 
     @property
     def disabled(self):
@@ -139,6 +152,10 @@ class ButtonElement(ElementWithEndpoint):
 
         register_named(subelement, self._subelement_names, self._subelements)
         self._subelements_dict[subelement.name] = subelement
+
+    def add_subelements(self, subelements: list[SelectorSubElement]):
+        for s in subelements:
+            self.add_subelement(s)
 
 
 SelectedType = TypeVar("SelectedType")
@@ -366,6 +383,9 @@ class ChoicesSubElement(SelectorSubElement[str]):
 
     def construct_subelement_specifics(self) -> dict[str, Any]:
         return {"choices": self._choices}
+
+    def __len__(self):
+        return len(self._choices)
 
 
 class CheckBoxSubElement(SelectorSubElement[bool]):

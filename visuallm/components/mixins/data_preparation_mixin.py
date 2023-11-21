@@ -1,9 +1,6 @@
 from abc import ABC, abstractmethod
-from collections.abc import Callable, KeysView, Sequence
-from typing import (
-    Any,
-    Protocol,
-)
+from collections.abc import Callable, KeysView, Mapping, Sequence
+from typing import Any, Protocol
 
 from visuallm.elements.element_base import ElementBase
 from visuallm.elements.plain_text_element import PlainTextElement
@@ -11,6 +8,7 @@ from visuallm.elements.selector_elements import (
     ButtonElement,
     ChoicesSubElement,
     MinMaxSubElement,
+    SelectorSubElement,
 )
 
 
@@ -23,7 +21,9 @@ class DatasetProtocol(Protocol):
 
 
 DATASET_TYPE = DatasetProtocol | Callable[[], DatasetProtocol]
-DATASETS_TYPE = dict[str, DatasetProtocol] | dict[str, Callable[[], DatasetProtocol]]
+DATASETS_TYPE = (
+    Mapping[str, DatasetProtocol] | Mapping[str, Callable[[], DatasetProtocol]]
+)
 
 
 class DataPreparationMixin(ABC):
@@ -65,14 +65,12 @@ class DataPreparationMixin(ABC):
         self._dataset_choices: DATASETS_TYPE | None = None
         self._dataset: DatasetProtocol | None = None
 
-        self.initialize_data_button()
-
         if keep_datasets_in_memory:
             self._dataset_cache: dict[str, DatasetProtocol] | None = {}
         else:
             self._dataset_cache = None
 
-        if dataset_choices is not None:
+        if dataset_choices is not None and dataset is None:
             if len(dataset_choices) == 0:
                 raise ValueError("Cannot specify dataset_choices with zero length!")
             self._dataset_choices = dataset_choices
@@ -84,14 +82,9 @@ class DataPreparationMixin(ABC):
                     raise RuntimeError("Dataset choices became None!")
                 return self.load_dataset(dataset_choices[default_dataset_key])
 
-            self.load_cached_dataset(
-                load_dataset_fn=load_dataset_fn,
-                name=default_dataset_key,
-            )
+            name = default_dataset_key
 
-        if dataset is not None:
-            if dataset_choices is not None:
-                raise ValueError("Cannot specify both dataset and dataset_choices!")
+        elif dataset is not None and dataset_choices is None:
             self._dataset_choices = None
 
             def load_dataset_fn():
@@ -99,8 +92,17 @@ class DataPreparationMixin(ABC):
                     raise RuntimeError("Dataset became None!")
                 return self.load_dataset(dataset)
 
-            self.load_cached_dataset(load_dataset_fn=load_dataset_fn)
+            name = None
 
+        else:
+            raise ValueError(
+                "Cannot specify / not specify both dataset and dataset_choices!"
+            )
+
+        self.load_cached_dataset(
+            load_dataset_fn=load_dataset_fn, name=name, update_selectors=False
+        )
+        self.initialize_data_button()
         self._loaded_sample: Any = self.get_split()[
             int(self.sample_selector_element.value_on_backend)
         ]
@@ -136,7 +138,10 @@ class DataPreparationMixin(ABC):
             return dataset_constructor
 
     def load_cached_dataset(
-        self, load_dataset_fn: Callable[[], DatasetProtocol], name: str | None = None
+        self,
+        load_dataset_fn: Callable[[], DatasetProtocol],
+        name: str | None = None,
+        update_selectors: bool = True,
     ):
         """The behavior of this function depends on whether the caching is set or unset.
 
@@ -155,6 +160,7 @@ class DataPreparationMixin(ABC):
             name (str): name of the dataset, the dataset will be stored in the cache under
                 this name.
             load_dataset_fn (Callable[[], DatasetProtocol]): function that loads the dataset.
+            update_selectors (bool): update dataset selector elements after dataset change
         """
         if self._dataset_cache is not None and name in self._dataset_cache:
             self._dataset = self._dataset_cache[name]
@@ -163,8 +169,10 @@ class DataPreparationMixin(ABC):
             if self._dataset_cache is not None and name is not None:
                 self._dataset_cache[name] = self._dataset
 
-        self.dataset_split_selector_element.set_choices(self.get_dataset_splits())
-        self._update_after_split_change()
+        if update_selectors:
+            self.dataset_split_selector_element.set_choices(self.get_dataset_splits())
+            self._set_dataset_button_subelements()
+            self._update_after_split_change()
 
     @property
     def dataset(self):
@@ -207,8 +215,19 @@ class DataPreparationMixin(ABC):
             List[str]: split names
         """
         if self.dataset is None:
-            return ["dummy_split", "dummy_split"]
+            raise ValueError("dataset is none cannot return its splits!")
         return list(self.dataset.keys())
+
+    def _set_dataset_button_subelements(self):
+        subelements: list[SelectorSubElement] = []
+
+        if len(self.dataset_split_selector_element) > 1:
+            subelements.append(self.dataset_split_selector_element)
+
+        subelements.append(self.sample_selector_element)
+        if self.dataset_selector_element is not None:
+            subelements.append(self.dataset_selector_element)
+        self.dataset_button.set_subelements(subelements)
 
     def initialize_data_button(self):
         """Initializes a heading with text "Dataset Settings" and a selector
@@ -229,11 +248,11 @@ class DataPreparationMixin(ABC):
             sample_max=len(self.get_split()) - 1,
             text="Select Dataset Sample",
         )
-
         subelements = [
             self.dataset_split_selector_element,
             self.sample_selector_element,
         ]
+
         if self._dataset_choices is not None:
             self.dataset_selector_element = ChoicesSubElement(
                 list(self._dataset_choices.keys()), text="Select Dataset"
@@ -242,11 +261,14 @@ class DataPreparationMixin(ABC):
         else:
             self.dataset_selector_element = None
 
+        # register subelements to the dataset button
         self.dataset_button = ButtonElement(
             button_text="Send Dataset Configuration",
             processing_callback=self.on_dataset_change_callback,
             subelements=subelements,
         )
+        # set which of the subelements have to be displayed
+        self._set_dataset_button_subelements()
 
     def get_split(self) -> Sequence[Any]:
         """Get all the samples in the currently selected split of the dataset.
