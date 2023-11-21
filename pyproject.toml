@@ -1,6 +1,6 @@
 [project]
 name = "visuallm"
-version = "0.3.7"
+version = "0.3.8"
 authors = [
   { name="Frantisek Trebuna (gortibaldik)", email="ferotre@gmail.com" },
 ]
@@ -36,7 +36,7 @@ visuallm = "visuallm"
 
 
 [tool.bumpver]
-current_version = "0.3.7"
+current_version = "0.3.8"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 commit = true
