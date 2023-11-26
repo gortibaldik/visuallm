@@ -1,7 +1,7 @@
-import re
 from typing import Any
 
 from visuallm.elements.element_base import ElementBase
+from visuallm.utils.sanitizer import Sanitizer
 
 
 class PlainTextElement(ElementBase):
@@ -16,7 +16,7 @@ class PlainTextElement(ElementBase):
         name="plain_text",
     ):
         super().__init__(name=name, type="plain")
-        self._content = self._sanitize(content)
+        self._content = Sanitizer.sanitize(content)
         self.is_heading = is_heading
         self.heading_level = heading_level
 
@@ -26,13 +26,13 @@ class PlainTextElement(ElementBase):
 
     @content.setter
     def content(self, value: str):
-        value = self._sanitize(value)
+        value = Sanitizer.sanitize(value)
         if value != self._content:
             self.set_changed()
         self._content = value
 
     def construct_element_configuration(self) -> dict[str, Any]:
-        if not self._is_sane(self.content):
+        if not Sanitizer.is_sane(self.content):
             raise ValueError(
                 f"'{self.content}' is not allowed value of PlainText element."
             )
@@ -41,36 +41,6 @@ class PlainTextElement(ElementBase):
             "heading": self.is_heading,
             "heading_level": self.heading_level,
         }
-
-    @staticmethod
-    def _convert_newline_to_br_tags(value: str):
-        value = value.replace("\n", "<br />")
-        return value
-
-    @staticmethod
-    def _convert_brackets(value: str):
-        value = value.replace("<", "&lt;")
-        value = value.replace(">", "&gt;")
-        return value
-
-    @staticmethod
-    def _convert_backticks(value: str):
-        value = re.sub(r"`([^`]*)`", r"<code>\1</code>", value)
-        return value
-
-    @staticmethod
-    def _is_sane(value: str):
-        value = value.replace("<br />", "")
-        value = value.replace("<code>", "")
-        value = value.replace("</code>", "")
-        return "<" not in value and ">" not in value
-
-    @staticmethod
-    def _sanitize(value: str):
-        value = PlainTextElement._convert_brackets(value)
-        value = PlainTextElement._convert_newline_to_br_tags(value)
-        value = PlainTextElement._convert_backticks(value)
-        return value
 
 
 class HeadingElement(PlainTextElement):

@@ -25,6 +25,8 @@ class TableComponent(ComponentBase):
                     "This is third row",
                     "This is fourth row",
                     "This is fifth row",
+                    "This is row with `<html>` `<tags>`",
+                    "This is a multi line\nrow so it should be\ndisplayed on multiple lines.",
                 ]
             )
         ]

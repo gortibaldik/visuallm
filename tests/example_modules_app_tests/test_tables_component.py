@@ -24,6 +24,9 @@ def test_table_is_present(app, firefox_driver: Firefox, link: str):
     expected_values = [
         f"This is {value} row"
         for value in ["first", "second", "third", "fourth", "fifth"]
+    ] + [
+        "This is row with <html> <tags>",
+        "This is a multi line\nrow so it should be\ndisplayed on multiple lines.",
     ]
     assert len(row_values) == len(expected_values)
     for expected, actual in zip(expected_values, row_values, strict=True):
@@ -41,10 +44,10 @@ def test_connection_is_displayed(app, firefox_driver: Firefox, link: str):
     tbody = table_elem.find_element(by=By.TAG_NAME, value="tbody")
     rows = tbody.find_elements(by=By.TAG_NAME, value="tr")
 
-    assert len(rows) == 5
+    assert len(rows) == 7
     ActionChains(firefox_driver).move_to_element(rows[0]).perform()
 
-    for row_index in range(1, 5):
+    for row_index in range(1, 7):
         ActionChains(firefox_driver).move_to_element(rows[row_index]).perform()
 
         leader_line_elements = firefox_driver.find_elements(

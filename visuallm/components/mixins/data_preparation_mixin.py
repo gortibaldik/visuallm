@@ -218,7 +218,7 @@ class DataPreparationMixin(ABC):
             raise ValueError("dataset is none cannot return its splits!")
         return list(self.dataset.keys())
 
-    def _set_dataset_button_subelements(self):
+    def _set_dataset_button_subelements(self) -> None:
         subelements: list[SelectorSubElement] = []
 
         if len(self.dataset_split_selector_element) > 1:

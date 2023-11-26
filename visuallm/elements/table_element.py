@@ -2,6 +2,8 @@ import dataclasses
 from dataclasses import dataclass
 from enum import Enum
 
+from visuallm.utils.sanitizer import Sanitizer
+
 from .element_base import ElementBase
 
 
@@ -130,7 +132,11 @@ class TableElement(ElementBase):
         if title in self._tables:
             raise ValueError("Cannot add two tables with the same name!")
         self.set_changed()
-        self._tables[title] = Table(headers=headers, rows=rows, title=title)
+        self._tables[title] = Table(
+            headers=Sanitizer.sanitize(headers),
+            rows=Sanitizer.sanitize(rows),
+            title=Sanitizer.sanitize(title),
+        )
         if prepend:
             self.tables = [self._tables[title]] + self.tables
         else:
