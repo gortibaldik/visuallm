@@ -319,8 +319,11 @@ export function registerElement(elementRegistry: ElementRegistry) {
 
 .spacedTables {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   row-gap: 5px;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  column-gap: 5em;
 }
 </style>
