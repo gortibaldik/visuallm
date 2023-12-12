@@ -101,8 +101,8 @@ Input element for setting integer in a range.
 ```py
 # ./components/selector_component.py lines 18-20
         self.choices_element = ChoicesSubElement(
-            choices=["super", "magnificent", "incredible"], text="This library is:"
-        )
+            choices=[
+                "super",
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -114,9 +114,9 @@ Input element for choosing between several choices.
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
 # ./components/selector_component.py lines 21-23
-        self.checkbox_element = CheckBoxSubElement(text="Have you slept?:")
-        self.set_text_element(
-            self.choices_element.value_on_backend,
+                "magnificent",
+                "incredible",
+                "fantastic",
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -128,7 +128,7 @@ Simple checkbox input element.
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
 # ./components/selector_component.py lines 24
-            self.number_selector_element.value_on_backend,
+                "unbelievable",
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
@@ -146,6 +146,14 @@ This is an element that should encapsulate all the other configuration selection
 <!-- The below code snippet is automatically added from ./components/selector_component.py -->
 ```py
 # ./components/selector_component.py lines 30-55
+        self.set_text_element(
+            self.choices_element.value_on_backend,
+            self.number_selector_element.value_on_backend,
+            "First Message",
+        )
+        self.button_element = ButtonElement(
+            processing_callback=self.on_button_clicked,
+            subelements=[
                 self.number_selector_element,
                 self.choices_element,
                 self.checkbox_element,
@@ -164,14 +172,6 @@ This is an element that should encapsulate all the other configuration selection
         )
         any_updated = (
             self.number_selector_element.updated
-            or self.choices_element.updated
-            or self.checkbox_element.updated
-        )
-        self.set_text_element(c, n, message, any_updated)
-
-    def set_text_element(
-        self,
-        choice: str,
 ```
 <!-- MARKDOWN-AUTO-DOCS:END-->
 
