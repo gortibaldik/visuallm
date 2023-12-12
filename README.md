@@ -9,8 +9,7 @@
 
 ## VERSION: `0.3.10` changelog
 
-- added exception handling
-- merged TextInputElement and ButtonElement (TextInputElement became a SubElement)
+- fixes bug: choices dropdown isn't hidden behing collapsible
 
 ## Table of content
 
