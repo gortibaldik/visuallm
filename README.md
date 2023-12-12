@@ -7,7 +7,7 @@
 
 ![example workflow](https://github.com/gortibaldik/visuallm/actions/workflows/python-test.yaml/badge.svg)
 
-## VERSION: `0.3.10` changelog
+## VERSION: `0.3.12` changelog
 
 - fixes bug: choices dropdown isn't hidden behing collapsible
 
