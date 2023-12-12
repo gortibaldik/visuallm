@@ -3,7 +3,8 @@
     <button :class="{ collapsible: true, active: isOpened, wrapElement: true }" @click="clickedCollapsible">{{ title
     }}</button>
     <div class="subcomponent content" ref="content" v-if="isOpened">
-        <component v-for="(element, idx) in elements" :key="idx" :is="element.component" :name="element.name" />
+        <!-- TODO: look at this https://vuejs.org/guide/components/events.html -->
+        <component v-for="(element, idx) in elements" :key="idx" :is="element.component" :name="element.name" @should-resize="shouldResizeCatched"/>
     </div>
 </template>
 
@@ -63,10 +64,10 @@ let component = defineComponent({
             // if the displayed object isn't marked as reactive, then for some reason
             // it isn't displayed (vue component is not rendered)
             for (let i = 0; i < elements.length; i++) {
-                let obj = reactive({
+                let obj = {
                     component: this.$elementRegistry.registeredElements[this.elemDescrs[i].type].component,
                     name: elements[i].name
-                })
+                }
                 reactiveElements.push(obj)
             }
             setTimeout(() => this.resizeContent(this.isOpened), 100)
@@ -80,6 +81,10 @@ let component = defineComponent({
         }
     },
     methods: {
+        shouldResizeCatched() {
+            console.log("should-resize catched!")
+            // console.log(value)
+        },
         resizeContent(open: boolean) {
             let content = this.$refs.content as HTMLElement
             if (!open) {
@@ -109,7 +114,7 @@ let FEBEMapping: { [key: string]: string } = {
 }
 
 export function registerElement(elementRegistry: ElementRegistry) {
-    registerElementBase(elementRegistry, "collapsible-element", component, FEBEMapping)
+    registerElementBase(elementRegistry, "collapsible-element", "Collapsible", FEBEMapping)
 }
 
 export default component

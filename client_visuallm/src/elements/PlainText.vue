@@ -56,7 +56,7 @@ let FEBEMapping: { [key: string]: string } = {
 }
 
 export function registerElement(elementRegistry: ElementRegistry) {
-  registerElementBase(elementRegistry, "plain", component, FEBEMapping)
+  registerElementBase(elementRegistry, "plain", "PlainText", FEBEMapping)
 }
 
 </script>

@@ -1,4 +1,4 @@
-import { type Component, type App, shallowRef } from 'vue'
+import type { Component, App } from 'vue'
 import { getSharedDataUniqueName } from './reactiveData'
 
 export type ProcessedContext = {
@@ -125,12 +125,12 @@ export function valuesRequiredInConfiguration(configuration: any, vals: string[]
  */
 export function registerElementBase(
   elementRegistry: ElementRegistry,
+  typeOfComponent: string,
   nameOfComponent: string,
-  component: Component,
   febeMapping: {[key: string]: string}
 ) {
-  elementRegistry.registeredElements[nameOfComponent] = {
-    component: shallowRef(component),
+  elementRegistry.registeredElements[typeOfComponent] = {
+    component: nameOfComponent,
     process: (elementDescr: {[key: string]: any}) => processElementDescrBase(elementDescr, febeMapping)
   }
 }

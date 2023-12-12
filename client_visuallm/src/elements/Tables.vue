@@ -240,7 +240,7 @@ let FEBEMapping: { [key: string]: string } = {
 }
 
 export function registerElement(elementRegistry: ElementRegistry) {
-  registerElementBase(elementRegistry, "connected_tables", component, FEBEMapping)
+  registerElementBase(elementRegistry, "connected_tables", "Tables", FEBEMapping)
 }
 </script>
 

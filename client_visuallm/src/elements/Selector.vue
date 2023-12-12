@@ -160,7 +160,7 @@ class ElementConfiguration extends ElementDescription {
 
 export function registerElement(elementRegistry: ElementRegistry) {
   elementRegistry.registeredElements['button'] = {
-    component: shallowRef(component),
+    component: "Selector",
     process: processElementDescr
   }
 }

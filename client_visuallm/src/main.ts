@@ -5,7 +5,7 @@ import { registerElement as registerPlain } from './elements/PlainText.vue'
 import { registerElement as registerBarChartSelect } from './elements/BarChartSelect.vue'
 import { registerElement as registerTables } from './elements/Tables.vue'
 import { registerElement as registerSampleSelector } from './elements/Selector.vue'
-import { registerElement as registerCollapsibleSubComponent } from "./elements/CollapsibleElement.vue"
+import { registerElement as registerCollapsibleSubComponent } from "./elements/Collapsible.vue"
 import ElementRegistry from './assets/elementRegistry'
 import FetchPathsResolver from './assets/fetchPathsResolver'
 

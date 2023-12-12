@@ -127,7 +127,7 @@ let FEBEMapping: { [key: string]: string } = {
 }
 
 export function registerElement(elementRegistry: ElementRegistry) {
-  registerElementBase(elementRegistry, "softmax", component, FEBEMapping)
+  registerElementBase(elementRegistry, "softmax", "BarChartSelect", FEBEMapping)
 }
 
 </script>
