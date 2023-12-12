@@ -4,19 +4,18 @@
     }}</button>
     <div class="subcomponent content" ref="content" v-if="isOpened">
         <!-- TODO: look at this https://vuejs.org/guide/components/events.html -->
-        <component v-for="(element, idx) in elements" :key="idx" :is="element.component" :name="element.name" @should-resize="shouldResizeCatched"/>
+        <component v-for="(element, idx) in elements" :key="idx" :is="element.component" :name="element.name" @make-bigger="onMakeBigger" @make-smaller="onMakeSmaller"/>
     </div>
 </template>
 
 <script lang="ts" scoped>
 import ElementRegistry, { registerElementBase, type ProcessedContext } from '@/assets/elementRegistry';
 import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiveData';
-import { defineComponent, type Ref } from 'vue';
+import { defineComponent} from 'vue';
 import PlainText from '@/elements/PlainText.vue'
 import BarChartSelect from '@/elements/BarChartSelect.vue'
 import Selector from '@/elements/Selector.vue'
 import Tables from '@/elements/Tables.vue'
-import { reactive } from 'vue';
 
 interface SubComponentElement {
     type: string
@@ -33,6 +32,9 @@ let component = defineComponent({
     data() {
         return {
             isOpened: false,
+            heights: {} as {[key: string]: number},
+            resizeTimeout: -1 as number,
+            runAfterTimeout: function() {}
         }
     },
     created() {
@@ -81,17 +83,62 @@ let component = defineComponent({
         }
     },
     methods: {
-        shouldResizeCatched() {
-            console.log("should-resize catched!")
-            // console.log(value)
+        /** Return all the values of the dict
+         */
+        dictValues(dict: {[key: string]: number}) {
+            return Object.keys(dict).map(function(key){
+                return dict[key];
+            });
         },
-        resizeContent(open: boolean) {
+        onMakeBigger(requiredTotalHeight: number, idOfCaller: string) {
+            // if we are currently in the process of making the collapsible smaller,
+            // just wait for the process to end and then run the method "runAfterTimeout"
+            if (this.resizeTimeout > 0) {
+                this.runAfterTimeout = () => this.onMakeBigger(requiredTotalHeight, idOfCaller)
+                return
+            }
+
             let content = this.$refs.content as HTMLElement
-            if (!open) {
+            let clientRect = content.getBoundingClientRect()
+            let newHeightNumber = requiredTotalHeight - clientRect.y
+
+            // if the collapsible is already big enough, do not do anything
+            if (newHeightNumber < Math.max(...this.dictValues(this.heights))) {
+                this.heights[idOfCaller] = newHeightNumber
+                return
+            }
+            this.heights[idOfCaller] = newHeightNumber
+            let newHeight = newHeightNumber + "px"
+            content.style.height = newHeight
+            content.style.maxHeight = newHeight
+        },
+        onMakeSmaller(idOfCaller: string) {
+            let content = this.$refs.content as HTMLElement
+
+            delete this.heights[idOfCaller]
+
+            // become a level smaller
+            let newHeightNumber = Math.max(...this.dictValues(this.heights))
+            let newHeight = newHeightNumber + "px"
+            this.resizeTimeout = setTimeout(this.resizeToNewHeight.bind(this, newHeight), 200)
+            content.style.maxHeight = newHeight
+        },
+        resizeToNewHeight(newHeight: string) {
+            let content = this.$refs.content as HTMLElement
+            content.style.height = newHeight
+            this.resizeTimeout = -1
+            this.runAfterTimeout()
+            this.runAfterTimeout = function() {}
+        },
+        resizeContent(shouldOpen: boolean) {
+            let content = this.$refs.content as HTMLElement
+            if (!shouldOpen) {
+                this.heights = {}
                 // @ts-ignore
                 content.style.maxHeight = null
                 return
             }
+            this.heights["default"] = content.scrollHeight
             content.style.maxHeight = content.scrollHeight + "px"
         },
         clickedCollapsible() {

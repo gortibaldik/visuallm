@@ -2,8 +2,8 @@
   <div :class="{ 'sample-selector': true, 'wrapElement': true, focused: isFocused, 'multi-select-wrapper': true }"
     @focus="outerDivFocused = true" @blur="outerDivFocused = false" ref="content_wrapper" tabindex="0"
     @keydown.self.down.prevent="arrowDown" @keydown.self.up.prevent="arrowUp" @keydown.self.space="spacePressed">
-    <span class="multi-select-inline multi-select-text">{{ text }}</span>
-    <VueMultiselect ref="multiselect" @open="innerSelectFocused = true" @select="onSelect" @remove="onRemove"
+    <span class="multi-select-inline multi-select-text" ref="text">{{ text }}</span>
+    <VueMultiselect ref="multiselect" @open="onOpen" @select="onSelect" @remove="onRemove"
       @close="onClose" class="multi-select-inline" v-model="selected" :options="choices" :placeholder="selected"
       deselectLabel="" selectLabel="" openDirection="bottom" :close-on-select="true" :tabindex="-1">
     </VueMultiselect>
@@ -39,7 +39,7 @@ let component = defineComponent({
       required: true
     }
   },
-  emits: ['submit'],
+  emits: ['submit', 'makeBigger', 'makeSmaller'],
   computed: {
     choices(): string[] {
       return dataSharedInComponent[getSharedDataUniqueName(this.name, 'choices')]
@@ -134,13 +134,57 @@ let component = defineComponent({
      * to the nextTick)
      */
 
-
-
     /** Workflow 3
+     */
+
+    /** Callback that is called when the dropdown was opened and becomes closed.
+     *
      */
     onClose() {
       this.outerDivFocused = false
       this.innerSelectFocused = false
+
+      // emit a callback that will notify the collapsible in
+      // one level above that it should shrink
+      this.$emit("makeSmaller", this.name)
+    },
+
+    /** Callback that is called when the dropdown is closed and becomes opened.
+     *
+     */
+    onOpen() {
+      let requiredDropdownHeight = this.computeRequiredDropdownHeight()
+      let requiredTotalHeight = this.computeRequiredTotalHeight(requiredDropdownHeight)
+      this.innerSelectFocused = true
+
+      // emit a callback that will notify the collapsible in
+      // one level above that it should expand
+      this.$emit("makeBigger", requiredTotalHeight, this.name)
+    },
+
+    /** Compute just the height of the dropdown.
+     */
+    computeRequiredDropdownHeight() {
+      let multiselect = this.$refs.multiselect as {optimizedHeight: number, optionHeight: number}
+
+      let choicesHeight = this.choices.length * multiselect.optionHeight
+      let dropdownHeight = multiselect.optimizedHeight
+
+      if (dropdownHeight > choicesHeight) {
+        dropdownHeight = choicesHeight
+      }
+      let addedHeight = dropdownHeight
+      return addedHeight
+    },
+
+    /** Compute the absolute y coordinate of the lower boundary
+     * of the dropdown.
+     */
+    computeRequiredTotalHeight(requiredDropdownHeight: number) {
+      let element = this.$refs.text as HTMLElement
+      let rectangle = element.getBoundingClientRect()
+      let magicHeightParam = 10
+      return rectangle.y + requiredDropdownHeight + rectangle.height + magicHeightParam
     },
     switchFocusToOuterDiv() {
       this.innerSelectFocused = false
@@ -172,7 +216,6 @@ let component = defineComponent({
       })
     },
     arrowUp() {
-      console.log("arrowUp")
       let multiselectRef = this.$refs.multiselect as multiselectMixin
       if (multiselectRef === undefined) {
         console.log("multiselectref undefined")
@@ -187,7 +230,6 @@ let component = defineComponent({
       multiselectRef.select(multiselectRef.filteredOptions[multiselectRef.pointer])
     },
     arrowDown() {
-      console.log("arrowDown")
       let multiselectRef = this.$refs.multiselect as multiselectMixin
       if (multiselectRef === undefined) {
         console.log("multiselectRef Undefined")

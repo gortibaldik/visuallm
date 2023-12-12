@@ -2,7 +2,7 @@
   <form class="wrapElement" @submit.prevent="submit" @keypress.enter="submit">
     <div class="subSelectorsWrapper">
       <component v-for="subElementConfigFE in subElementConfigurationsFE" :is="getComponent(subElementConfigFE.subtype)"
-        :name="subElementConfigFE.name"></component>
+        :name="subElementConfigFE.name" @make-bigger="onMakeBigger" @make-smaller="onMakeSmaller"></component>
     </div>
     <div class="buttonWrapper">
       <button class="button" :disabled="buttonDisabled || loadingInProgress" type="submit">{{ buttonText }}</button>
@@ -64,6 +64,7 @@ let component = defineComponent({
     }
   },
   inject: ['backendAddress'],
+  emits: ['makeBigger', 'makeSmaller'],
   data() {
     return {
       reactiveStore: dataSharedInComponent,
@@ -110,6 +111,12 @@ let component = defineComponent({
     getComponent(subtype: string) {
       let component = subElementProcessors[subtype].component
       return component
+    },
+    onMakeBigger(increaseInHeight: number, idOfCaller: string) {
+      this.$emit("makeBigger", increaseInHeight, idOfCaller)
+    },
+    onMakeSmaller(idOfCaller: string) {
+      this.$emit("makeSmaller", idOfCaller)
     }
   }
 })

@@ -59,7 +59,7 @@ def test_button_in_collapsible_works(app, firefox_driver: Firefox, link: str):
 
     assert (
         text_element.text
-        == "This is displayed in the collapsible element. Update: 0. MinMax: 0"
+        == "This is displayed in the collapsible element. Update: 0. MinMax: 0. Choices: first"
     )
 
     # close second collapsible
@@ -83,7 +83,7 @@ def test_button_in_collapsible_works(app, firefox_driver: Firefox, link: str):
 
     assert (
         text_element.text
-        == "This is displayed in the collapsible element. Update: 1. MinMax: 0"
+        == "This is displayed in the collapsible element. Update: 1. MinMax: 0. Choices: first"
     )
 
 
@@ -103,3 +103,30 @@ def test_selector_has_the_correct_value(app, firefox_driver: Firefox, link: str)
 
     selector = min_max_selector.find_element(By.TAG_NAME, "input")
     assert selector.get_attribute("value") == "0"
+
+
+def test_after_clicking_on_choices_collapsible_expands(
+    app, firefox_driver: Firefox, link: str
+):
+    firefox_driver.get(link)
+
+    subcomponent = firefox_driver.find_element(By.CLASS_NAME, "subcomponent")
+    original_height = subcomponent.size["height"]
+
+    choices_clickable = subcomponent.find_element(By.CLASS_NAME, "multiselect")
+    choices_clickable.click()
+    time.sleep(0.2)
+
+    subcomponent = firefox_driver.find_element(By.CLASS_NAME, "subcomponent")
+    new_height = subcomponent.size["height"]
+
+    assert new_height > original_height
+
+    other_text = subcomponent.find_element(By.CLASS_NAME, "multi-select-text")
+    other_text.click()
+    time.sleep(0.2)
+
+    subcomponent = firefox_driver.find_element(By.CLASS_NAME, "subcomponent")
+    new_height = subcomponent.size["height"]
+
+    assert new_height == original_height
