@@ -16,7 +16,15 @@ class SelectorComponent(ComponentBase):
             sample_min=0, sample_max=10, text="Select Number:"
         )
         self.choices_element = ChoicesSubElement(
-            choices=["super", "magnificent", "incredible"], text="This library is:"
+            choices=[
+                "super",
+                "magnificent",
+                "incredible",
+                "fantastic",
+                "unbelievable",
+                "terrific",
+            ],
+            text="This library is:",
         )
         self.checkbox_element = CheckBoxSubElement(text="Have you slept?:")
         self.set_text_element(

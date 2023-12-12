@@ -1,5 +1,6 @@
 import pytest
 from selenium.webdriver import Firefox
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
@@ -55,15 +56,22 @@ def test_select_number(app, firefox_driver: Firefox, link: str):
 
 
 def test_select_choices(app, firefox_driver: Firefox, link: str):
-    choices = ["magnificent", "incredible", "super"]
+    choices = [
+        "magnificent",
+        "incredible",
+        "fantastic",
+        "unbelievable",
+        "terrific",
+        "super",
+    ]
     for choice in choices:
         firefox_driver.get(link)
 
         choices_elem = firefox_driver.find_element(
-            by=By.CLASS_NAME, value="multi-select-wrapper"
+            by=By.CLASS_NAME, value="multi-select-text"
         )
         choices_elem.click()
-        choices_elem.send_keys(Keys.ARROW_DOWN)
+        ActionChains(firefox_driver).send_keys(Keys.ARROW_DOWN).perform()
 
         button_elem = firefox_driver.find_element(by=By.TAG_NAME, value="button")
         button_elem.click()
