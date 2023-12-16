@@ -1,7 +1,10 @@
 <template>
   <div class="wrapElement spacedTables">
-    <div v-for="table in tables" class="table-wrapper">
-      <h3 v-if="table.title != undefined">{{ table.title }}</h3>
+    <div v-for="table, tableIndex in tables" class="table-wrapper">
+      <div class="table-header">
+        <h3 v-if="table.title != undefined" style="margin: 0">{{ table.title }}</h3>
+        <DownloadButton buttonText="LaTEX" @download-clicked="downloadClicked(tableIndex)" ref="downloadButton"/>
+      </div>
       <table class="table-style-0">
         <thead>
           <tr>
@@ -23,6 +26,7 @@
 <script lang="ts" scoped>
 import { defineComponent } from 'vue'
 import LeaderLine from 'leader-line-new'
+import DownloadButton from './utils/DownloadButton.vue'
 import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiveData'
 import type ElementRegistry from '@/assets/elementRegistry'
 import { registerElementBase } from '@/assets/elementRegistry'
@@ -64,6 +68,7 @@ let component = defineComponent({
       linksFromRow: {} as { [id: string]: LeaderLine[] }
     }
   },
+  components: {DownloadButton},
   computed: {
     links(): LinkBetweenRows[] {
       return dataSharedInComponent[getSharedDataUniqueName(this.name, 'links')]
@@ -97,6 +102,12 @@ let component = defineComponent({
     this.unregisterLinks()
   },
   methods: {
+    downloadClicked(tableIndex: number) {
+      console.log("Download clicked!")
+      let downloadButtons = this.$refs.downloadButton as (typeof DownloadButton)[]
+      let downloadButton = downloadButtons[tableIndex]
+      downloadButton.startDownloadOfFile("NICE CONTENT!")
+    },
     table_title_to_id(title: string) {
       return title.replace(/\s/g, '')
     },
@@ -245,6 +256,12 @@ export function registerElement(elementRegistry: ElementRegistry) {
 </script>
 
 <style scoped>
+
+.table-header {
+  display: flex;
+  align-items: center;
+}
+
 .table-style-0 td+td {
   border-left: 0.5px solid rgb(106, 106, 106);
 }

@@ -49,18 +49,15 @@ export default defineComponent({
     }
   },
   watch: {
-    // this is just a dummy route change toggler, when v-if=display_router_view
+    // NOTE: this is just a dummy route change toggler, when v-if=display_router_view
     // is set to false the component is deactivated (destroyed, unmounted), then
     // it is set to true, and the component is again loaded, this allows multiple
     // routes to reuse the same component
     $route() {
+      console.log("Route Changed!")
       this.display_router_view = false
+      setTimeout(() => this.display_router_view = true, 1)
     },
-    display_router_view(newValue: boolean) {
-      if (newValue === false) {
-        this.display_router_view = true
-      }
-    }
   },
   components: {
     MainContainer

@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts">
-import DesignLoading from './Design_Loading.vue'
+import DesignLoading from './utils/Design_Loading.vue'
 import { defineComponent, shallowRef } from 'vue'
 import { dataSharedInComponent, getSharedDataUniqueName, getSharedDataElementName } from '@/assets/reactiveData'
 import type ElementRegistry from '@/assets/elementRegistry'
