@@ -102,11 +102,98 @@ let component = defineComponent({
     this.unregisterLinks()
   },
   methods: {
+    // TODO: move it to some "Latex utils"
+    // create a test for the download
+    latexResolveMultilineValue(value: string) {
+      let lines = value.split('\n')
+      if (lines.length == 1) {
+        return value
+      }
+      let lineWidths = Array(lines.length).fill(0)
+
+      for (let i = 0; i < lines.length; i++) {
+        lineWidths[i] = lines[i].length
+      }
+
+      let maxLineWidth = Math.max(...lineWidths)
+
+      let result = `\\multirow{${lines.length}}{*}{\\parbox{${maxLineWidth / 2}em}{\\centering ${lines.join("\\\\")}}}`
+      return result
+    },
+    latexSanitizeValue(value: string) {
+      // replace <code> tags with \texttt
+      const codeRegex = /<code>(.*?)<\/code>/g;
+      let result = value.replace(codeRegex, '\\texttt{$1}')
+
+      // replace < and >
+      result = result.replace(/&lt;/g, '<');
+      result = result.replace(/&gt;/g, '>');
+
+      //replace newline tags with multirow
+      const newlineTag = '<br \/>'
+      const newlineRegex = new RegExp(newlineTag, 'g')
+      result = result.replace(newlineRegex, '\n')
+
+      if (result.includes('\n')) {
+        result = this.latexResolveMultilineValue(result)
+      }
+
+      return result
+    },
+    latexResolveNewlines(sanitizedRows: string[][]) {
+      let nCols = sanitizedRows[0].length
+      let resultLines = [] as string[][]
+
+      for (let i = 0; i < sanitizedRows.length; i++) {
+        let isNewline = false
+        let newlineIndex = -1
+        for (let j = 0; j < nCols; j++) {
+          if (sanitizedRows[i][j].includes("multirow")) {
+            if (isNewline) {
+              throw Error()
+            }
+            isNewline = true
+            newlineIndex = j
+          }
+        }
+
+        resultLines.push(sanitizedRows[i])
+        if (!isNewline) {
+          continue
+        }
+
+        let match = resultLines[i][newlineIndex].match(/\\multirow{(\d+)}/)
+        if (match === null) {
+          throw Error()
+        }
+        let nLines = parseInt(match[1], 10)
+
+        for (let j = 1; j < nLines; j++) {
+          resultLines.push(Array(nCols).fill(''))
+        }
+      }
+      return resultLines
+    },
+    createTableLatexRepre(tableIndex: number) {
+      let table = this.tables[tableIndex]
+      let n_cols = table.headers.length
+      let sanitizedRows = table.rows.map(innerList => innerList.map(this.latexSanitizeValue))
+      sanitizedRows = this.latexResolveNewlines(sanitizedRows)
+      let repre = `\\begin{center}
+\\begin{tabular}{${Array(n_cols).fill('c').join(' ')}}
+${table.headers.join(' & ')} \\\\
+\\hline
+${sanitizedRows.map(innerList => innerList.join(' & ')).join(' \\\\\n')}
+\\end{tabular}
+\\end{center}
+      `
+      return repre
+    },
     downloadClicked(tableIndex: number) {
-      console.log("Download clicked!")
       let downloadButtons = this.$refs.downloadButton as (typeof DownloadButton)[]
       let downloadButton = downloadButtons[tableIndex]
-      downloadButton.startDownloadOfFile("NICE CONTENT!")
+      let fileContents = this.createTableLatexRepre(tableIndex)
+      downloadButton.startDownloadOfFile(fileContents)
     },
     table_title_to_id(title: string) {
       return title.replace(/\s/g, '')
