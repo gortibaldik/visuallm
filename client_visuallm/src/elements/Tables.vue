@@ -186,7 +186,7 @@ ${table.headers.join(' & ')} \\\\
 ${sanitizedRows.map(innerList => innerList.join(' & ')).join(' \\\\\n')}
 \\end{tabular}
 \\end{center}
-      `
+`
       return repre
     },
     downloadClicked(tableIndex: number) {
