@@ -9,7 +9,7 @@
 
 ## VERSION: `0.3.12` changelog
 
-- fixes bug: choices dropdown isn't hidden behing collapsible
+- table can be saved in latex format
 
 ## Table of content
 
