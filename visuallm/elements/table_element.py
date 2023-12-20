@@ -91,6 +91,7 @@ class Table:
     headers: list[str]
     rows: list[list[str]]
     title: str
+    is_latex_downloadable: bool
 
     def construct_table_description(self):
         """Transform all the fields in the table to strings."""
@@ -100,7 +101,12 @@ class Table:
             for cix in range(len(self.rows[rix])):
                 self.rows[rix][cix] = str(self.rows[rix][cix])
         self.title = str(self.title)
-        return {"headers": self.headers, "rows": self.rows, "title": self.title}
+        return {
+            "headers": self.headers,
+            "rows": self.rows,
+            "title": self.title,
+            "is_latex_downloadable": self.is_latex_downloadable,
+        }
 
 
 class TableElement(ElementBase):
@@ -124,6 +130,7 @@ class TableElement(ElementBase):
         headers: list[str],
         rows: list[list[str]],
         prepend: bool = False,
+        is_latex_downloadable: bool = False,
     ):
         if not self.check_rows(headers, rows):
             raise ValueError(
@@ -133,6 +140,7 @@ class TableElement(ElementBase):
             raise ValueError("Cannot add two tables with the same name!")
         self.set_changed()
         self._tables[title] = Table(
+            is_latex_downloadable=is_latex_downloadable,
             headers=Sanitizer.sanitize(headers),
             rows=Sanitizer.sanitize(rows),
             title=Sanitizer.sanitize(title),

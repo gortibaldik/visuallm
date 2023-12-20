@@ -34,7 +34,9 @@ class TableComponent(ComponentBase):
         ]
         self.table_element.clear()
         table_name = "Table1 is a Great Table"
-        self.table_element.add_table(table_name, headers, rows)
+        self.table_element.add_table(
+            table_name, headers, rows, is_latex_downloadable=True
+        )
 
         # add links pointing to all the rows upwards
         for j in range(len(rows) - 1, 0, -1):

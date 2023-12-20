@@ -3,7 +3,7 @@
     <div v-for="table, tableIndex in tables" class="table-wrapper">
       <div class="table-header">
         <h3 v-if="table.title != undefined" style="margin: 0">{{ table.title }}</h3>
-        <DownloadButton buttonText="LaTEX" @download-clicked="downloadClicked(tableIndex)" ref="downloadButton"/>
+        <DownloadButton v-if="table.is_latex_downloadable" buttonText="LaTEX" @download-clicked="downloadClicked(tableIndex)" ref="downloadButton"/>
       </div>
       <table class="table-style-0">
         <thead>
@@ -31,13 +31,14 @@ import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiv
 import type ElementRegistry from '@/assets/elementRegistry'
 import { registerElementBase } from '@/assets/elementRegistry'
 import { isSane } from '@/assets/stringMethods'
-import {createTableLatexRepre } from '@/assets/tableFormatters/latex.ts'
+import {createTableLatexRepre } from '@/assets/tableFormatters/latex'
 
 export type LoadedTable = {
   title: string
   id: string
   headers: string[]
   rows: string[][]
+  is_latex_downloadable: boolean
 }
 
 /**

@@ -26,7 +26,6 @@ let component = defineComponent({
         this.$emit("downloadClicked")
     },
     startDownloadOfFile(contents: string) {
-        console.log("Starting downloading a file with the following contents:", contents)
         this.download("file.txt", contents)
     },
     download(filename: string, text: string) {
