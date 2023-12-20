@@ -203,9 +203,9 @@ class TableComponent(ComponentBase):
         self.table_element = TableElement()
 
         # create a table with headers
-        headers = ["No.", "Turn"]
+        headers = ["No.", "Turn", "Another", "Column"]
         rows = [
-            [i, x]
+            [i, x, f"Another-{i+1}.", f"Column-{i+1}."]
             for i, x in enumerate(
                 [
                     "This is first row",
@@ -215,6 +215,8 @@ class TableComponent(ComponentBase):
                     "This is fifth row",
                     "This is row with `<html>` `<tags>`",
                     "This is a multi line\nrow so it should be\ndisplayed on multiple lines.",
+                    "Another Row just because",
+                    "And another one",
                 ]
             )
         ]
