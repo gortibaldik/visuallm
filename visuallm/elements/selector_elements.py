@@ -468,3 +468,36 @@ class TextInputSubElement(SelectorSubElement[str]):
             "blank_after_text_send": self.blank_after_text_send,
             "random_number": secrets.randbelow(int(1e7)),
         }
+
+
+class HorizontalMultiRadioSubElement(SelectorSubElement[str]):
+    def __init__(self, choices: list[str], text: str):
+        if len(choices) == 0:
+            raise ValueError("choices cannot be an empty list.")
+        super().__init__("horizontal-multi-radio", text=text, default_value=choices[0])
+        self._choices = choices
+
+    @property
+    def choices(self) -> list[str]:
+        return self._choices
+
+    @choices.setter
+    def choices(self, value: list[str]):
+        if self._choices != value:
+            self.force_set_updated()
+        self._choices = value
+
+    @property
+    def value_from_frontend(self):
+        return self.value_from_frontend_getter()
+
+    @property
+    def value_on_backend(self):
+        return self.value_on_backend_getter()
+
+    @value_on_backend.setter
+    def value_on_backend(self, value: str):
+        self.value_on_backend_setter(value)
+
+    def construct_subelement_specifics(self) -> dict[str, Any]:
+        return {"choices": self._choices}

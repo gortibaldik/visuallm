@@ -5,6 +5,7 @@ from visuallm.server import Server
 from .components.bar_chart_component_advanced import BarChartComponentAdvanced
 from .components.bar_chart_component_simple import BarChartComponentSimple
 from .components.collapsible_subcomponent import ComponentWithSubcomponents
+from .components.horizontal_multi_radio_component import HorizontalMultiRadioComponent
 from .components.selector_change_subselectors import SelectorChangingComponent
 from .components.selector_component import SelectorComponent
 from .components.selector_failing_component import SelectorFailingComponent
@@ -27,6 +28,7 @@ def create_app() -> flask.Flask:
             TextInputComponent(),
             SelectorFailingComponent(),
             SelectorChangingComponent(),
+            HorizontalMultiRadioComponent(),
         ],
     )
     app = flask_app.app

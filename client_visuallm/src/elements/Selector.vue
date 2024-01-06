@@ -24,6 +24,11 @@ import {
 } from './subelements_selector/MinMaxSelector.vue'
 import MinMaxSubElement from './subelements_selector/MinMaxSelector.vue'
 import {
+  subtype as horizontalMultiRadioSubtype,
+  processSubElementConfiguration as hmrProcessSubElementConfig
+} from './subelements_selector/HorizontalMultiRadio.vue'
+import HorizontalMultiRadioSubElement from './subelements_selector/HorizontalMultiRadio.vue'
+import {
   subtype as choicesSubtype,
   processSubElementConfiguration as choicesProcessSubElementConfig
 } from './subelements_selector/ChoicesSelector.vue'
@@ -80,6 +85,7 @@ let component = defineComponent({
     ChoicesSubElement,
     CheckBoxSubElement,
     TextInputSubElement,
+    HorizontalMultiRadioSubElement,
     DesignLoading,
   },
   methods: {
@@ -143,6 +149,10 @@ let subElementProcessors = {
   [textInputSubtype]: {
     process: textInputProcessSubElementConfig,
     component: nameof({ TextInputSubElement })
+  },
+  [horizontalMultiRadioSubtype]: {
+    process: hmrProcessSubElementConfig,
+    component: nameof({ HorizontalMultiRadioSubElement })
   }
 }
 
