@@ -152,28 +152,33 @@ export default defineComponent({
 
 <style scoped>
 nav {
+  display: flex;
+  justify-content: flex-start;
   margin-bottom: 10px;
   background-color: rgb(192, 192, 192);
   margin-top: -32px;
   margin-right: -2rem;
   margin-left: -2rem;
-  display: flex;
-  justify-content: flex-start;
   row-gap: 1px;
   column-gap: 1px;
+  max-height: 4em;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .nav-element {
   background-color: rgba(0, 0, 0, 0.409);
   padding: 10px;
-  padding-top: 5px;
-  padding-bottom: 5px;
+  padding-top: 0px;
+  padding-bottom: 0px;
   font-family: sans-serif;
   font-weight: normal;
   text-decoration: none;
-  font-size: large;
+  line-height: 2.4em;
+  max-height: 2.4em;
+  width: fit-content;
   color: rgb(76, 76, 76);
-  height: fit-content;
+  white-space: nowrap;
 }
 
 .nav-element:hover {
