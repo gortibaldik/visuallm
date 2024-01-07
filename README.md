@@ -9,7 +9,11 @@
 
 ## VERSION: `0.4.0` changelog
 
-- table can be saved in latex format
+- Text can be written with Bold and Italic Markdown (i.e. if you write `plain_text_element.content = "**text** ..."`, it will automatically be translated to `<b>text</b> ...`)
+- Horizontal Multi Radio Element (multiple radios in horizontal row)
+- if navbar overflows, it overflows to scroll
+- on loading the collapsible expands which fixes bug
+
 
 ## Table of content
 
