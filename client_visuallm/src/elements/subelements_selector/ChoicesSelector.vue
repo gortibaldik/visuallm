@@ -14,6 +14,7 @@
 import VueMultiselect from 'vue-multiselect'
 import { stringWidth } from '@/assets/utils'
 import { valuesRequiredInConfiguration } from '@/assets/elementRegistry'
+import { computeEndingYCoordinate } from '@/assets/heightMethods'
 import { dataSharedInComponent, getSharedDataUniqueName, assignRequiredValuesToSharedData } from '@/assets/reactiveData'
 import { defineComponent } from 'vue'
 
@@ -154,12 +155,13 @@ let component = defineComponent({
      */
     onOpen() {
       let requiredDropdownHeight = this.computeRequiredDropdownHeight()
-      let requiredTotalHeight = this.computeRequiredTotalHeight(requiredDropdownHeight)
+      let textHTMLElement = this.$refs.text as HTMLElement
+      let requiredEndingYCoordinate = computeEndingYCoordinate(textHTMLElement, requiredDropdownHeight)
       this.innerSelectFocused = true
 
       // emit a callback that will notify the collapsible in
       // one level above that it should expand
-      this.$emit("makeBigger", requiredTotalHeight, this.name)
+      this.$emit("makeBigger", requiredEndingYCoordinate, this.name)
     },
 
     /** Compute just the height of the dropdown.
@@ -175,16 +177,6 @@ let component = defineComponent({
       }
       let addedHeight = dropdownHeight
       return addedHeight
-    },
-
-    /** Compute the absolute y coordinate of the lower boundary
-     * of the dropdown.
-     */
-    computeRequiredTotalHeight(requiredDropdownHeight: number) {
-      let element = this.$refs.text as HTMLElement
-      let rectangle = element.getBoundingClientRect()
-      let magicHeightParam = 10
-      return rectangle.y + requiredDropdownHeight + rectangle.height + magicHeightParam
     },
     switchFocusToOuterDiv() {
       this.innerSelectFocused = false

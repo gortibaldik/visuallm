@@ -130,3 +130,31 @@ def test_after_clicking_on_choices_collapsible_expands(
     new_height = subcomponent.size["height"]
 
     assert new_height == original_height
+
+
+def test_during_waiting_collapsible_expands(app, firefox_driver: Firefox, link: str):
+    firefox_driver.get(link)
+
+    subcomponent = firefox_driver.find_element(By.CLASS_NAME, "subcomponent")
+    original_height = subcomponent.size["height"]
+
+    sample_selector_wrapper = subcomponent.find_element(
+        By.CLASS_NAME, "sample-selector"
+    )
+    sample_selector = sample_selector_wrapper.find_element(By.TAG_NAME, "input")
+    sample_selector.send_keys("10")
+
+    button = subcomponent.find_element(By.TAG_NAME, "button")
+    button.click()
+    time.sleep(1)
+
+    subcomponent = firefox_driver.find_element(By.CLASS_NAME, "subcomponent")
+    new_height = subcomponent.size["height"]
+
+    assert new_height > original_height
+    time.sleep(3)
+
+    subcomponent = firefox_driver.find_element(By.CLASS_NAME, "subcomponent")
+    new_height = subcomponent.size["height"]
+
+    assert new_height == original_height

@@ -5,7 +5,7 @@
         :name="subElementConfigFE.name" @make-bigger="onMakeBigger" @make-smaller="onMakeSmaller"></component>
     </div>
     <div class="buttonWrapper">
-      <button class="button" :disabled="buttonDisabled || loadingInProgress" type="submit">{{ buttonText }}</button>
+      <button class="button" :disabled="buttonDisabled || loadingInProgress" type="submit" ref="button">{{ buttonText }}</button>
       <DesignLoading v-if="loadingInProgress" class="loading-indicator" />
     </div>
   </form>
@@ -46,6 +46,7 @@ import {
   processSubElementConfiguration as textInputProcessSubElementConfig
 } from './subelements_selector/TextInput.vue'
 import TextInputSubElement from './subelements_selector/TextInput.vue'
+import { computeEndingYCoordinate } from '@/assets/heightMethods'
 
 let component = defineComponent({
   props: {
@@ -74,11 +75,15 @@ let component = defineComponent({
     return {
       reactiveStore: dataSharedInComponent,
       selectSamplePoll: undefined as undefined | PollUntilSuccessPOST,
-      loadingInProgress: false as boolean
+      loadingInProgress: false as boolean,
+      loadingBarId: "",
     }
   },
   unmounted() {
     this.selectSamplePoll?.clear()
+  },
+  created() {
+    this.loadingBarId = `${this.name}>loadingBar`
   },
   components: {
     MinMaxSubElement,
@@ -102,6 +107,8 @@ let component = defineComponent({
       }
 
       this.loadingInProgress = true
+      let buttonHTMLElement = this.$refs.button as HTMLElement
+      this.onMakeBigger(computeEndingYCoordinate(buttonHTMLElement, 36), this.loadingBarId)
       PollUntilSuccessPOST.startPoll(
         this,
         'selectSamplePoll',
@@ -112,14 +119,17 @@ let component = defineComponent({
     },
     setContexts(response: any) {
       this.$elementRegistry.retrieveElementsFromResponse(response, this.reactiveStore)
+      if (this.loadingInProgress) {
+        this.onMakeSmaller(this.loadingBarId)
+      }
       this.loadingInProgress = false
     },
     getComponent(subtype: string) {
       let component = subElementProcessors[subtype].component
       return component
     },
-    onMakeBigger(increaseInHeight: number, idOfCaller: string) {
-      this.$emit("makeBigger", increaseInHeight, idOfCaller)
+    onMakeBigger(requiredEndingYCoordinate: number, idOfCaller: string) {
+      this.$emit("makeBigger", requiredEndingYCoordinate, idOfCaller)
     },
     onMakeSmaller(idOfCaller: string) {
       this.$emit("makeSmaller", idOfCaller)

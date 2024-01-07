@@ -90,17 +90,18 @@ let component = defineComponent({
                 return dict[key];
             });
         },
-        onMakeBigger(requiredTotalHeight: number, idOfCaller: string) {
+        onMakeBigger(requiredEndingYCoordinate: number, idOfCaller: string) {
             // if we are currently in the process of making the collapsible smaller,
             // just wait for the process to end and then run the method "runAfterTimeout"
             if (this.resizeTimeout > 0) {
-                this.runAfterTimeout = () => this.onMakeBigger(requiredTotalHeight, idOfCaller)
+                this.runAfterTimeout = () => this.onMakeBigger(requiredEndingYCoordinate, idOfCaller)
                 return
             }
 
             let content = this.$refs.content as HTMLElement
-            let clientRect = content.getBoundingClientRect()
-            let newHeightNumber = requiredTotalHeight - clientRect.y
+            let selfRect = content.getBoundingClientRect()
+            let selfStartYCoordinate = selfRect.y
+            let newHeightNumber = requiredEndingYCoordinate - selfStartYCoordinate
 
             // if the collapsible is already big enough, do not do anything
             if (newHeightNumber < Math.max(...this.dictValues(this.heights))) {
