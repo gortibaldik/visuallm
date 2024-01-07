@@ -55,6 +55,50 @@ def test_doesnt_throw_anything_on_fine_text():
     )
 
 
+def test_bold_text():
+    element = PlainTextElement()
+    element.content = "This is a text that should be **bold**. **Another bold** and **yet another bold**."
+
+    assert element.content == (
+        "This is a text that should be <b>bold</b>. "
+        "<b>Another bold</b> and <b>yet another bold</b>."
+    )
+
+
+def test_bold_text_shouldnt_be_on_multiline():
+    element = PlainTextElement()
+    val = """This is an double-asterisk **.
+It should be left an double-asterisk **."""
+    element.content = val
+
+    assert (
+        element.content
+        == "This is an double-asterisk **.<br />It should be left an double-asterisk **."
+    )
+
+
+def test_italic_text():
+    element = PlainTextElement()
+    element.content = "This is a text that should be *italic*. *Another italic* and *yet another italic*."
+
+    assert element.content == (
+        "This is a text that should be <em>italic</em>. "
+        "<em>Another italic</em> and <em>yet another italic</em>."
+    )
+
+
+def test_italic_text_shouldnt_be_on_multiline():
+    element = PlainTextElement()
+    val = """This is an asterisk *.
+It should be left an asterisk *."""
+    element.content = val
+
+    assert (
+        element.content
+        == "This is an asterisk *.<br />It should be left an asterisk *."
+    )
+
+
 def test_convert_backticks_1():
     element = PlainTextElement(content="`code`")
 

@@ -53,7 +53,7 @@ class ComponentWithSubcomponents(ComponentBase):
                 subelements=[
                     PlainTextElement(
                         "You can set the collapsible element to be expanded by default by setting `is_collapsible = True`\n"
-                        f"*Beware* if the selected number is `10`, then a wait of {N_SECONDS_WAIT} seconds happens before "
+                        f"**Beware** if the selected number is `10`, then a **wait** of {N_SECONDS_WAIT} seconds happens before "
                         "returning the response."
                     )
                 ],

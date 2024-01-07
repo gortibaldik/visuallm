@@ -25,10 +25,19 @@ class Sanitizer:
         return value
 
     @staticmethod
+    def convert_bold(value: str):
+        value = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", value)
+        return value
+
+    @staticmethod
+    def convert_italic(value: str):
+        value = re.sub(r"\*(.+?)\*", r"<em>\1</em>", value)
+        return value
+
+    @staticmethod
     def is_sane(value: str):
-        value = value.replace("<br />", "")
-        value = value.replace("<code>", "")
-        value = value.replace("</code>", "")
+        allowed = [r"<br />", r"<code>", r"</code>", r"<b>", r"</b>", r"<em>", r"</em>"]
+        value = re.sub("|".join(allowed), "", value)
         return "<" not in value and ">" not in value
 
     @singledispatch
@@ -45,6 +54,8 @@ class Sanitizer:
     @staticmethod
     def sanitize_str(value: str):
         value = Sanitizer.convert_brackets(value)
+        value = Sanitizer.convert_bold(value)
+        value = Sanitizer.convert_italic(value)
         value = Sanitizer.convert_newline_to_br_tags(value)
         value = Sanitizer.convert_backticks(value)
         return value

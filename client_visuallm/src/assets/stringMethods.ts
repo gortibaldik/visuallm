@@ -6,9 +6,19 @@ export function replaceAll(wholeString: string, oldValue: string, newValue: stri
   return wholeString.replace(new RegExp(escapeRegExp(oldValue), 'g'), newValue);
 }
 
+/** A string is sane if it doesn't contain any html except allowed tags.
+ */
 export function isSane(value: string) {
-  let checkedValue = replaceAll(value, "<br />", "")
-    checkedValue = replaceAll(checkedValue, "<code>", "")
-    checkedValue = replaceAll(checkedValue, "</code>", "")
-    return !checkedValue.includes("<") && !checkedValue.includes(">")
+  let toBeReplaced = [
+    "<br />",
+    "<code>",
+    "</code>",
+    "<b>",
+    "</b>",
+    "<em>",
+    "</em>"
+  ]
+  toBeReplaced = toBeReplaced.map(escapeRegExp)
+  let checkedValue = value.replace(new RegExp(toBeReplaced.join("|"), 'g'), "")
+  return !checkedValue.includes("<") && !checkedValue.includes(">")
 }
