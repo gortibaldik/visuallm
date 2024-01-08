@@ -9,7 +9,7 @@
       <button class="download-button" @click.prevent="copyToClickboard">Copy</button>
     </div>
   </div>
-  <input type="textarea" ref="refForCopy" :value="copyText" readonly/>
+  <input style="display: none" type="textarea" ref="refForCopy" :value="copyText" readonly/>
 </div>
 <a ref="refForDownload" style="display: none"></a>
 </template>

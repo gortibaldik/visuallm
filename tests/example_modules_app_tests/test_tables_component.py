@@ -85,9 +85,7 @@ def test_copy_works(app, firefox_driver: Firefox, link: str, download_dir: Path)
 
     modal_elem = firefox_driver.find_element(By.CLASS_NAME, "modal")
     text_elem = modal_elem.find_element(By.CLASS_NAME, "wrapElement")
-    assert (
-        text_elem.text
-        == r"""\begin{center}
+    expected = r"""\begin{center}
 \begin{tabular}{c c c c}
 No. & Turn & Another & Column \\
 \hline
@@ -104,12 +102,44 @@ No. & Turn & Another & Column \\
 8 & And another one & Another-9. & Column-9.
 \end{tabular}
 \end{center}"""
+    expected2 = r"""\begin{center}
+\begin{tabular}{c c c c}
+No. & Turn & Another & Column \\
+\hline
+0 & This is first row & Another-1. & Column-1. \\
+1 & This is second row & Another-2. & Column-2. \\
+2 & This is third row & Another-3. & Column-3. \\
+3 & This is fourth row & Another-4. & Column-4. \\
+4 & This is fifth row & Another-5. & Column-5. \\
+5 & This is row with \texttt{<html>} \texttt{<tags>} & Another-6. & Column-6. \\
+6 & \multirow{3}{*}{\parbox{14em}{\centering This is a multi line\\row so it should be\\displayed on multiple lines.}} & Another-7. & Column-7. \\
+ &  &  &  \\
+ &  &  &  \\
+7 & Another Row just because & Another-8. & Column-8. \\
+8 & And another one & Another-9. & Column-9.
+\end{tabular}
+\end{center}""".replace(
+        "\n", ""
     )
+
+    assert text_elem.text == expected
 
     buttons = modal_elem.find_elements(By.TAG_NAME, "button")
     assert len(buttons) == 2
     assert buttons[0].text == "Close"
     assert buttons[1].text == "Copy"
 
+    buttons[1].click()
+    elems = modal_elem.find_elements(By.CLASS_NAME, "copy-message")
+    assert len(elems) == 1
+    assert elems[0].text == "Copied!"
+
+    time.sleep(0.2)
+    textarea = modal_elem.find_element(By.TAG_NAME, "input")
+    assert textarea.get_attribute("value") == expected2
+
     buttons[0].click()
-    time.sleep(0.5)
+    time.sleep(0.2)
+
+    modal_elems = firefox_driver.find_elements(By.CLASS_NAME, "modal")
+    assert len(modal_elems) == 0
