@@ -7,7 +7,11 @@
 
 ![example workflow](https://github.com/gortibaldik/visuallm/actions/workflows/python-test.yaml/badge.svg)
 
-## VERSION: `0.4.0` changelog
+## VERSION: `0.4.0`
+
+- added table modal, instead of creating a file that will be downloaded a `copy to clipboard` button was added
+
+## changelog: `0.4.0`
 
 - Text can be written with Bold and Italic Markdown (i.e. if you write `plain_text_element.content = "**text** ..."`, it will automatically be translated to `<b>text</b> ...`)
 - Horizontal Multi Radio Element (multiple radios in horizontal row)
