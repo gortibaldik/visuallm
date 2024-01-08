@@ -7,7 +7,7 @@
 
 ![example workflow](https://github.com/gortibaldik/visuallm/actions/workflows/python-test.yaml/badge.svg)
 
-## VERSION: `0.4.1`
+## VERSION: `0.4.2`
 
 - added table modal, instead of creating a file that will be downloaded a `copy to clipboard` button was added
 
