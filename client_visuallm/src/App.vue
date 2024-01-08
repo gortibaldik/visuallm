@@ -54,7 +54,6 @@ export default defineComponent({
     // it is set to true, and the component is again loaded, this allows multiple
     // routes to reuse the same component
     $route() {
-      console.log("Route Changed!")
       this.display_router_view = false
       setTimeout(() => this.display_router_view = true, 1)
     },

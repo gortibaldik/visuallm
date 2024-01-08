@@ -69,7 +69,7 @@ def test_connection_is_displayed(app, firefox_driver: Firefox, link: str):
         assert expected_displayed == actual_displayed
 
 
-def test_download_works(app, firefox_driver: Firefox, link: str, download_dir: Path):
+def test_copy_works(app, firefox_driver: Firefox, link: str, download_dir: Path):
     firefox_driver.get(link)
 
     elems = firefox_driver.find_elements(by=By.CLASS_NAME, value="spacedTables")
@@ -80,16 +80,14 @@ def test_download_works(app, firefox_driver: Firefox, link: str, download_dir: P
     assert button.text == "LaTEX"
     button.click()
 
-    # wait for the download
-    time.sleep(1)
+    # wait for the modal to show
+    time.sleep(0.2)
 
-    # check whether the file is valid latex
-    download_path = download_dir / "file.txt"
-    with download_path.open() as f:
-        content = f.read()
-        assert (
-            content
-            == r"""\begin{center}
+    modal_elem = firefox_driver.find_element(By.CLASS_NAME, "modal")
+    text_elem = modal_elem.find_element(By.CLASS_NAME, "wrapElement")
+    assert (
+        text_elem.text
+        == r"""\begin{center}
 \begin{tabular}{c c c c}
 No. & Turn & Another & Column \\
 \hline
@@ -100,13 +98,18 @@ No. & Turn & Another & Column \\
 4 & This is fifth row & Another-5. & Column-5. \\
 5 & This is row with \texttt{<html>} \texttt{<tags>} & Another-6. & Column-6. \\
 6 & \multirow{3}{*}{\parbox{14em}{\centering This is a multi line\\row so it should be\\displayed on multiple lines.}} & Another-7. & Column-7. \\
- &  &  &  \\
- &  &  &  \\
+& & & \\
+& & & \\
 7 & Another Row just because & Another-8. & Column-8. \\
 8 & And another one & Another-9. & Column-9.
 \end{tabular}
-\end{center}
-"""
-        )
+\end{center}"""
+    )
 
-    download_path.unlink()
+    buttons = modal_elem.find_elements(By.TAG_NAME, "button")
+    assert len(buttons) == 2
+    assert buttons[0].text == "Close"
+    assert buttons[1].text == "Copy"
+
+    buttons[0].click()
+    time.sleep(0.5)

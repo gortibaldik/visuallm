@@ -22,3 +22,17 @@ export function isSane(value: string) {
   let checkedValue = value.replace(new RegExp(toBeReplaced.join("|"), 'g'), "")
   return !checkedValue.includes("<") && !checkedValue.includes(">")
 }
+
+export function escapeHtml(unsafe: string) {
+  return unsafe
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;")
+  .replace(/'/g, "&#039;");
+}
+
+export function turnNewlinesToBr(text: string) {
+  text = text.replace(/(?:\r\n|\r|\n)/g, '<br>')
+  return text
+}
