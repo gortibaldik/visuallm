@@ -1,5 +1,5 @@
 <template>
-    <div class="hmr-wrapper wrapElement">
+    <div :class="{'hmr-wrapper': true, wrapElement: true, vertical: !isHorizontal}">
         <div v-if="text.length > 0" class="descr">{{ text }}</div>
         <div class="input-radio" v-for="choice in choices">
             <input type="radio" v-model="selected" :value="choice"/>
@@ -34,6 +34,9 @@ let component = defineComponent({
         text(): string {
             return dataSharedInComponent[getSharedDataUniqueName(this.name, 'text')]
         },
+        isHorizontal(): boolean {
+            return dataSharedInComponent[getSharedDataUniqueName(this.name, 'isHorizontal')]
+        }
     },
     watch: {
         selected: {
@@ -53,11 +56,11 @@ let component = defineComponent({
 
 export default component
 
-let subtype = 'horizontal-multi-radio'
+let subtype = 'multi-radio'
 export { subtype }
 
 export function processSubElementConfiguration(this_name: string, subElementConfiguration: any) {
-    let requiredValues = { choices: 'choices', selected: 'defaultSelected', text: 'text' } as {[key: string] : string}
+    let requiredValues = { choices: 'choices', selected: 'defaultSelected', text: 'text', is_horizontal: "isHorizontal"} as {[key: string] : string}
     valuesRequiredInConfiguration(subElementConfiguration, Object.keys(requiredValues))
     return assignRequiredValuesToSharedData(this_name, subElementConfiguration, requiredValues)
 }
@@ -68,6 +71,11 @@ export function processSubElementConfiguration(this_name: string, subElementConf
     flex-wrap: wrap;
     column-gap: 5px;
     row-gap: 10px;
+}
+
+.vertical {
+    flex-direction: column;
+    flex-wrap: nowrap;
 }
 
 .input-radio {

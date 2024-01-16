@@ -470,12 +470,23 @@ class TextInputSubElement(SelectorSubElement[str]):
         }
 
 
-class HorizontalMultiRadioSubElement(SelectorSubElement[str]):
-    def __init__(self, choices: list[str], text: str):
+class MultiRadioSubElement(SelectorSubElement[str]):
+    def __init__(self, choices: list[str], text: str, is_horizontal: bool = True):
+        """Display a series of radio buttons, either in horizontal or vertical direction.
+
+        Args:
+        ----
+            choices (list[str]): choices that will be displayed on the frontend each
+                with a radio input before it
+            text (str): query written just in front of the choices
+            is_horizontal (bool, optional): whether the choices will be organized
+                horizontally or vertically on the frontend. Defaults to True.
+        """
         if len(choices) == 0:
             raise ValueError("choices cannot be an empty list.")
-        super().__init__("horizontal-multi-radio", text=text, default_value=choices[0])
+        super().__init__("multi-radio", text=text, default_value=choices[0])
         self._choices = choices
+        self._is_horizontal = is_horizontal
 
     @property
     def choices(self) -> list[str]:
@@ -500,4 +511,4 @@ class HorizontalMultiRadioSubElement(SelectorSubElement[str]):
         self.value_on_backend_setter(value)
 
     def construct_subelement_specifics(self) -> dict[str, Any]:
-        return {"choices": self._choices}
+        return {"choices": self._choices, "is_horizontal": self._is_horizontal}

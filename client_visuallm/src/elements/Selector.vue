@@ -13,7 +13,7 @@
 
 <script lang="ts">
 import DesignLoading from './utils/Design_Loading.vue'
-import { defineComponent, shallowRef } from 'vue'
+import { defineComponent } from 'vue'
 import { dataSharedInComponent, getSharedDataUniqueName, getSharedDataElementName } from '@/assets/reactiveData'
 import type ElementRegistry from '@/assets/elementRegistry'
 import { ElementDescription, valuesRequiredInConfiguration, entries } from '@/assets/elementRegistry'
@@ -26,8 +26,8 @@ import MinMaxSubElement from './subelements_selector/MinMaxSelector.vue'
 import {
   subtype as horizontalMultiRadioSubtype,
   processSubElementConfiguration as hmrProcessSubElementConfig
-} from './subelements_selector/HorizontalMultiRadio.vue'
-import HorizontalMultiRadioSubElement from './subelements_selector/HorizontalMultiRadio.vue'
+} from './subelements_selector/MultiRadio.vue'
+import MultiRadioSubElement from './subelements_selector/MultiRadio.vue'
 import {
   subtype as choicesSubtype,
   processSubElementConfiguration as choicesProcessSubElementConfig
@@ -90,7 +90,7 @@ let component = defineComponent({
     ChoicesSubElement,
     CheckBoxSubElement,
     TextInputSubElement,
-    HorizontalMultiRadioSubElement,
+    HorizontalMultiRadioSubElement: MultiRadioSubElement,
     DesignLoading,
   },
   methods: {
@@ -162,7 +162,7 @@ let subElementProcessors = {
   },
   [horizontalMultiRadioSubtype]: {
     process: hmrProcessSubElementConfig,
-    component: nameof({ HorizontalMultiRadioSubElement })
+    component: nameof({ HorizontalMultiRadioSubElement: MultiRadioSubElement })
   }
 }
 

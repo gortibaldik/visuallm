@@ -2,15 +2,15 @@ from visuallm import ComponentBase
 from visuallm.elements import PlainTextElement
 from visuallm.elements.selector_elements import (
     ButtonElement,
-    HorizontalMultiRadioSubElement,
+    MultiRadioSubElement,
 )
 
 
 class HorizontalMultiRadioComponent(ComponentBase):
     def __init__(self):
         super().__init__(name="hmr_subcomponent", title="Horizontal Multi Radio")
-        self.multiselect = HorizontalMultiRadioSubElement(
-            [f"choice{i}" for i in range(5)], "Select an Option:"
+        self.multiselect = MultiRadioSubElement(
+            [f"choice{i}" for i in range(5)], "Select an Option:", is_horizontal=True
         )
         self.plain_text = PlainTextElement()
         button_element = ButtonElement(
