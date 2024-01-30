@@ -23,14 +23,22 @@ class SubElementConfiguration:
 
 class ButtonElement(ElementWithEndpoint):
 
-    """I expect the following flow of data:
-    - In frontend the user selects some value from the selector (automatic)
-    - In frontend the user clicks the button element which is the parent of
-        the selector (automatic)
-    - The data arrives to backend, where each selector is updated and signalizes
-        that is has been updated through `self.updated` flag (automatic)
-    - the programmer can control what is influenced by updated selectors
-    - all the changed elements are sent back to the frontend (automatic)
+    """Frontend button element in a div with a list of subselectors.
+
+    The list of subselectors may be empty, then only the button will appear.
+    On the moment when user presses the button on the frontend, all the values
+    from the subselectors are sent to the backend.
+
+    Each subselector is automatically updated and contains at least 2 values
+    stored in the following properties:
+    - value_from_frontend: read-only, contains the value selected on the frontend
+    - value_on_backend: read-write, contains exactly the same value as value_from_frontend
+        but may be updated, and the updated value is sent back to the frontend (in case,
+        when you want to change somehow the selected value and send it to user)
+
+    After the user presses the button, and all the values of subselectors are updated,
+    the user may work with the provided values by means of `processing_callback`. I.e.
+    during the processing callback, the user has access to all the updated values.
     """
 
     def __init__(
@@ -40,6 +48,7 @@ class ButtonElement(ElementWithEndpoint):
         subelements: list[SelectorSubElement] | None = None,
         button_text: str = "Select",
         disabled: bool = False,
+        reload_page: bool = False,
         **kwargs,
     ):
         """Args:
@@ -56,6 +65,8 @@ class ButtonElement(ElementWithEndpoint):
             button_text (str, optional): Text displayed in a button input
                 element. Defaults to "Select".
             disabled (bool): whether the button should be clickable
+            reload_page (bool): whether the whole page should be reloaded after
+                the button is clicked
         """
         super().__init__(name=name, type="button", **kwargs)
         self.processing_callback = processing_callback
@@ -64,6 +75,7 @@ class ButtonElement(ElementWithEndpoint):
         self._subelements: list[SelectorSubElement] = []
         self._subelement_names: MutableSet[str] = set()
         self._disabled = disabled
+        self._reload_page = reload_page
 
         if subelements is None:
             subelements = []
@@ -109,6 +121,10 @@ class ButtonElement(ElementWithEndpoint):
             self.set_changed()
         self._button_text = value
 
+    @property
+    def reload_page(self):
+        return self._reload_page
+
     def construct_element_configuration(self):
         subelement_configs = []
         for c in self._subelements:
@@ -118,6 +134,7 @@ class ButtonElement(ElementWithEndpoint):
             "button_text": self.button_text,
             "disabled": self.disabled,
             "subelement_configs": subelement_configs,
+            "reload_page": self.reload_page,
         }
 
     def _set_value_on_frontend_on_subelement(
@@ -141,7 +158,7 @@ class ButtonElement(ElementWithEndpoint):
                 )
 
             self.processing_callback()
-            return self.parent_component.fetch_info(fetch_all=False)
+            return self.parent_component.fetch_info(fetch_all=self.reload_page)
         except Exception:
             return self.parent_component.fetch_exception(traceback.format_exc())
 

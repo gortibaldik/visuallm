@@ -67,13 +67,15 @@ let component = defineComponent({
     },
     buttonDisabled(): boolean {
       return dataSharedInComponent[getSharedDataUniqueName(this.name, 'disabled')]
+    },
+    reloadPage(): boolean {
+      return dataSharedInComponent[getSharedDataUniqueName(this.name, 'reloadPage')]
     }
   },
   inject: ['backendAddress'],
-  emits: ['makeBigger', 'makeSmaller'],
+  emits: ['makeBigger', 'makeSmaller', 'reloadPage'],
   data() {
     return {
-      reactiveStore: dataSharedInComponent,
       selectSamplePoll: undefined as undefined | PollUntilSuccessPOST,
       loadingInProgress: false as boolean,
       loadingBarId: "",
@@ -118,7 +120,19 @@ let component = defineComponent({
       )
     },
     setContexts(response: any) {
-      this.$elementRegistry.retrieveElementsFromResponse(response, this.reactiveStore)
+      // reloadPage forces reload of all the elements, with the possibility
+      // of removing or adding some of the elements. Hence the rerender of the
+      // page is needed. The responsibility belongs to the `FrontendComponent`,
+      // so this method only sends the response to that component and doesn't
+      // mangle in any way with the dataSharedInComponent
+      if (this.reloadPage) {
+        this.$emit("reloadPage", response)
+        return
+      }
+
+      // no reload of page is required, hence only update the values
+      // of already rendered elments
+      this.$elementRegistry.retrieveElementsFromResponse(response, dataSharedInComponent)
       if (this.loadingInProgress) {
         this.onMakeSmaller(this.loadingBarId)
       }
@@ -173,6 +187,12 @@ interface SubElementConfigurationFromBE {
   configuration: any
 }
 
+/**
+ * Path to the configuration for each subelement
+ *
+ * - subtype is the key of the component that should render that subelement
+ * - name is the unique name of the subelement in the selector element.
+ */
 interface SubElementConfigurationFE {
   subtype: string
   name: string
@@ -183,6 +203,7 @@ class ElementConfiguration extends ElementDescription {
   address!: string
   button_text!: string
   disabled!: boolean
+  reload_page!: boolean
 }
 
 export function registerElement(elementRegistry: ElementRegistry) {
@@ -199,6 +220,8 @@ function processElementDescr(configuration: ElementConfiguration) {
     address: configuration.address,
     buttonText: configuration.button_text,
     disabled: configuration.disabled,
+    reloadPage: configuration.reload_page,
+    // subelement configs contain
     subElementConfigs: [] as SubElementConfigurationFE[]
   } as { [key: string]: any }
 

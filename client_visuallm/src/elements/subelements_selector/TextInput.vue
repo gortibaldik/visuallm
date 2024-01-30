@@ -39,7 +39,6 @@ let component = defineComponent({
     },
     methods: {
         submit(e: Event) {
-            console.log("submitting!")
             let textarea = this.$refs.textarea as HTMLTextAreaElement
             let form = textarea.form
             if (form == null) {

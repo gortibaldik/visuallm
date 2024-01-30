@@ -50,6 +50,21 @@ class ElementBase(Named, ABC):
         self._changed = True
         self._is_registered_to_component: bool = False
         self.on_element_changed_callback = on_element_changed_callback
+        self._is_displayed = True
+
+    @property
+    def is_displayed(self):
+        """Should the element be displayed on the frontend ?"""
+        return self._is_displayed
+
+    def unset_displayed(self):
+        """After the call, the element wouldn't be displayed on the frontend."""
+        self._is_displayed = False
+
+    def set_displayed(self):
+        """After the call, the element would be displayed on the frontend."""
+        self.set_changed()
+        self._is_displayed = True
 
     @property
     def is_registered_to_component(self):
@@ -124,6 +139,7 @@ class ElementBase(Named, ABC):
         register_named(
             self, component.registered_element_names, component.registered_elements
         )
+        self._is_registered_to_component = True
 
 
 class ElementWithEndpoint(ElementBase):
@@ -152,10 +168,10 @@ class ElementWithEndpoint(ElementBase):
             endpoint_url = sanitize_url(self.name)
         self.endpoint_url = endpoint_url
         self._parent_component: ComponentBase | None = None
-        self._type = type
         """The component that holds all the other elements. This is set
         in `ComponentBase.register_elements`
         """
+        self._type = type
 
     @property
     def parent_component(self) -> ComponentBase:

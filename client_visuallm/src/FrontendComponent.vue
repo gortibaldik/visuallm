@@ -1,6 +1,6 @@
 <template>
   <div class="horizontal rounded">
-    <component v-for="(element, idx) in elements" :key="idx" :is="element.component" :name="element.name"></component>
+    <component v-for="(element, idx) in elements" :key="idx" :is="element.component" :name="element.name" v-on="shouldListenForReloadPage(element) ? {reloadPage} : {}"></component>
   </div>
 </template>
 
@@ -20,6 +20,7 @@ export default defineComponent({
   data() {
     return {
       elements: [] as ProcessedContext[],
+      elementsWithReloadCapability: ['Selector', 'Collapsible'],
       defaultPoll: undefined as PollUntilSuccessGET | undefined
     }
   },
@@ -53,11 +54,19 @@ export default defineComponent({
         delete dataSharedInComponent[key]
       }
     },
+    reloadPage(response: any) {
+      this.setUpElements(response)
+      this.$forceUpdate()
+    },
+    shouldListenForReloadPage(component: ProcessedContext) {
+      return this.elementsWithReloadCapability.includes(component.component)
+    },
     /**
      * extract all the elements from the response and populate the component
      * @param response
      */
     setUpElements(response: ResponseFormat) {
+      this.elements = []
       this.$elementRegistry.retrieveElementsFromResponse(response, dataSharedInComponent, this.elements)
     },
   }

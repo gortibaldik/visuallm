@@ -3,8 +3,7 @@
     <button :class="{ collapsible: true, active: isOpened, wrapElement: true }" @click="clickedCollapsible">{{ title
     }}</button>
     <div class="subcomponent content" ref="content" v-if="isOpened">
-        <!-- TODO: look at this https://vuejs.org/guide/components/events.html -->
-        <component v-for="(element, idx) in elements" :key="idx" :is="element.component" :name="element.name" @make-bigger="onMakeBigger" @make-smaller="onMakeSmaller"/>
+        <component v-for="(element, idx) in elements" :key="idx" :is="element.component" :name="element.name" @make-bigger="onMakeBigger" @make-smaller="onMakeSmaller" @reload-page="reloadPage"/>
     </div>
 </template>
 
@@ -48,6 +47,7 @@ let component = defineComponent({
         Selector,
         Tables
     },
+    emits: ['reloadPage'],
     computed: {
         elemDescrs(): SubComponentElement[] {
             return dataSharedInComponent[getSharedDataUniqueName(this.name, 'subelements')] as SubComponentElement[]
@@ -123,6 +123,9 @@ let component = defineComponent({
             let newHeight = newHeightNumber + "px"
             this.resizeTimeout = setTimeout(this.resizeToNewHeight.bind(this, newHeight), 200)
             content.style.maxHeight = newHeight
+        },
+        reloadPage(response: any) {
+            this.$emit("reloadPage", response)
         },
         resizeToNewHeight(newHeight: string) {
             let content = this.$refs.content as HTMLElement

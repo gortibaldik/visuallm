@@ -2,7 +2,7 @@ import type { Component, App } from 'vue'
 import { getSharedDataUniqueName } from './reactiveData'
 
 export type ProcessedContext = {
-  component: Component
+  component: string
   name: string
 }
 
@@ -89,7 +89,11 @@ export default class ElementRegistry {
         })
       }
       for (const [key, data] of entries(elementData.data)) {
-        reactiveStore[getSharedDataUniqueName(elementDescr.name, key)] = data
+        let reactiveStoreKey = getSharedDataUniqueName(elementDescr.name, key)
+        if (!reactiveStore.hasOwnProperty(reactiveStoreKey) && elements === undefined) {
+          throw TypeError(`reactiveStore doesn't contain property '${reactiveStoreKey}'`)
+        }
+        reactiveStore[reactiveStoreKey] = data
       }
     }
   }
@@ -110,6 +114,9 @@ export function configurationRequired(elementDescr: {[name: string]: any}) {
   }
 }
 
+/**
+ * Check that all the values from `vals` are present in the `configuration`.
+ */
 export function valuesRequiredInConfiguration(configuration: any, vals: string[]) {
   for (const val of vals) {
     if (!(val in configuration)) {
