@@ -38,6 +38,7 @@ from .components.bar_chart_component_advanced import BarChartComponentAdvanced
 from .components.bar_chart_component_simple import BarChartComponentSimple
 from .components.collapsible_subcomponent import ComponentWithSubcomponents
 from .components.horizontal_multi_radio_component import HorizontalMultiRadioComponent
+from .components.reloadable_component import ReloadableComponent
 from .components.selector_change_subselectors import SelectorChangingComponent
 from .components.selector_component import SelectorComponent
 from .components.selector_failing_component import SelectorFailingComponent
@@ -61,6 +62,7 @@ def create_app() -> flask.Flask:
             SelectorFailingComponent(),
             SelectorChangingComponent(),
             HorizontalMultiRadioComponent(),
+            ReloadableComponent(),
         ],
     )
     app = flask_app.app
