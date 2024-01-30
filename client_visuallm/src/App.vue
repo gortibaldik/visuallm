@@ -7,7 +7,7 @@
   </nav>
   <main>
     <!-- component is loaded from the router-view, component is registered into the route -->
-    <router-view v-if="display_router_view"></router-view>
+    <router-view v-if="display_router_view" :key="$route.fullPath"></router-view>
     <div class="notLoaded" v-else>
       <h1>The routes from the backend haven't been loaded yet.</h1>
     </div>
@@ -47,16 +47,6 @@ export default defineComponent({
       backendAddress: import.meta.env.VITE_API_URL as string,
       tryPoll: undefined as undefined | PollUntilSuccessGET
     }
-  },
-  watch: {
-    // NOTE: this is just a dummy route change toggler, when v-if=display_router_view
-    // is set to false the component is deactivated (destroyed, unmounted), then
-    // it is set to true, and the component is again loaded, this allows multiple
-    // routes to reuse the same component
-    $route() {
-      this.display_router_view = false
-      setTimeout(() => this.display_router_view = true, 1)
-    },
   },
   components: {
     MainContainer
