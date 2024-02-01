@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts" scoped>
-import ElementRegistry, { registerElementBase, type ProcessedContext } from '@/assets/elementRegistry';
+import ElementRegistry, { registerElementBase, entries, type ProcessedContext } from '@/assets/elementRegistry';
 import { dataSharedInComponent, getSharedDataUniqueName } from '@/assets/reactiveData';
 import { defineComponent} from 'vue';
 import PlainText from '@/elements/PlainText.vue'
@@ -52,28 +52,19 @@ let component = defineComponent({
         elemDescrs(): SubComponentElement[] {
             return dataSharedInComponent[getSharedDataUniqueName(this.name, 'subelements')] as SubComponentElement[]
         },
-        elements(): ProcessedContext[] {
-            let subResponse = {
+        subResponseForElemsConstruction(): {result: string, reason: undefined, elementDescriptions: any} {
+            return {
                 result: "success",
                 reason: undefined,
                 elementDescriptions: this.elemDescrs
             }
-
+        },
+        elements(): ProcessedContext[] {
+            let subResponse = this.subResponseForElemsConstruction
             let elements = [] as ProcessedContext[]
             this.$elementRegistry.retrieveElementsFromResponse(subResponse, dataSharedInComponent, elements)
-
-            let reactiveElements = [] as ProcessedContext[]
-            // if the displayed object isn't marked as reactive, then for some reason
-            // it isn't displayed (vue component is not rendered)
-            for (let i = 0; i < elements.length; i++) {
-                let obj = {
-                    component: this.$elementRegistry.registeredElements[this.elemDescrs[i].type].component,
-                    name: elements[i].name
-                }
-                reactiveElements.push(obj)
-            }
             setTimeout(() => this.resizeContent(this.isOpened), 100)
-            return reactiveElements
+            return elements
         },
         title(): string {
             return dataSharedInComponent[getSharedDataUniqueName(this.name, 'title')]

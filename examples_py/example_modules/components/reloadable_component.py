@@ -11,7 +11,7 @@ from visuallm.elements.selector_elements import (
 
 
 class ReloadableComponent(ComponentBase):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="reloadable_component", title="Reloadable")
         self.stages = [
             self.stage_1,
@@ -21,7 +21,7 @@ class ReloadableComponent(ComponentBase):
         self.create_elements()
         self.reload_page_callback()
 
-    def create_elements(self):
+    def create_elements(self) -> None:
         self.main_heading_element = MainHeadingElement(content="Reload Component")
         self.stage_1_description = PlainTextElement(
             content='When you click on the "Reload" button, the page will reload with new elements.'
@@ -65,17 +65,16 @@ class ReloadableComponent(ComponentBase):
             self.stage_2_button_collapsible,
         ]
 
-    def stage_1(self):
+    def stage_1(self) -> None:
         self.clear_elements()
         for element in self.stage_1_elements:
             element.set_displayed()
 
-    def stage_2(self):
+    def stage_2(self) -> None:
         self.clear_elements()
         for element in self.stage_2_elements:
             element.set_displayed()
 
-    def reload_page_callback(self):
+    def reload_page_callback(self) -> None:
         self.stage_index = (self.stage_index + 1) % len(self.stages)
-        print("self.stage_index", self.stage_index)
         self.stages[self.stage_index]()

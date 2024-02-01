@@ -45,7 +45,7 @@ export default class ElementRegistry {
   }
 
   createElementDataFromDescription(elementDescr: ElementDescription): {
-    component: Component
+    component: string
     data: Map<string, any>
   } {
     if (elementDescr === undefined) {
@@ -72,7 +72,8 @@ export default class ElementRegistry {
   retrieveElementsFromResponse(
     response: ResponseFormat,
     reactiveStore: { [name: string]: any },
-    elements: any[] | undefined = undefined
+    elements: any[] | undefined = undefined,
+    checkForRedefinition: boolean = false,
   ) {
     if (response.result === "exception") {
       alert(`Exception: ${response.reason}`)
@@ -90,8 +91,10 @@ export default class ElementRegistry {
       }
       for (const [key, data] of entries(elementData.data)) {
         let reactiveStoreKey = getSharedDataUniqueName(elementDescr.name, key)
-        if (!reactiveStore.hasOwnProperty(reactiveStoreKey) && elements === undefined) {
-          throw TypeError(`reactiveStore doesn't contain property '${reactiveStoreKey}'`)
+        if (checkForRedefinition && !reactiveStore.hasOwnProperty(reactiveStoreKey)) {
+          if (elements === undefined ) {
+            throw TypeError(`reactiveStore doesn't contain property '${reactiveStoreKey}'`)
+          }
         }
         reactiveStore[reactiveStoreKey] = data
       }
