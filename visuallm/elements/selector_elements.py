@@ -180,14 +180,12 @@ SelectedType = TypeVar("SelectedType")
 
 class SelectorSubElement(ABC, Generic[SelectedType], Named):
 
-    """I expect the following flow of data:
-    - In frontend the user selects some value from the selector (automatic)
-    - In frontend the user clicks the button element which is the parent of
-        the selector (automatic)
-    - The data arrives to backend, where each selector is updated and signalizes
-        that is has been updated through `self.updated` flag (automatic)
-    - the programmer can control what is influenced by updated selectors
-    - all the changed elements are sent back to the frontend (automatic)
+    """Element that allows the user to select a value, and send it to backend with a button.
+
+    Each SelectorSubElement serves for the user to select exactly one value. This value can
+    be sent to the backend and be processed there. The value is stored in `value_from_frontend`
+    property, and the processed value is saved in `value_on_backend` property. The processed
+    value will be automatically sent to the frontend.
     """
 
     def __init__(
@@ -303,9 +301,7 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
 
 class MinMaxSubElement(SelectorSubElement[float]):
 
-    """Subelement in the ButtonElement that creates an int selection in
-    a range. E.g. selector between [min, max].
-    """
+    """Select a number (possibly decimal), from a range [min, max]."""
 
     def __init__(
         self,
@@ -315,19 +311,20 @@ class MinMaxSubElement(SelectorSubElement[float]):
         step_size: float = 1.0,
         default_value: float | None = None,
     ):
-        """TODO
+        """Select a number (possibly decimal), from a range [min, max]
 
         Args:
         ----
-            sample_min (float): _description_
-            sample_max (float): _description_
-            text (str): _description_
-            step_size (float, optional): _description_. Defaults to 1.0.
-            default_value (Optional[float], optional): _description_. Defaults to None.
+            sample_min (float): minimum number that can be selected (inclusive)
+            sample_max (float): maximum number that can be selected (inclusive)
+            text (str): text that is displayed on the left of the selector
+            step_size (float, optional): minimal difference between two adjacent values. Defaults to 1.0.
+            default_value (Optional[float], optional): Default selected value, if None then sample_min is
+                selected as default. Defaults to None.
 
         Raises:
         ------
-            ValueError: _description_
+            ValueError: if sample_min isn't smaller or equal to sample_max.
         """
         super().__init__(
             subtype="min_max",
