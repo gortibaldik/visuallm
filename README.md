@@ -9,6 +9,11 @@
 
 ## VERSION: `0.4.4`
 
+- reload all the elements on button press
+- route changes handled by `:key` attribute (to follow the actual best practices, improves scrolling experience)
+
+## changelog: `0.4.3`
+
 - added table modal, instead of creating a file that will be downloaded a `copy to clipboard` button was added
 
 ## changelog: `0.4.0`
