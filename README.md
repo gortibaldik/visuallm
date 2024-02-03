@@ -7,7 +7,7 @@
 
 ![example workflow](https://github.com/gortibaldik/visuallm/actions/workflows/python-test.yaml/badge.svg)
 
-## VERSION: `0.4.4`
+## VERSION: `0.4.5`
 
 - reload all the elements on button press
 - route changes handled by `:key` attribute (to follow the actual best practices, improves scrolling experience)
