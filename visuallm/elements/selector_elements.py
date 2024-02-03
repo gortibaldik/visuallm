@@ -218,8 +218,7 @@ class SelectorSubElement(ABC, Generic[SelectedType], Named):
             self._subtype,
             self.name,
             {
-                # TODO: rename selected on frontend
-                "selected": self._value_on_backend,
+                "selected": self.value_on_backend,
                 "text": self._text,
                 **self.construct_subelement_specifics(),
             },
@@ -485,7 +484,13 @@ class TextInputSubElement(SelectorSubElement[str]):
 
 
 class MultiRadioSubElement(SelectorSubElement[str]):
-    def __init__(self, choices: list[str], text: str, is_horizontal: bool = True):
+    def __init__(
+        self,
+        choices: list[str],
+        text: str,
+        is_horizontal: bool = True,
+        deselect: bool = False,
+    ):
         """Display a series of radio buttons, either in horizontal or vertical direction.
 
         Args:
@@ -495,12 +500,20 @@ class MultiRadioSubElement(SelectorSubElement[str]):
             text (str): query written just in front of the choices
             is_horizontal (bool, optional): whether the choices will be organized
                 horizontally or vertically on the frontend. Defaults to True.
+            deselect (bool, optional): whether to reset the multi radio to "nothing selected" on
+                each button press. (Beware, if you choose this option then the `value_on_backend` will
+                always be "", and you will be able to get to the user response only through
+                `value_from_frontend`)
         """
         if len(choices) == 0:
             raise ValueError("choices cannot be an empty list.")
-        super().__init__("multi-radio", text=text, default_value=choices[0])
+        default_value = choices[0]
+        if deselect:
+            default_value = ""
+        super().__init__("multi-radio", text=text, default_value=default_value)
         self._choices = choices
         self._is_horizontal = is_horizontal
+        self._deselect = deselect
 
     @property
     def choices(self) -> list[str]:
@@ -512,17 +525,31 @@ class MultiRadioSubElement(SelectorSubElement[str]):
             self.force_set_updated()
         self._choices = value
 
+    def _set_value_from_frontend(self, value: str):
+        if value != self._value_on_backend:
+            self.force_set_updated()
+        if self._deselect:
+            self._value_on_backend = ""
+        else:
+            self._value_on_backend = value
+        self._value_from_frontend = value
+
     @property
     def value_from_frontend(self):
         return self.value_from_frontend_getter()
 
     @property
     def value_on_backend(self):
-        return self.value_on_backend_getter()
+        val = self.value_on_backend_getter()
+        return val
 
     @value_on_backend.setter
     def value_on_backend(self, value: str):
         self.value_on_backend_setter(value)
 
     def construct_subelement_specifics(self) -> dict[str, Any]:
-        return {"choices": self._choices, "is_horizontal": self._is_horizontal}
+        return {
+            "choices": self._choices,
+            "is_horizontal": self._is_horizontal,
+            "random_number": secrets.randbelow(int(1e7)),
+        }

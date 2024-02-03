@@ -36,6 +36,9 @@ let component = defineComponent({
         },
         isHorizontal(): boolean {
             return dataSharedInComponent[getSharedDataUniqueName(this.name, 'isHorizontal')]
+        },
+        randomNumber(): number {
+            return dataSharedInComponent[getSharedDataUniqueName(this.name, 'randomNumber')]
         }
     },
     watch: {
@@ -45,9 +48,13 @@ let component = defineComponent({
             },
             immediate: true
         },
-        defaultSelected: {
-            handler(newValue: string) {
-                this.selected = newValue
+        // hack section: thanks to `randomNumber` even if `defaultSelected` is kept the same
+        // it will still be reflected in `selected`. The backend sends new `randomNumber` on
+        // each request, which is a way to notify the component of a new value arrived from the
+        // backend.
+        randomNumber: {
+            handler(newValue: number) {
+                this.selected = this.defaultSelected
             },
             immediate: true
         }
@@ -60,7 +67,7 @@ let subtype = 'multi-radio'
 export { subtype }
 
 export function processSubElementConfiguration(this_name: string, subElementConfiguration: any) {
-    let requiredValues = { choices: 'choices', selected: 'defaultSelected', text: 'text', is_horizontal: "isHorizontal"} as {[key: string] : string}
+    let requiredValues = { choices: 'choices', selected: 'defaultSelected', text: 'text', is_horizontal: "isHorizontal", random_number: "randomNumber"} as {[key: string] : string}
     valuesRequiredInConfiguration(subElementConfiguration, Object.keys(requiredValues))
     return assignRequiredValuesToSharedData(this_name, subElementConfiguration, requiredValues)
 }
